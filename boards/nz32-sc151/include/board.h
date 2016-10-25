@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Freie Universität Berlin
+ * Copyright (C) 2015 Hamburg University of Applied Sciences
  *
  * This file is subject to the terms and conditions of the GNU Lesser General
  * Public License v2.1. See the file LICENSE in the top level directory for more
@@ -7,35 +7,47 @@
  */
 
 /**
- * @defgroup    boards_nucleo-l1 Nucleo-L1
+ * @defgroup    boards_limifrog-v1 LimiFrog Version 1
  * @ingroup     boards
- * @brief       Board specific files for the nucleo-l1 board.
+ * @brief       Board specific files for the limifrog-v1 board.
  * @{
  *
  * @file
- * @brief       Board specific definitions for the nucleo-l1 board.
+ * @brief       Board specific definitions for the limifrog-v1  board.
  *
- * @author      Thomas Eichinger <thomas.eichinger@fu-berlin.de>
+ * @author      Katja Kirstein <katja.kirstein@haw-hamburg.de>
  */
 
 #ifndef BOARD_H_
 #define BOARD_H_
 
-#include "board_common.h"
+#include <stdint.h>
+
+#include "cpu.h"
+#include "periph_conf.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * @name xtimer configuration
+ * @brief   USER LED pin definitions and handlers
  * @{
  */
-#define XTIMER_DEV          TIMER_DEV(0)
-#define XTIMER_CHAN         (0)
-#define XTIMER_OVERHEAD     (6)
-#define XTIMER_BACKOFF      (3)
-/** @} */
+#define LED0_PIN            GPIO_PIN(PORT_B, 2)
+
+#define LED0_PORT           (GPIOB)
+#define LED0_MASK           (1 << 2)
+
+#define LED0_ON             (LED0_PORT->BSRRL = LED0_MASK)
+#define LED0_OFF            (LED0_PORT->BSRRH = LED0_MASK)
+#define LED0_TOGGLE         (LED0_PORT->ODR  ^= LED0_MASK)
+ /** @} */
+
+/**
+ * @brief Initialize board specific hardware, including clock, LEDs and std-IO
+ */
+void board_init(void);
 
 #ifdef __cplusplus
 }
