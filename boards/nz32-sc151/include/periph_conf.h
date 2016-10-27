@@ -44,11 +44,48 @@ extern "C" {
 #define CLOCK_FLASH_LATENCY FLASH_ACR_LATENCY
 /** @} */
 
-/**
- * @brief   DAC configuration
- * @{
- */
-#define DAC_NUMOF           (0)
+// /**
+//  * @brief   ADC configuration
+//  * @{
+//  */
+// #define ADC_CONFIG {            \
+//     { GPIO_PIN(PORT_A, 0), 0 },\
+//     { GPIO_PIN(PORT_A, 1), 1 },\
+//     //{ GPIO_PIN(PORT_A, 2), 2 },\
+//     //{ GPIO_PIN(PORT_A, 3), 3 },\
+//     //{ GPIO_PIN(PORT_A, 4), 4 },\
+//     //{ GPIO_PIN(PORT_A, 5), 5 },\
+//     { GPIO_PIN(PORT_A, 6), 6 },\
+//     { GPIO_PIN(PORT_A, 7), 7 },\
+//     { GPIO_PIN(PORT_A, 4), 4 },\
+//     { GPIO_PIN(PORT_B, 0), 8 },\
+//     { GPIO_PIN(PORT_B, 1), 9 },\
+//     { GPIO_PIN(PORT_B, 12), 18 },\
+//     //{ GPIO_PIN(PORT_B, 13), 19 },\
+//     //{ GPIO_PIN(PORT_B, 14), 20 },\
+//     //{ GPIO_PIN(PORT_B, 15), 21 },\
+//     { GPIO_PIN(PORT_C, 0), 10 },\
+//     { GPIO_PIN(PORT_C, 1), 11 },\
+//     { GPIO_PIN(PORT_C, 2), 12 },\
+//     { GPIO_PIN(PORT_C, 3), 13 },\
+//     //{ GPIO_PIN(PORT_C, 5), 15 },\
+//     { GPIO_PIN(PORT_C, 4), 14 } \
+// }
+
+// #define ADC_NUMOF           (13)
+
+// /** @} */
+
+// /**
+//  * @brief   DAC configuration
+//  * @{
+//  */
+// #define DAC_CONFIG {                \
+//     { GPIO_PIN(PORT_A, 4), 1},  \
+//     { GPIO_PIN(PORT_A, 5), 2},  \
+// }
+
+// #define DAC_NUMOF           (2)
 /** @} */
 
 /**
@@ -57,10 +94,14 @@ extern "C" {
  */
 static const timer_conf_t timer_config[] = {
     /* device, RCC bit, IRQ bit */
+    {TIM2, 0, TIM2_IRQn},
+    {TIM3, 1, TIM3_IRQn},
     {TIM5, 3, TIM5_IRQn},
 };
 /* interrupt routines */
 #define TIMER_0_ISR         (isr_tim5)
+#define TIMER_1_ISR         (isr_tim2)
+#define TIMER_2_ISR         (isr_tim3)
 /* number of defined timers */
 #define TIMER_NUMOF         (sizeof(timer_config) / sizeof(timer_config[0]))
 /** @} */
@@ -69,9 +110,10 @@ static const timer_conf_t timer_config[] = {
  * @brief UART configuration
  * @{
  */
-#define UART_NUMOF          (2U)
+#define UART_NUMOF          (UART_0_EN + UART_1_EN + UART_2_EN )
 #define UART_0_EN           1
 #define UART_1_EN           1
+#define UART_2_EN           1
 #define UART_IRQ_PRIO       1
 
 /* UART 0 device configuration */
@@ -87,16 +129,29 @@ static const timer_conf_t timer_config[] = {
 #define UART_0_AF           GPIO_AF7
 
 /* UART 1 device configuration */
-#define UART_1_DEV          USART1       
-#define UART_1_CLKEN()      (RCC->APB2ENR |= RCC_APB2ENR_USART1EN)
+#define UART_1_DEV          USART2       
+#define UART_1_CLKEN()      (RCC->APB1ENR |= RCC_APB1ENR_USART2EN)
 #define UART_1_CLK          (CLOCK_CORECLOCK)
-#define UART_1_IRQ          USART1_IRQn
-#define UART_1_ISR          isr_usart1
-#define UART_0_BUS_FREQ     32000000
+#define UART_1_IRQ          USART2_IRQn
+#define UART_1_ISR          isr_usart2
+#define UART_1_BUS_FREQ     32000000
 /* UART 1 pin configuration */
-#define UART_1_RX_PIN       GPIO_PIN(PORT_A, 10)
-#define UART_1_TX_PIN       GPIO_PIN(PORT_A, 9)
+#define UART_1_RX_PIN       GPIO_PIN(PORT_A, 2)
+#define UART_1_TX_PIN       GPIO_PIN(PORT_A, 1)
 #define UART_1_AF           GPIO_AF7
+/** @} */
+
+/* UART 1 device configuration */
+#define UART_2_DEV          USART1       
+#define UART_2_CLKEN()      (RCC->APB2ENR |= RCC_APB2ENR_USART1EN)
+#define UART_2_CLK          (CLOCK_CORECLOCK)
+#define UART_2_IRQ          USART1_IRQn
+#define UART_2_ISR          isr_usart1
+#define UART_2_BUS_FREQ     32000000
+/* UART 1 pin configuration */
+#define UART_2_RX_PIN       GPIO_PIN(PORT_A, 10)
+#define UART_2_TX_PIN       GPIO_PIN(PORT_A, 9)
+#define UART_2_AF           GPIO_AF7
 /** @} */
 
 /**
@@ -141,9 +196,9 @@ static const timer_conf_t timer_config[] = {
  * @name I2C configuration
   * @{
  */
+#define I2C_NUMOF           (I2C_0_EN + I2C_1_EN)
 #define I2C_0_EN            1
 #define I2C_1_EN            1
-#define I2C_NUMOF           (I2C_0_EN + I2C_1_EN)
 #define I2C_IRQ_PRIO        1
 #define I2C_APBCLK          (36000000U)          // Configurable from 2MHz to 50Mhz, steps of 2Mhz     
 
@@ -163,6 +218,13 @@ static const i2c_conf_t i2c_config[] = {
      GPIO_OD_PU, GPIO_AF4, I2C2_ER_IRQn, I2C2_EV_IRQn},
 };
 
+/** @} */
+
+/**
+ * @name RTC configuration
+ * @{
+ */
+#define RTC_NUMOF           (1U)
 /** @} */
 
 #ifdef __cplusplus
