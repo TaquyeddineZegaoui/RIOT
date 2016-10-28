@@ -25,7 +25,7 @@
 #define SX1276_RADIO_WAKEUP_TIME                           1000        /**< [us] */
 #define SX1276_RX_BUFFER_SIZE                              256
 #define SX1276_RF_MID_BAND_THRESH                          525000000
-#define SX1276_CHANNEL_HF                                  868000000
+#define SX1276_CHANNEL_HF                                  915000000
 
 #define SX1276_EVENT_HANDLER_STACK_SIZE 2048
 
