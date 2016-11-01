@@ -98,6 +98,29 @@ typedef struct {
 } dac_conf_t;
 
 /**
+ * @brief   ADC channel configuration data
+ */
+typedef struct {
+    gpio_t pin;             /**< pin connected to the channel */
+    uint8_t chan;           /**< CPU ADC channel connected to the pin */
+} adc_conf_t;
+
+/**
+ * @brief   Override the ADC resolution configuration
+ * @{
+ */
+#define HAVE_ADC_RES_T
+typedef enum {
+    ADC_RES_6BIT  = 0x03000000,  /**< ADC resolution: 6 bit */
+    ADC_RES_8BIT  = 0x02000000,  /**< ADC resolution: 8 bit */
+    ADC_RES_10BIT = 0x01000000,  /**< ADC resolution: 10 bit */
+    ADC_RES_12BIT = 0x00000000,  /**< ADC resolution: 12 bit */
+    ADC_RES_14BIT = 1,           /**< ADC resolution: 14 bit (not supported) */
+    ADC_RES_16BIT = 2            /**< ADC resolution: 16 bit (not supported)*/
+} adc_res_t;
+/** @} */
+
+/**
  * @brief   Configure the alternate function for the given pin
  *
  * @note    This is meant for internal use in STM32L1 peripheral drivers only
@@ -108,13 +131,42 @@ typedef struct {
 void gpio_init_af(gpio_t pin, gpio_af_t af);
 
 /**
- * @brief   Timer configuration data structure
+ * @brief   Configure the given pin to be used as ADC input
+ *
+ * @param[in] pin       pin to configure
+ */
+void gpio_init_analog(gpio_t pin);
+
+/**
+ * @name    PWM configuration
+ * @{
+ */
+typedef struct {
+    uint8_t tim;            /**< timer used */
+    GPIO_TypeDef *port;     /**< pwm device */
+    uint32_t rcc_mask;      /**< corresponding bit in the RCC register */
+    uint8_t CH0;            /**< channel 0 */
+    uint8_t CH1;            /**< channel 1 */
+    uint8_t CH2;            /**< channel 2 */
+    uint8_t CH3;            /**< channel 3 */
+    uint8_t AF;             /**< alternate function */
+} pwm_conf_t;
+
+
+/**
+ * @brief   Timer configuration
+ * @{
  */
 typedef struct {
     TIM_TypeDef *dev;       /**< timer device */
-    uint8_t rcc;            /**< bit in the RCC register */
-    uint8_t irqn;           /**< IRQ vector entry number */
+    uint8_t channels;       /**< number of channel */
+    uint32_t freq;          /**< frequency */
+    uint32_t rcc_mask;      /**< corresponding bit in the RCC register */
+    uint8_t bus;            /**< APBx bus the timer is clock from */
+    uint8_t irqn;           /**< global IRQ channel */
+    uint8_t priority;       /**< priority */
 } timer_conf_t;
+/** @} */
 
 /**
  * @brief   I2C configuration data structure

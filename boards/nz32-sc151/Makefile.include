@@ -15,8 +15,8 @@ export FLASHER = dfu-util
 export DEBUGGER = # spark core has no debugger
 export RESET = # dfu-util has no support for resetting the device
 
-export OFLAGS = -O binary
-#export OFLAGS = -O ihex
+#export OFLAGS = -O binary
+export OFLAGS = -O ihex
 export FFLAGS = -d $(ID) -a 0 -s 0x08005000:leave -D "$(HEXFILE)"
 export TERMFLAGS = -p $(PORT)
 
