@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Engineering-Spirit
+ * Copyright (C) 2016 Fundacion Inria Chile
  *
  * This file is subject to the terms and conditions of the GNU Lesser General
  * Public License v2.1. See the file LICENSE in the top level directory for more
@@ -13,6 +13,7 @@
  * @file
  * @brief       Low-level ADC driver implementation
  *
+ * @author      Francisco Molina <francisco.molina@inria.cl>
  * @author      Hauke Petersen <hauke.petersen@fu-berlin.de>
  * @author      Nick v. IJzendoorn <nijzendoorn@engineering-spirit.nl>
  *
@@ -108,7 +109,10 @@ int adc_sample(adc_t line, adc_res_t res)
 
     /* set resolution and conversion channel */
     ADC1->CR1 = res;
-    ADC1->SQR3 = adc_config[line].chan;
+    ADC1->SQR5 = adc_config[line].chan;
+
+    /* wait for regulat channel to be ready*/
+    while (!(ADC1->SR & ADC_SR_RCNR)) {}
     /* start conversion and wait for results */
     ADC1->CR2 |= ADC_CR2_SWSTART;
     while (!(ADC1->SR & ADC_SR_EOC)) {}

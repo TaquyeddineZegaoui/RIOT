@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Hamburg University of Applied Sciences
+ * Copyright (C) 2016 Fundacion Inria Chile
  *
  * This file is subject to the terms and conditions of the GNU Lesser General
  * Public License v2.1. See the file LICENSE in the top level directory for more
@@ -7,15 +7,15 @@
  */
 
 /**
- * @defgroup    boards_limifrog-v1 LimiFrog Version 1
+ * @defgroup    boards_nz32-sc151
  * @ingroup     boards
- * @brief       Board specific files for the limifrog-v1 board.
+ * @brief       Board specific files for the nz32-sc151 board.
  * @{
  *
  * @file
- * @brief       Board specific definitions for the limifrog-v1  board.
+ * @brief       Board specific definitions for the nz32-sc151 board.
  *
- * @author      Katja Kirstein <katja.kirstein@haw-hamburg.de>
+ * @author      Francisco Molina <francisco.molina@inria.cl>
  */
 
 #ifndef BOARD_H_

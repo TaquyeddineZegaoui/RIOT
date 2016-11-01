@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Hamburg University of Applied Sciences
+ * Copyright (C) 2016 Fundacion Inria Chile
  *
  * This file is subject to the terms and conditions of the GNU Lesser General
  * Public License v2.1. See the file LICENSE in the top level directory for more
@@ -7,13 +7,13 @@
  */
 
 /**
- * @ingroup     boards_nz32-sc151
+ * @ingroup     nz32-sc151
  * @{
  *
  * @file
  * @brief       Peripheral MCU configuration for the limifrog-v1 board
  *
- * @author      Katja Kirstein <katja.kirstein@haw-hamburg.de>
+ * @author      Francisco Molina <francisco.molina@inria.cl>
  */
 
 #ifndef PERIPH_CONF_H_
@@ -82,66 +82,21 @@ extern "C" {
  * @{
  */
 #define PWM_NUMOF         (PWM_0_EN )
-#define PWM_0_EN          1
-
-
-static const pwm_conf_t pwm_config[PWM_NUMOF] = {
-    {
-        .tim      = 2,
-        .port     = GPIOC,
-        .rcc_mask = RCC_AHBENR_GPIOCEN,
-        .CH0      = 6,
-        .CH1      = 7,
-        .CH2      = 8,
-        .CH3      = 9,
-        .AF       = 2
-    }
-};
+#define PWM_0_EN          0
 /** @} */
 
 /**
- * @name Timer configuration
+ * @brief Timer configuration
  * @{
  */
-#define TIMER_NUMOF         (TIMER_0_EN + TIMER_1_EN +TIMER_2_EN)
-#define TIMER_0_EN          1
-#define TIMER_1_EN          1
-#define TIMER_2_EN          1
-#define TIMER_IRQ_PRIO      1
-
-static const timer_conf_t timer_config[TIMER_NUMOF] = {
-    {
-        .dev      = TIM2,
-        .channels = 4,
-        .freq     = (CLOCK_APB1 * 2),
-        .rcc_mask = RCC_APB1ENR_TIM2EN,
-        .bus      = APB1,
-        .irqn     = TIM2_IRQn,
-        .priority = TIMER_IRQ_PRIO
-    },
-    {
-        .dev      = TIM5,
-        .channels = 4,
-        .freq     = (CLOCK_APB1 * 2),
-        .rcc_mask = RCC_APB1ENR_TIM5EN,
-        .bus      = APB1,
-        .irqn     = TIM5_IRQn,
-        .priority = TIMER_IRQ_PRIO
-    },
-    {
-        .dev      = TIM3,
-        .channels = 4,
-        .freq     = (CLOCK_APB1 * 2),
-        .rcc_mask = RCC_APB1ENR_TIM3EN,
-        .bus      = APB1,
-        .irqn     = TIM3_IRQn,
-        .priority = TIMER_IRQ_PRIO
-    }
+static const timer_conf_t timer_config[] = {
+    /* device, RCC bit, IRQ bit */
+    {TIM5, 3, TIM5_IRQn},
 };
-
-#define TIMER_0_ISR         isr_tim2
-#define TIMER_1_ISR         isr_tim5
-#define TIMER_2_ISR         isr_tim3
+/* interrupt routines */
+#define TIMER_0_ISR         (isr_tim5)
+/* number of defined timers */
+#define TIMER_NUMOF         (sizeof(timer_config) / sizeof(timer_config[0]))
 /** @} */
 
 /**

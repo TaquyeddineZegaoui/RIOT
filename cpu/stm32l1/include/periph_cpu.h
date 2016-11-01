@@ -152,21 +152,14 @@ typedef struct {
     uint8_t AF;             /**< alternate function */
 } pwm_conf_t;
 
-
 /**
- * @brief   Timer configuration
- * @{
+ * @brief   Timer configuration data structure
  */
 typedef struct {
     TIM_TypeDef *dev;       /**< timer device */
-    uint8_t channels;       /**< number of channel */
-    uint32_t freq;          /**< frequency */
-    uint32_t rcc_mask;      /**< corresponding bit in the RCC register */
-    uint8_t bus;            /**< APBx bus the timer is clock from */
-    uint8_t irqn;           /**< global IRQ channel */
-    uint8_t priority;       /**< priority */
+    uint8_t rcc;            /**< bit in the RCC register */
+    uint8_t irqn;           /**< IRQ vector entry number */
 } timer_conf_t;
-/** @} */
 
 /**
  * @brief   I2C configuration data structure
