@@ -78,14 +78,6 @@ extern "C" {
 /** @} */
 
 /**
- * @name PWM configuration
- * @{
- */
-#define PWM_NUMOF         (PWM_0_EN )
-#define PWM_0_EN          0
-/** @} */
-
-/**
  * @brief Timer configuration
  * @{
  */

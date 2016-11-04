@@ -16,6 +16,7 @@
  *
  * @author          Hauke Petersen <hauke.peterse@fu-berlin.de>
  * @author          Katja Kirstein <katja.kirstein@haw-hamburg.de>
+ * @author          Francisco Molina <francisco.molina@inria.cl>
  */
 
 #ifndef PERIPH_CPU_H
@@ -136,21 +137,6 @@ void gpio_init_af(gpio_t pin, gpio_af_t af);
  * @param[in] pin       pin to configure
  */
 void gpio_init_analog(gpio_t pin);
-
-/**
- * @name    PWM configuration
- * @{
- */
-typedef struct {
-    uint8_t tim;            /**< timer used */
-    GPIO_TypeDef *port;     /**< pwm device */
-    uint32_t rcc_mask;      /**< corresponding bit in the RCC register */
-    uint8_t CH0;            /**< channel 0 */
-    uint8_t CH1;            /**< channel 1 */
-    uint8_t CH2;            /**< channel 2 */
-    uint8_t CH3;            /**< channel 3 */
-    uint8_t AF;             /**< alternate function */
-} pwm_conf_t;
 
 /**
  * @brief   Timer configuration data structure
