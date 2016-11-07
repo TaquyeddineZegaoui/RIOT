@@ -1,0 +1,49 @@
+From 0f2b90578a03ac03db9114e5b651579f317cd116 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jos=C3=A9=20Alamos?= <jialamos@uc.cl>
+Date: Mon, 7 Nov 2016 16:04:14 -0300
+Subject: [PATCH] added TimerTime_t struct
+
+---
+ src/mac/LoRaMac-api-v3.c | 4 ++++
+ src/mac/LoRaMac.c        | 6 ++++++
+ 2 files changed, 10 insertions(+)
+
+diff --git a/src/mac/LoRaMac-api-v3.c b/src/mac/LoRaMac-api-v3.c
+index 9111960..d6b17c3 100644
+--- a/src/mac/LoRaMac-api-v3.c
++++ b/src/mac/LoRaMac-api-v3.c
+@@ -19,6 +19,10 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jä
+ */
+ #include "board.h"
+ 
++#ifndef TimerTime_t
++typedef uint32_t TimerTime_t;
++#endif
++
+ #include "LoRaMac-api-v3.h"
+ #include "LoRaMacTest.h"
+ 
+diff --git a/src/mac/LoRaMac.c b/src/mac/LoRaMac.c
+index fc8220b..b349872 100644
+--- a/src/mac/LoRaMac.c
++++ b/src/mac/LoRaMac.c
+@@ -19,10 +19,16 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jä
+ */
+ #include "board.h"
+ 
++
++#ifndef TimerTime_t
++typedef uint32_t TimerTime_t;
++#endif
++
+ #include "LoRaMacCrypto.h"
+ #include "LoRaMac.h"
+ #include "LoRaMacTest.h"
+ 
++
+ /*!
+  * Maximum PHY layer payload size
+  */
+-- 
+1.9.1
+
