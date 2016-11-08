@@ -5,23 +5,20 @@
  _____) ) ____| | | || |_| ____( (___| | | |
 (______/|_____)_|_|_| \__)_____)\____)_| |_|
     (C)2013 Semtech
-
-Description: Timer devects and scheduling management
-
+Description: Timer objects and scheduling management
 License: Revised BSD License, see LICENSE.TXT file include in the project
-
 Maintainer: Miguel Luis and Gregory Cristian
 */
 #ifndef __TIMER_H__
 #define __TIMER_H__
 
+/*!
+ * \brief Timer object description
+ */
 typedef struct TimerEvent_s
 {
-    uint32_t Timestamp;         //! Current timer value
-    uint32_t ReloadValue;       //! Timer delay value
-    bool IsRunning;             //! Is the timer currently running
-    void ( *Callback )( void ); //! Timer IRQ callback function
-    struct TimerEvent_s *Next;  //! Pointer to the next Timer object.
+    uint32_t tiemout;  
+    xtimer_t* dev;     
 }TimerEvent_t;
 
 /*!
@@ -103,4 +100,5 @@ TimerTime_t TimerGetFutureTime( TimerTime_t eventInFuture );
  * \brief Manages the entry into ARM cortex deep-sleep mode
  */
 void TimerLowPowerHandler( void );
+
 #endif  // __TIMER_H__
