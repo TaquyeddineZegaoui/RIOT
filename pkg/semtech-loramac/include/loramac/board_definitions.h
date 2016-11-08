@@ -25,11 +25,5 @@
  */
 #define RADIO_WAKEUP_TIME ( RADIO_OSC_STARTUP + RADIO_SLEEP_TO_RX )
 
-void srand1( uint32_t seed );
-void memcpyr( uint8_t *dst, const uint8_t *src, uint16_t size );
-void memset1( uint8_t *dst, uint8_t value, uint16_t size );
-int32_t randr( int32_t min, int32_t max );
-void memcpy1( uint8_t *dst, const uint8_t *src, uint16_t size );
-
 #endif
 
