@@ -20,8 +20,8 @@ Maintainer: Miguel Luis and Gregory Cristian
 typedef struct TimerEvent_s
 {
     uint32_t timeout;  
-    xtimer_t* dev;     
-
+    xtimer_t* dev;
+}TimerEvent_t;
 
 /*!
  * \brief Timer time variable definition
