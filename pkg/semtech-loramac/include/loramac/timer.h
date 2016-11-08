@@ -32,15 +32,15 @@ typedef uint32_t TimerTime_t;
 #endif
 
 /*!
- * \brief Initializes the timer devect
+ * \brief Initializes the timer object
  *
  * \remark TimerSetValue function must be called before starting the timer.
  *         this function initializes timestamp and reload value at 0.
  *
- * \param [IN] dev          Structure containing the timer devect parameters
+ * \param [IN] obj          Structure containing the timer object parameters
  * \param [IN] callback     Function callback called at the end of the timeout
  */
-void TimerInit( xtimer_t *dev, xtimer_callback_t cb);
+void TimerInit( TimerEvent_t *obj, void ( *callback )( void ) );
 
 /*!
  * Timer IRQ event handler
@@ -48,33 +48,33 @@ void TimerInit( xtimer_t *dev, xtimer_callback_t cb);
 void TimerIrqHandler( void );
 
 /*!
- * \brief Starts and adds the timer devect to the list of timer events
+ * \brief Starts and adds the timer object to the list of timer events
  *
- * \param [IN] dev Structure containing the timer devect parameters
+ * \param [IN] obj Structure containing the timer object parameters
  */
-void TimerStart( xtimer_t *dev );
+void TimerStart( TimerEvent_t *obj );
 
 /*!
- * \brief Stops and removes the timer devect from the list of timer events
+ * \brief Stops and removes the timer object from the list of timer events
  *
- * \param [IN] dev Structure containing the timer devect parameters
+ * \param [IN] obj Structure containing the timer object parameters
  */
-void TimerStop( xtimer_t *dev );
+void TimerStop( TimerEvent_t *obj );
 
 /*!
- * \brief Resets the timer devect
+ * \brief Resets the timer object
  *
- * \param [IN] dev Structure containing the timer devect parameters
+ * \param [IN] obj Structure containing the timer object parameters
  */
-void TimerReset( xtimer_t *dev );
+void TimerReset( TimerEvent_t *obj );
 
 /*!
  * \brief Set timer new timeout value
  *
- * \param [IN] dev   Structure containing the timer devect parameters
+ * \param [IN] obj   Structure containing the timer object parameters
  * \param [IN] value New timer timeout value
  */
-void TimerSetValue( xtimer_t *dev, uint32_t value );
+void TimerSetValue( TimerEvent_t *obj, uint32_t value );
 
 /*!
  * \brief Read the current time
@@ -103,5 +103,4 @@ TimerTime_t TimerGetFutureTime( TimerTime_t eventInFuture );
  * \brief Manages the entry into ARM cortex deep-sleep mode
  */
 void TimerLowPowerHandler( void );
-
 #endif  // __TIMER_H__
