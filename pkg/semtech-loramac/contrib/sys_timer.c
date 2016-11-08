@@ -12,8 +12,10 @@ License: Revised BSD License, see LICENSE.TXT file include in the project
  
 Maintainer: Miguel Luis and Gregory Cristian
 */
-#include "board.h"
+
+#include "loramac/board_definitions.h"
 #include "xtimer.h"
+
 
 void TimerInit( TimerEvent_t *obj, void ( *callback )( void ) )
 {
