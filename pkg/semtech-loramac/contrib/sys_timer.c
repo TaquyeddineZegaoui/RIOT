@@ -17,16 +17,16 @@ Maintainer: Miguel Luis and Gregory Cristian
 #include "xtimer.h"
 
 
-void TimerInit( TimerEvent_t *obj, void ( *callback )( void ) )
+void TimerInit( TimerEvent_t *obj, void ( *cb )( void ) )
 {
     obj->dev->target = 0;
-    obj->dev->callback = callback;
+    obj->dev->callback = (xtimer_callback_t) cb;
 }
 
 void TimerReset( TimerEvent_t *obj )
 {
-    TimerStop();
-    TimerStart();
+    TimerStop(obj);
+    TimerStart(obj);
 }
  
 void TimerStart( TimerEvent_t *obj )
@@ -47,19 +47,19 @@ void TimerSetValue( TimerEvent_t *obj, uint32_t value )
 
 TimerTime_t TimerGetCurrentTime( void )
 {
-    uint64_t CurrentTime += xtimer_now();
+    uint64_t CurrentTime = xtimer_now();
     return ( ( TimerTime_t )CurrentTime );
 }
  
 TimerTime_t TimerGetElapsedTime( TimerTime_t savedTime )
 {
-    uint64_t CurrentTime += xtimer_now();
+    uint64_t CurrentTime = xtimer_now();
     return ( TimerTime_t )( CurrentTime - savedTime );
 }
  
 TimerTime_t TimerGetFutureTime( TimerTime_t eventInFuture )
 {
-    uint64_t CurrentTime += xtimer_now();
+    uint64_t CurrentTime = xtimer_now();
     return ( TimerTime_t )( CurrentTime + eventInFuture );
 }
  

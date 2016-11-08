@@ -11,6 +11,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 */
 #ifndef __TIMER_H__
 #define __TIMER_H__
+
 #include "xtimer.h"
 
 /*!
@@ -18,7 +19,7 @@ Maintainer: Miguel Luis and Gregory Cristian
  */
 typedef struct TimerEvent_s
 {
-    uint32_t tiemout;  
+    uint32_t timeout;  
     xtimer_t* dev;     
 }TimerEvent_t;
 
