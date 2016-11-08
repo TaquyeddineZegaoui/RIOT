@@ -31,7 +31,7 @@ DEALINGS WITH THE SOFTWARE
 #ifndef _CMAC_H_
 #define _CMAC_H_
 
-#include "aes.h" 
+#include "loramac/aes.h" 
   
 #define AES_CMAC_KEY_LENGTH     16
 #define AES_CMAC_DIGEST_LENGTH  16
