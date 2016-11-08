@@ -7,5 +7,7 @@
 typedef uint32_t TimerTime_t;
 #endif
 
+void memset1( uint8_t *dst, uint8_t value, uint16_t size );
+
 #endif
 
