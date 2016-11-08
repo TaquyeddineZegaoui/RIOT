@@ -11,6 +11,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 */
 #ifndef __TIMER_H__
 #define __TIMER_H__
+#include "xtimer.h"
 
 /*!
  * \brief Timer object description
