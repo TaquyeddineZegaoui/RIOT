@@ -19,7 +19,7 @@ typedef struct TimerEvent_s
 {
     uint32_t tiemout;  
     xtimer_t* dev;     
-}TimerEvent_t;
+
 
 /*!
  * \brief Timer time variable definition
