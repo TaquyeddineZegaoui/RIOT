@@ -58,22 +58,24 @@ void cmac_update(cmac_context *ctx, const void *data, size_t len)
     uint8_t c;
     while(len)
     {
+        if (ctx->M_n == 16)
+        {
+            ctx->M_n = 0;
+            //A block was generated. Do AES and stuff
+            XOR128(ctx->M_last, ctx->X);
+            cipher_encrypt(&ctx->aes_ctx, ctx->X, d);
+            memcpy(ctx->X, d, CMAC_BLOCK_SIZE);
+        }
         //Copy data until multiple of 128 bits
         c = MIN(CMAC_BLOCK_SIZE-ctx->M_n, len);
         memcpy(ctx->M_last+ctx->M_n, data, c);
         ctx->M_n += c;
         len -= c;
         data = (void*) (((uint8_t*) data) + c);
-        if(ctx->M_n > 16) ctx->M_n = 0;
 
         //Exit in case no block is processed
         if(ctx->M_n < CMAC_BLOCK_SIZE)
             break;
-
-        //A block was generated. Do AES and stuff
-        XOR128(ctx->M_last, ctx->X);
-        cipher_encrypt(&ctx->aes_ctx, ctx->X, d);
-        memcpy(ctx->X, d, CMAC_BLOCK_SIZE);
     }
 }
 
