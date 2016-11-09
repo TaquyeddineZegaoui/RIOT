@@ -60,7 +60,7 @@ void cmac_update(cmac_context *ctx, const void *data, size_t len)
         memcpy(ctx->M_last+ctx->M_n, data, c);
         ctx->M_n += c;
         len -= c;
-        data += c;
+        data = (void*) (((uint8_t*) data) + c);
 
         //Exit in case no block is processed
         if(ctx->M_n < CMAC_BLOCK_SIZE)
