@@ -19,9 +19,11 @@
  */
 
 
+#include <stdio.h>
 #include "hashes/cmac.h"
 #include <inttypes.h>
-#include "crypto/aes.h"
+#include "crypto/ciphers.h"
+#include <string.h>
 
 #define XOR128(x,y) do { \
     uint8_t i; \
@@ -45,7 +47,7 @@ void cmac_init(cmac_context *ctx, const uint8_t *key, uint8_t keySize)
     //TODO: Add proper errors
     memset(ctx->X, 0, CMAC_BLOCK_SIZE);
     ctx->M_n = 0;
-    aes_init(&(ctx->aes_ctx), key, keySize);
+    cipher_init(&(ctx->aes_ctx), CIPHER_AES_128, key, keySize);
 }
 
 
@@ -68,7 +70,7 @@ void cmac_update(cmac_context *ctx, const void *data, size_t len)
 
         //A block was generated. Do AES and stuff
         XOR128(ctx->M_last, ctx->X);
-        aes_encrypt(&ctx->aes_ctx, ctx->X, d);
+        cipher_encrypt(&ctx->aes_ctx, ctx->X, d);
         memcpy(ctx->X, d, CMAC_BLOCK_SIZE);
         ctx->M_n = 0;
     }
@@ -81,7 +83,8 @@ void cmac_final(cmac_context *ctx, void *digest)
     uint8_t L[CMAC_BLOCK_SIZE];
 
     memset(K, 0, CMAC_BLOCK_SIZE);
-    aes_encrypt(&ctx->aes_ctx, K, L);
+    cipher_encrypt(&ctx->aes_ctx, K, L);
+
     if(L[0] & 0x80)
     {
         LEFTSHIFT(L, K);
@@ -110,6 +113,6 @@ void cmac_final(cmac_context *ctx, void *digest)
     }
     XOR128(K, ctx->M_last);
     XOR128(ctx->M_last, ctx->X);
-    aes_encrypt(&ctx->aes_ctx, ctx->X, L);
+    cipher_encrypt(&ctx->aes_ctx, ctx->X, L);
     memcpy(digest, ctx->X, CMAC_BLOCK_SIZE);
 }

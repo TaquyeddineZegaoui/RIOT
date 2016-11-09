@@ -21,10 +21,11 @@
 
 //TODO: Add source
 
-#include "crypto/aes.h"
+#include "crypto/ciphers.h"
+#include <stdio.h>
 #define CMAC_BLOCK_SIZE 16
 typedef struct _AES_CMAC_CTX {
-            cipher_context_t    aes_ctx;
+            cipher_t    aes_ctx;
             uint8_t        X[CMAC_BLOCK_SIZE];
             /** last block **/
             uint8_t        M_last[CMAC_BLOCK_SIZE];
