@@ -46,6 +46,7 @@ void cmac_init(cmac_context *ctx, const uint8_t *key, uint8_t keySize)
 {
     //TODO: Add proper errors
     memset(ctx->X, 0, CMAC_BLOCK_SIZE);
+    memset(ctx->M_last, 0, CMAC_BLOCK_SIZE);
     ctx->M_n = 0;
     cipher_init(&(ctx->aes_ctx), CIPHER_AES_128, key, keySize);
 }
@@ -63,6 +64,7 @@ void cmac_update(cmac_context *ctx, const void *data, size_t len)
         ctx->M_n += c;
         len -= c;
         data = (void*) (((uint8_t*) data) + c);
+        if(ctx->M_n > 16) ctx->M_n = 0;
 
         //Exit in case no block is processed
         if(ctx->M_n < CMAC_BLOCK_SIZE)
@@ -72,7 +74,6 @@ void cmac_update(cmac_context *ctx, const void *data, size_t len)
         XOR128(ctx->M_last, ctx->X);
         cipher_encrypt(&ctx->aes_ctx, ctx->X, d);
         memcpy(ctx->X, d, CMAC_BLOCK_SIZE);
-        ctx->M_n = 0;
     }
 }
 
@@ -95,7 +96,7 @@ void cmac_final(cmac_context *ctx, void *digest)
         LEFTSHIFT(L, K);
     }
 
-    if(ctx->M_n != 0)
+    if(ctx->M_n != 16)
     {
         //Generate K2
         if(K[0] & 0x80)
@@ -114,5 +115,5 @@ void cmac_final(cmac_context *ctx, void *digest)
     XOR128(K, ctx->M_last);
     XOR128(ctx->M_last, ctx->X);
     cipher_encrypt(&ctx->aes_ctx, ctx->X, L);
-    memcpy(digest, ctx->X, CMAC_BLOCK_SIZE);
+    memcpy(digest, L, CMAC_BLOCK_SIZE);
 }
