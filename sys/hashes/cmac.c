@@ -31,6 +31,14 @@
 } while(0)
 
 #define MIN(a,b) a < b ? a : b
+#define LEFTSHIFT(x, y) do { \
+    uint8_t i; \
+    for(i=0;i<15;i++) \
+    { \
+        (y)[i] = ((x)[i] << 1) | ((x)[i+1] >> 7); \
+    } \
+    (y)[15] = (x)[15] << 1; \
+} while(0)
 
 void cmac_init(cmac_context *ctx, const uint8_t *key, uint8_t keySize)
 {
