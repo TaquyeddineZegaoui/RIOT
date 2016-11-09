@@ -21,11 +21,13 @@
 
 //TODO: Add source
 
+#include "crypto/aes.h"
+#define CMAC_BLOCK_SIZE 16
 typedef struct _AES_CMAC_CTX {
-            aes_context    aes;
-            uint8_t        X[16];
+            cipher_context_t    aes_ctx;
+            uint8_t        X[CMAC_BLOCK_SIZE];
             /** last block **/
-            uint8_t        M_last[16];
+            uint8_t        M_last[CMAC_BLOCK_SIZE];
             /** number of 128-bit blocks*/
             uint32_t       M_n;
 } cmac_context;
@@ -34,8 +36,10 @@ typedef struct _AES_CMAC_CTX {
  * @brief Initialize CMAC message digest context
  *
  * @param[in] ctx     Pointer to the CMAC context to initialize
+ * @param[in] key     Key to be set
+ * @param[in] key     Size of the key
  */
-void cmac_init(cmac_context *ctx);
+void cmac_init(cmac_context *ctx, const uint8_t *key, uint8_t keySize);
 
 /**
  * @brief Update the CMAC context with a portion of the message being hashed
