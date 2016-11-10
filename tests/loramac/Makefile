@@ -11,5 +11,7 @@ DRIVER ?= sx1276
 
 # include the selected driver
 USEMODULE += $(DRIVER)
+USEMODULE += hashes
+USEMODULE += crypto
 
 include $(RIOTBASE)/Makefile.include
