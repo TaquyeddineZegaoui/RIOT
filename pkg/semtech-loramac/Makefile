@@ -8,4 +8,13 @@ PKG_BUILDDIR ?= $(BINDIRBASE)/pkg/$(BOARD)/$(PKG_NAME)
 all: git-download
 	$(MAKE) -C $(PKG_BUILDDIR)
 
+
+DRIVER ?= sx1276
+
+# include the selected driver
+USEMODULE += $(DRIVER)
+
+include $(RIOTBASE)/drivers/Makefile.include
+
+
 include $(RIOTBASE)/pkg/pkg.mk
