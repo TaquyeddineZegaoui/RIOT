@@ -1,5 +1,8 @@
 #ifndef LORAMAC_RADIO_H_
 #define LORAMAC_RADIO_H_
+
+#include "sx1276.h"
+
 /*!
  * Radio driver supported modems
  */
@@ -300,4 +303,9 @@ struct Radio_s
  *         board implementation
  */
 extern const struct Radio_s Radio;
+
+sx1276_t* radio_get_ptr(void);
+
+void radio_set_ptr(sx1276_t* ptr);
+
 #endif
