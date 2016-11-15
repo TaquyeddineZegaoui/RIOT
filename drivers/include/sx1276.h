@@ -163,8 +163,7 @@ typedef struct {
 /**
  * SX1276 hardware and global parameters.
  */
-typedef struct sx1276_s {
-    netdev2_t netdev;
+typedef struct {
     spi_t spi;                                                          /**< SPI */
     gpio_t nss_pin;                                                     /**< SPI NSS pin */
 
@@ -176,7 +175,12 @@ typedef struct sx1276_s {
     gpio_t dio4_pin;                                                    /**< Interrupt line DIO4 (not used) */
     gpio_t dio5_pin;                                                    /**< Interrupt line DIO5 (not used) */
 
+} sx1276_params_t;
+
+typedef struct sx1276_s {
+    netdev2_t netdev;
     sx1276_settings_t settings;                                         /**< Transceiver settings */
+    sx1276_params_t params;
 
     void (*sx1276_event_cb)(void *dev, sx1276_event_type_t event_type); /**< Event callback */
     void *callback_arg;                                                 /**< User-defined callback argument */
