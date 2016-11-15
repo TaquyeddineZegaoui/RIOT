@@ -177,10 +177,13 @@ typedef struct {
 
 } sx1276_params_t;
 
+typedef uint8_t sx1276_flags_t;
+
 typedef struct sx1276_s {
     netdev2_t netdev;
     sx1276_settings_t settings;                                         /**< Transceiver settings */
     sx1276_params_t params;
+    sx1276_flags_t irq;
 
     void (*sx1276_event_cb)(void *dev, sx1276_event_type_t event_type); /**< Event callback */
     void *callback_arg;                                                 /**< User-defined callback argument */
