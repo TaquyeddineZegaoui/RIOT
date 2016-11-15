@@ -1068,79 +1068,13 @@ void sx1276_on_dio0(void *arg)
 {
     sx1276_t *dev = (sx1276_t *) arg;
 
-    volatile uint8_t irq_flags = 0;
-
     switch (dev->settings.state) {
         case SX1276_RF_RX_RUNNING:
             switch (dev->settings.modem) {
                 case SX1276_MODEM_LORA:
                 {
-                    int8_t snr = 0;
-
-                    /* Clear IRQ */
-                    sx1276_reg_write(dev,  SX1276_REG_LR_IRQFLAGS, SX1276_RF_LORA_IRQFLAGS_RXDONE);
-
-                    irq_flags = sx1276_reg_read(dev,  SX1276_REG_LR_IRQFLAGS);
-                    if ((irq_flags & SX1276_RF_LORA_IRQFLAGS_PAYLOADCRCERROR_MASK) == SX1276_RF_LORA_IRQFLAGS_PAYLOADCRCERROR) {
-                        sx1276_reg_write(dev,  SX1276_REG_LR_IRQFLAGS, SX1276_RF_LORA_IRQFLAGS_PAYLOADCRCERROR); /* Clear IRQ */
-
-                        if (!dev->settings.lora.rx_continuous) {
-                            sx1276_set_status(dev,  SX1276_RF_IDLE);
-                        }
-
-                        xtimer_remove(&dev->_internal.rx_timeout_timer);
-
-                        send_event(dev, SX1276_RX_ERROR_CRC);
-
-                        break;
-                    }
-
-                    sx1276_rx_packet_t *packet = &dev->_internal.last_packet;
-
-                    packet->snr_value = sx1276_reg_read(dev,  SX1276_REG_LR_PKTSNRVALUE);
-                    if (packet->snr_value & 0x80) { /* The SNR is negative */
-                        /* Invert and divide by 4 */
-                        snr = ((~packet->snr_value + 1) & 0xFF) >> 2;
-                        snr = -snr;
-                    }
-                    else {
-                        /* Divide by 4 */
-                        snr = (packet->snr_value & 0xFF) >> 2;
-                    }
-
-                    int16_t rssi = sx1276_reg_read(dev, SX1276_REG_LR_PKTRSSIVALUE);
-                    if (snr < 0) {
-                        if (dev->settings.channel > SX1276_RF_MID_BAND_THRESH) {
-                            packet->rssi_value = RSSI_OFFSET_HF + rssi + (rssi >> 4) + snr;
-                        }
-                        else {
-                            packet->rssi_value = RSSI_OFFSET_LF + rssi + (rssi >> 4) + snr;
-                        }
-                    }
-                    else {
-                        if (dev->settings.channel > SX1276_RF_MID_BAND_THRESH) {
-                            packet->rssi_value = RSSI_OFFSET_HF + rssi + (rssi >> 4);
-                        }
-                        else {
-                            packet->rssi_value = RSSI_OFFSET_LF + rssi + (rssi >> 4);
-                        }
-                    }
-
-                    packet->size = sx1276_reg_read(dev, SX1276_REG_LR_RXNBBYTES);
-
-                    if (!dev->settings.lora.rx_continuous) {
-                        sx1276_set_status(dev,  SX1276_RF_IDLE);
-                    }
-
-                    xtimer_remove(&dev->_internal.rx_timeout_timer);
-
-                    /* Read the last packet from FIFO */
-                    uint8_t last_rx_addr = sx1276_reg_read(dev, SX1276_REG_LR_FIFORXCURRENTADDR);
-                    sx1276_reg_write(dev, SX1276_REG_LR_FIFOADDRPTR, last_rx_addr);
-                    sx1276_read_fifo(dev, (uint8_t *) packet->content, packet->size);
-
-                    /* Notify application about new packet received */
-                    send_event(dev, SX1276_RX_DONE);
+                    netdev2_t *netdev = (netdev2_t*) arg;
+                    dev->event_callback(netdev, NETDEV2_EVENT_RX_COMPLETE);
                 }
                 break;
                 default:
@@ -1153,7 +1087,7 @@ void sx1276_on_dio0(void *arg)
             sx1276_reg_write(dev, SX1276_REG_LR_IRQFLAGS, SX1276_RF_LORA_IRQFLAGS_TXDONE);   /* Clear IRQ */
             sx1276_set_status(dev,  SX1276_RF_IDLE);
 
-            send_event(dev, SX1276_TX_DONE);
+            dev->event_callback(netdev, NETDEV2_EVENT_TX_COMPLETE);
             break;
         default:
             break;

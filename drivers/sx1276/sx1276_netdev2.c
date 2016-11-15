@@ -22,6 +22,7 @@ static int _send(netdev2_t *netdev, const struct iovec *vector, unsigned count);
 static int _recv(netdev2_t *netdev, void *buf, size_t len, void *info);
 static int _init(netdev2_t *netdev);
 static void _isr(netdev2_t *netdev);
+/*TODO: Implement _get and _set*/
 static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len);
 static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len);
 
@@ -211,4 +212,77 @@ static int _send(netdev2_t *netdev, const struct iovec *vector, unsigned count)
     /* Put chip into transfer mode */
     sx1276_set_status(dev, SX1276_RF_TX_RUNNING);
     sx1276_set_op_mode(dev, SX1276_RF_OPMODE_TRANSMITTER);
+}
+
+static int _recv(netdev2_t *netdev, void *buf, size_t len, void *info)
+{
+    /* Clear IRQ */
+    volatile uint8_t irq_flags = 0;
+    sx1276_reg_write(dev,  SX1276_REG_LR_IRQFLAGS, SX1276_RF_LORA_IRQFLAGS_RXDONE);
+
+    irq_flags = sx1276_reg_read(dev,  SX1276_REG_LR_IRQFLAGS);
+    if ((irq_flags & SX1276_RF_LORA_IRQFLAGS_PAYLOADCRCERROR_MASK) == SX1276_RF_LORA_IRQFLAGS_PAYLOADCRCERROR) {
+        sx1276_reg_write(dev,  SX1276_REG_LR_IRQFLAGS, SX1276_RF_LORA_IRQFLAGS_PAYLOADCRCERROR); /* Clear IRQ */
+
+        if (!dev->settings.lora.rx_continuous) {
+            sx1276_set_status(dev,  SX1276_RF_IDLE);
+        }
+
+        xtimer_remove(&dev->_internal.rx_timeout_timer);
+
+        //TODO: Error code
+        return -1;
+    }
+
+    //TODO: Return info
+#if 0
+    int8_t snr = 0;
+    packet->snr_value = sx1276_reg_read(dev,  SX1276_REG_LR_PKTSNRVALUE);
+    if (packet->snr_value & 0x80) { /* The SNR is negative */
+        /* Invert and divide by 4 */
+        snr = ((~packet->snr_value + 1) & 0xFF) >> 2;
+        snr = -snr;
+    }
+    else {
+        /* Divide by 4 */
+        snr = (packet->snr_value & 0xFF) >> 2;
+    }
+
+    int16_t rssi = sx1276_reg_read(dev, SX1276_REG_LR_PKTRSSIVALUE);
+    if (snr < 0) {
+        if (dev->settings.channel > SX1276_RF_MID_BAND_THRESH) {
+            packet->rssi_value = RSSI_OFFSET_HF + rssi + (rssi >> 4) + snr;
+        }
+        else {
+            packet->rssi_value = RSSI_OFFSET_LF + rssi + (rssi >> 4) + snr;
+        }
+    }
+    else {
+        if (dev->settings.channel > SX1276_RF_MID_BAND_THRESH) {
+            packet->rssi_value = RSSI_OFFSET_HF + rssi + (rssi >> 4);
+        }
+        else {
+            packet->rssi_value = RSSI_OFFSET_LF + rssi + (rssi >> 4);
+        }
+    }
+#endif
+    /* TODO: Check if uint8_t or uint16_t */
+    uint16_t size = sx1276_reg_read(dev, SX1276_REG_LR_RXNBBYTES);
+    if (buf == NULL)
+        return size;
+
+    if (!dev->settings.lora.rx_continuous) {
+        sx1276_set_status(dev,  SX1276_RF_IDLE);
+    }
+
+    xtimer_remove(&dev->_internal.rx_timeout_timer);
+
+    /* TODO: Add drop packet and limit max len */
+
+    /* Read the last packet from FIFO */
+    uint8_t last_rx_addr = sx1276_reg_read(dev, SX1276_REG_LR_FIFORXCURRENTADDR);
+    sx1276_reg_write(dev, SX1276_REG_LR_FIFOADDRPTR, last_rx_addr);
+    sx1276_read_fifo(dev, (uint8_t *) buf, size);
+
+    return size;
 }
