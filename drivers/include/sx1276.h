@@ -146,14 +146,8 @@ typedef enum {
  */
 typedef struct {
     /* Data that will be passed to events handler in application */
-    sx1276_rx_packet_t last_packet;         /**< Last packet that was received */
     uint32_t last_channel;                  /**< Last channel in frequency hopping sequence */
     bool is_last_cad_success;               /**< Sign of success of last CAD operation (activity detected) */
-
-    /* DIO lines events handler outside ISR context */
-    kernel_pid_t dio_polling_thread_pid;            /**< SX1276 DIO interrupt lines handler thread PID */
-    /**< SX1276 DIO interrupt lines events handler stack */
-    uint8_t dio_polling_thread_stack[SX1276_EVENT_HANDLER_STACK_SIZE];
 
     /* Timers */
     xtimer_t tx_timeout_timer;              /**< TX operation timeout timer */
@@ -184,9 +178,6 @@ typedef struct sx1276_s {
     sx1276_settings_t settings;                                         /**< Transceiver settings */
     sx1276_params_t params;
     sx1276_flags_t irq;
-
-    void (*sx1276_event_cb)(void *dev, sx1276_event_type_t event_type); /**< Event callback */
-    void *callback_arg;                                                 /**< User-defined callback argument */
 
     sx1276_internal_t _internal;                                        /**< Internal sx1276 data used within the driver */
 } sx1276_t;
