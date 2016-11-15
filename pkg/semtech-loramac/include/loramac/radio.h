@@ -308,4 +308,8 @@ sx1276_t* radio_get_ptr(void);
 
 void radio_set_ptr(sx1276_t* ptr);
 
+RadioEvents_t* radio_get_event_ptr(void);
+
+void radio_set_event_ptr(RadioEvents_t *events );
+
 #endif

@@ -6,6 +6,7 @@
  */
 
 static sx1276_t* dev_ptr;
+static RadioEvents_t *RadioEvents; 
 
 /*
  * Radio driver functions implementation wrappers, the netdev2 object
@@ -22,8 +23,19 @@ void radio_set_ptr(sx1276_t* ptr)
     dev_ptr = ptr;
 }
 
+RadioEvents_t* radio_get_event_ptr(void)
+{
+    return RadioEvents;
+}
+
+void radio_set_event_ptr(RadioEvents_t *events )
+{
+    RadioEvents = events;
+}
+
 void SX1276Init( RadioEvents_t *events )
 {
+    RadioEvents = events;
     sx1276_init(dev_ptr);
 }
 
