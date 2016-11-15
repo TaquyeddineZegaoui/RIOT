@@ -1007,52 +1007,59 @@ void sx1276_read_fifo(sx1276_t *dev, uint8_t *buffer, uint8_t size)
 /**
  * IRQ handlers
  */
+void sx1276_isr(netdev2_t *dev)
+{
+    if (dev->event_callback) {
+        dev->event_callback(dev, NETDEV2_EVENT_ISR);
+    }
+}
+
 void sx1276_on_dio0_isr(void *arg)
 {
-    msg_t msg;
+    sx1276_t *dev = (sx1276_t*) arg;
 
-    msg.content.value = 0;
-    msg_send_int(&msg, ((sx1276_t *)arg)->_internal.dio_polling_thread_pid);
+    dev->irq &= SX1276_IRQ_DIO0;
+    sx1276_isr((netdev2_t*) dev);
 }
 
 void sx1276_on_dio1_isr(void *arg)
 {
-    msg_t msg;
+    sx1276_t *dev = (sx1276_t*) arg;
 
-    msg.content.value = 1;
-    msg_send_int(&msg, ((sx1276_t *)arg)->_internal.dio_polling_thread_pid);
+    dev->irq &= SX1276_IRQ_DIO1;
+    sx1276_isr((netdev2_t*) dev);
 }
 
 void sx1276_on_dio2_isr(void *arg)
 {
-    msg_t msg;
+    sx1276_t *dev = (sx1276_t*) arg;
 
-    msg.content.value = 2;
-    msg_send_int(&msg, ((sx1276_t *)arg)->_internal.dio_polling_thread_pid);
+    dev->irq &= SX1276_IRQ_DIO2;
+    sx1276_isr((netdev2_t*) dev);
 }
 
 void sx1276_on_dio3_isr(void *arg)
 {
-    msg_t msg;
+    sx1276_t *dev = (sx1276_t*) arg;
 
-    msg.content.value = 3;
-    msg_send_int(&msg, ((sx1276_t *)arg)->_internal.dio_polling_thread_pid);
+    dev->irq &= SX1276_IRQ_DIO3;
+    sx1276_isr((netdev2_t*) dev);
 }
 
 void sx1276_on_dio4_isr(void *arg)
 {
-    msg_t msg;
+    sx1276_t *dev = (sx1276_t*) arg;
 
-    msg.content.value = 4;
-    msg_send_int(&msg, ((sx1276_t *)arg)->_internal.dio_polling_thread_pid);
+    dev->irq &= SX1276_IRQ_DIO4;
+    sx1276_isr((netdev2_t*) dev);
 }
 
 void sx1276_on_dio5_isr(void *arg)
 {
-    msg_t msg;
+    sx1276_t *dev = (sx1276_t*) arg;
 
-    msg.content.value = 5;
-    msg_send_int(&msg, ((sx1276_t *)arg)->_internal.dio_polling_thread_pid);
+    dev->irq &= SX1276_IRQ_DIO5;
+    sx1276_isr((netdev2_t*) dev);
 }
 
 /* Internal event handlers */
@@ -1255,47 +1262,3 @@ void sx1276_on_dio5(void *arg)
     (void) arg;
 }
 
-void *dio_polling_thread(void *arg)
-{
-
-    DEBUG("sx1276: dio polling thread started\n");
-
-    sx1276_t *dev = (sx1276_t *) arg;
-    msg_t msg_queue[8];
-    msg_init_queue(msg_queue, 8);
-
-    msg_t msg;
-
-    while (1) {
-        msg_receive(&msg);
-
-        uint32_t v = msg.content.value;
-        switch (v) {
-            case 0:
-                sx1276_on_dio0(dev);
-                break;
-
-            case 1:
-                sx1276_on_dio1(dev);
-                break;
-
-            case 2:
-                sx1276_on_dio2(dev);
-                break;
-
-            case 3:
-                sx1276_on_dio3(dev);
-                break;
-
-            case 4:
-                sx1276_on_dio4(dev);
-                break;
-
-            case 5:
-                sx1276_on_dio5(dev);
-                break;
-        }
-    }
-
-    return NULL;
-}

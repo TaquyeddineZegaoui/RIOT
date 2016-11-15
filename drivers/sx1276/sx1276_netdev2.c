@@ -38,6 +38,7 @@ static int _init(netdev2_t *netdev)
 {
     sx1276_t *sx1276 = (sx1276_t*) netdev;
 
+    sx1276->irq = 0;
     sx1276_settings_t settings;
     settings->channel = RF_FREQUENCY;
     settings->modem = SX1276_MODEM_LORA;
@@ -81,4 +82,133 @@ static int _init(netdev2_t *netdev)
 
     sx1276_set_channel(&sx1276, 868500000);
     return 0;
+}
+
+static void _isr(netdev2_t *netdev)
+{
+    sx1276_t *dev = (sx1276_t *) arg;
+
+    uint8_t irq = dev->irq;
+    dev->irq = 0;
+
+    if(irq & SX1276_IRQ_DIO0)
+    {
+        sx1276_on_dio0(dev);
+    }
+    if(irq & SX1276_IRQ_DIO1)
+    {
+        sx1276_on_dio1(dev);
+    }
+    if(irq & SX1276_IRQ_DIO2)
+    {
+        sx1276_on_dio2(dev);
+    }
+    if(irq & SX1276_IRQ_DIO3)
+    {
+        sx1276_on_dio3(dev);
+    }
+    if(irq & SX1276_IRQ_DIO4)
+    {
+        sx1276_on_dio4(dev);
+    }
+    if(irq & SX1276_IRQ_DIO5)
+    {
+        sx1276_on_dio6(dev);
+    }
+}
+
+static uint8_t get_tx_len(iovec *vector, count)
+{
+    uint8_t len = 0;
+
+    for(int i=0;i<count;i++)
+    {
+        len += vector[i]->iov_len;
+    }
+
+    return len;
+}
+
+static int _send(netdev2_t *netdev, const struct iovec *vector, unsigned count)
+{
+
+    uint8_t size;
+    switch (dev->settings.modem) {
+        case SX1276_MODEM_FSK:
+            size = get_tx_len(vector, count);
+            sx1276_write_fifo(dev, &size, 1);
+            for(int i=0;i<count;i++)
+            {
+                sx1276_write_fifo(dev, vector[i].iov_base, vector[i].iov_len);
+            }
+            break;
+
+        case SX1276_MODEM_LORA:
+        {
+
+            if (dev->settings.lora.iq_inverted) {
+                sx1276_reg_write(dev,
+                                 SX1276_REG_LR_INVERTIQ,
+                                 ((sx1276_reg_read(dev, SX1276_REG_LR_INVERTIQ)
+                                   & SX1276_RF_LORA_INVERTIQ_TX_MASK & SX1276_RF_LORA_INVERTIQ_RX_MASK)
+                                  | SX1276_RF_LORA_INVERTIQ_RX_OFF | SX1276_RF_LORA_INVERTIQ_TX_ON));
+                sx1276_reg_write(dev, SX1276_REG_LR_INVERTIQ2, SX1276_RF_LORA_INVERTIQ2_ON);
+            }
+            else {
+                sx1276_reg_write(dev,
+                                 SX1276_REG_LR_INVERTIQ,
+                                 ((sx1276_reg_read(dev, SX1276_REG_LR_INVERTIQ)
+                                   & SX1276_RF_LORA_INVERTIQ_TX_MASK & SX1276_RF_LORA_INVERTIQ_RX_MASK)
+                                  | SX1276_RF_LORA_INVERTIQ_RX_OFF | SX1276_RF_LORA_INVERTIQ_TX_OFF));
+                sx1276_reg_write(dev, SX1276_REG_LR_INVERTIQ2, SX1276_RF_LORA_INVERTIQ2_OFF);
+            }
+
+            /* Initializes the payload size */
+            sx1276_reg_write(dev, SX1276_REG_LR_PAYLOADLENGTH, size);
+
+            /* Full buffer used for Tx */
+            sx1276_reg_write(dev, SX1276_REG_LR_FIFOTXBASEADDR, 0x00);
+            sx1276_reg_write(dev, SX1276_REG_LR_FIFOADDRPTR, 0x00);
+
+            /* FIFO operations can not take place in Sleep mode
+             * So wake up the chip */
+            if ((sx1276_reg_read(dev, SX1276_REG_OPMODE) & ~SX1276_RF_OPMODE_MASK)
+                == SX1276_RF_OPMODE_SLEEP) {
+                sx1276_set_standby(dev);
+                xtimer_usleep(SX1276_RADIO_WAKEUP_TIME); /* wait for chip wake up */
+            }
+
+            /* Write payload buffer */
+            for(int i=0;i<count;i++)
+            {
+                sx1276_write_fifo(dev, vector[i].iov_base, vector[i].iov_len);
+            }
+        break;
+    }
+
+    /* Enable TXDONE interrupt */
+    sx1276_reg_write(dev, SX1276_REG_LR_IRQFLAGSMASK,
+                     SX1276_RF_LORA_IRQFLAGS_RXTIMEOUT |
+                     SX1276_RF_LORA_IRQFLAGS_RXDONE |
+                     SX1276_RF_LORA_IRQFLAGS_PAYLOADCRCERROR |
+                     SX1276_RF_LORA_IRQFLAGS_VALIDHEADER |
+                     /* SX1276_RF_LORA_IRQFLAGS_TXDONE | */
+                     SX1276_RF_LORA_IRQFLAGS_CADDONE |
+                     SX1276_RF_LORA_IRQFLAGS_FHSSCHANGEDCHANNEL |
+                     SX1276_RF_LORA_IRQFLAGS_CADDETECTED);
+
+    /* Set TXDONE interrupt to the DIO0 line */
+    sx1276_reg_write(dev,
+                     SX1276_REG_DIOMAPPING1,
+                     (sx1276_reg_read(dev, SX1276_REG_DIOMAPPING1)
+                      & SX1276_RF_LORA_DIOMAPPING1_DIO0_MASK)
+                     | SX1276_RF_LORA_DIOMAPPING1_DIO0_01);
+
+
+    /* Start TX timeout timer */
+    xtimer_set(&dev->_internal.tx_timeout_timer, dev->settings.lora.tx_timeout);
+
+    /* Put chip into transfer mode */
+    sx1276_set_status(dev, SX1276_RF_TX_RUNNING);
+    sx1276_set_op_mode(dev, SX1276_RF_OPMODE_TRANSMITTER);
 }
