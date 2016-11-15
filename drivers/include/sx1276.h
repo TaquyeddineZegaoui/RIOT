@@ -164,6 +164,7 @@ typedef struct {
  * SX1276 hardware and global parameters.
  */
 typedef struct sx1276_s {
+    netdev2_t netdev;
     spi_t spi;                                                          /**< SPI */
     gpio_t nss_pin;                                                     /**< SPI NSS pin */
 
