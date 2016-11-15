@@ -1,8 +1,11 @@
 APPLICATION = loramac
 
+FEATURES_REQUIRED = periph_spi periph_gpio
+
 BOARD ?= samr21-xpro
 
 CFLAGS += -DUSE_BAND_915
+
 RIOTBASE ?= $(CURDIR)/../..
 
 USEPKG += semtech-loramac
@@ -13,5 +16,15 @@ DRIVER ?= sx1276
 USEMODULE += $(DRIVER)
 USEMODULE += hashes
 USEMODULE += crypto
+USEMODULE += od
+USEMODULE += shell
+USEMODULE += shell_commands
+USEMODULE += ps
+USEMODULE += xtimer
+USEMODULE += loramac_contrib
+USEMODULE += loramac_mac
+USEMODULE += random
+
+
 
 include $(RIOTBASE)/Makefile.include
