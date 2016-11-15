@@ -20,8 +20,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "debug.h"
-
 #include "periph/gpio.h"
 #include "periph/spi.h"
 
@@ -107,10 +105,10 @@ static void sx1276_on_dio3_isr(void *arg);
 
 static void _init_isrs(sx1276_t *dev)
 {
-    gpio_init_int(dev->dio0_pin, GPIO_IN, GPIO_RISING, sx1276_on_dio0_isr, dev);
-    gpio_init_int(dev->dio1_pin, GPIO_IN, GPIO_RISING, sx1276_on_dio1_isr, dev);
-    gpio_init_int(dev->dio2_pin, GPIO_IN, GPIO_RISING, sx1276_on_dio2_isr, dev);
-    gpio_init_int(dev->dio3_pin, GPIO_IN, GPIO_RISING, sx1276_on_dio3_isr, dev);
+    gpio_init_int(dev->params.dio0_pin, GPIO_IN, GPIO_RISING, sx1276_on_dio0_isr, dev);
+    gpio_init_int(dev->params.dio1_pin, GPIO_IN, GPIO_RISING, sx1276_on_dio1_isr, dev);
+    gpio_init_int(dev->params.dio2_pin, GPIO_IN, GPIO_RISING, sx1276_on_dio2_isr, dev);
+    gpio_init_int(dev->params.dio3_pin, GPIO_IN, GPIO_RISING, sx1276_on_dio3_isr, dev);
 }
 
 static inline void send_event(sx1276_t *dev, sx1276_event_type_t event_type)
@@ -155,24 +153,24 @@ static int _init_peripherals(sx1276_t *dev)
     int res;
 
     /* Setup SPI for SX1276 */
-    spi_acquire(dev->spi);
-    res = spi_init_master(dev->spi, SPI_CONF_FIRST_RISING, SPI_SPEED_1MHZ);
-    spi_release(dev->spi);
+    spi_acquire(dev->params.spi);
+    res = spi_init_master(dev->params.spi, SPI_CONF_FIRST_RISING, SPI_SPEED_1MHZ);
+    spi_release(dev->params.spi);
 
     if (res < 0) {
         DEBUG("sx1276: error initializing SPI_%i device (code %i)\n",
-        		dev->spi, res);
+        		dev->params.spi, res);
         return 0;
     }
 
-    res = gpio_init(dev->nss_pin, GPIO_OUT);
+    res = gpio_init(dev->params.nss_pin, GPIO_OUT);
     if (res < 0) {
         DEBUG("sx1276: error initializing GPIO_%ld as CS line (code %i)\n",
-               (long)dev->nss_pin, res);
+               (long)dev->params.nss_pin, res);
         return 0;
     }
 
-    gpio_set(dev->nss_pin);
+    gpio_set(dev->params.nss_pin);
 
     return 1;
 }
