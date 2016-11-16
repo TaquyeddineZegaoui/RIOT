@@ -18,6 +18,7 @@
 #include "periph/gpio.h"
 #include "periph/spi.h"
 #include "xtimer.h"
+#include "net/netdev2.h"
 
 #ifndef SX1276_H
 #define SX1276_H
