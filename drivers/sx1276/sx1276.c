@@ -59,28 +59,8 @@ static void _rx_chain_calibration(sx1276_t *dev);
  */
 void sx1276_reset(sx1276_t *dev);
 
-/**
- * @brief Writes the buffer contents to the SX1276 FIFO
- *
- * @param [IN] buffer Buffer containing data to be put on the FIFO.
- * @param [IN] size Number of bytes to be written to the FIFO
- */
-void sx1276_write_fifo(sx1276_t *dev, uint8_t *buffer, uint8_t size);
 
-/**
- * @brief Reads the contents of the SX1276 FIFO
- *
- * @param [OUT] buffer Buffer where to copy the FIFO read data.
- * @param [IN] size Number of bytes to be read from the FIFO
- */
-void sx1276_read_fifo(sx1276_t *dev, uint8_t *buffer, uint8_t size);
 
-/**
- * @brief Sets the SX1276 operating mode
- *
- * @param [IN] op_mode New operating mode
- */
-void sx1276_set_op_mode(sx1276_t *dev, uint8_t op_mode);
 
 /*
  * Private global constants
@@ -92,7 +72,7 @@ void sx1276_set_op_mode(sx1276_t *dev, uint8_t op_mode);
 #define RSSI_OFFSET_LF                              -164
 #define RSSI_OFFSET_HF                              -157
 
-static void sx1276_set_status(sx1276_t *dev, sx1276_radio_state_t state)
+void sx1276_set_status(sx1276_t *dev, sx1276_radio_state_t state)
 {
     dev->settings.state = state;
 }
