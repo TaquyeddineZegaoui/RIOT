@@ -17,12 +17,12 @@
  */
 
 #include "net/netdev2.h"
+#include "sx1276.h"
 
 static int _send(netdev2_t *netdev, const struct iovec *vector, unsigned count);
 static int _recv(netdev2_t *netdev, void *buf, size_t len, void *info);
 static int _init(netdev2_t *netdev);
 static void _isr(netdev2_t *netdev);
-/*TODO: Implement _get and _set*/
 static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len);
 static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len);
 
@@ -184,7 +184,8 @@ static int _send(netdev2_t *netdev, const struct iovec *vector, unsigned count)
             {
                 sx1276_write_fifo(dev, vector[i].iov_base, vector[i].iov_len);
             }
-        break;
+            break;
+        }
     }
 
     /* Enable TXDONE interrupt */
@@ -285,4 +286,15 @@ static int _recv(netdev2_t *netdev, void *buf, size_t len, void *info)
     sx1276_read_fifo(dev, (uint8_t *) buf, size);
 
     return size;
+}
+
+static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
+{
+    //TODO
+    return 0;
+}
+static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len)
+{
+    //TODO
+    return 0;
 }
