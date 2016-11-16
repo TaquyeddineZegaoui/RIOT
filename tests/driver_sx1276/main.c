@@ -35,102 +35,7 @@
 
 #include "sx1276_regs_lora.h"
 #include "sx1276_regs_fsk.h"
-
-void init_configs(void)
-{
-    sx1276_lora_settings_t settings;
-
-    settings.bandwidth = SX1276_BW_125_KHZ;
-    settings.coderate = SX1276_CR_4_5;
-    settings.datarate = SX1276_SF12;
-    settings.crc_on = true;
-    settings.freq_hop_on = false;
-    settings.hop_period = 0;
-    settings.implicit_header = false;
-    settings.iq_inverted = false;
-    settings.low_datarate_optimize = false;
-    settings.payload_len = 0;
-    settings.power = 14;
-    settings.preamble_len = LORA_PREAMBLE_LENGTH;
-    settings.rx_continuous = true;
-    settings.tx_timeout = 1000 * 1000 * 30; // 30 sec
-    settings.rx_timeout = LORA_SYMBOL_TIMEOUT;
-
-    sx1276_configure_lora(&sx1276, &settings);
-
-    sx1276_set_channel(&sx1276, 868500000);
-}
-
-void event_handler_thread(void *arg, sx1276_event_type_t event_type)
-{
-	sx1276_rx_packet_t *packet = (sx1276_rx_packet_t *) &sx1276._internal.last_packet;
-
-	switch (event_type) {
-		case SX1276_RX_DONE:
-			printf("RX: %u bytes: '%s' | RSSI: %d\n",
-				   packet->size,
-				   packet->content,
-				   packet->rssi_value);
-
-			break;
-
-		case SX1276_RX_ERROR_CRC:
-			puts("sx1276: RX CRC failed");
-			break;
-
-		case SX1276_TX_DONE:
-			puts("sx1276: transmission done.");
-			break;
-
-		case SX1276_RX_TIMEOUT:
-			puts("sx1276: RX timeout");
-			break;
-
-		case SX1276_TX_TIMEOUT:
-			puts("sx1276: TX timeout");
-			break;
-
-		default:
-			printf("sx1276: received event #%d\n", (int) event_type);
-			break;
-	}
-}
-
-void init_radio(void)
-{
-    sx1276.nss_pin = SX1276_SPI_NSS;
-    sx1276.spi = SX1276_SPI;
-
-    sx1276.dio0_pin = SX1276_DIO0;
-    sx1276.dio1_pin = SX1276_DIO1;
-    sx1276.dio2_pin = SX1276_DIO2;
-    sx1276.dio3_pin = SX1276_DIO3;
-
-    sx1276.dio4_pin = (gpio_t) NULL;
-    sx1276.dio5_pin = (gpio_t) NULL;
-    sx1276.reset_pin = (gpio_t) SX1276_RESET;
-
-    sx1276_settings_t settings;
-    settings.channel = RF_FREQUENCY;
-    settings.modem = SX1276_MODEM_LORA;
-    settings.state = SX1276_RF_IDLE;
-
-    sx1276.settings = settings;
-
-    sx1276.sx1276_event_cb = event_handler_thread;
-
-    /* Launch initialization of driver and device */
-    puts("init_radio: initializing driver...");
-    sx1276_init(&sx1276);
-
-    /* Configure the device */
-    init_configs();
-
-    /* Put chip into sleep */
-    sx1276_set_sleep(&sx1276);
-
-    puts("init_radio: sx1276 initialization done");
-}
+#include "sx1276_params.h"
 
 int random(int argc, char **argv)
 {
@@ -337,8 +242,8 @@ void sx1276_set_op_mode(sx1276_t *sx1276, int opmode);
 int main(void)
 {
     xtimer_init();
-    init_radio();
 
+    sx1276.params = &sx1276_params;
     /* start the shell */
     puts("Initialization successful - starting the shell now");
     char line_buf[SHELL_DEFAULT_BUFSIZE];
