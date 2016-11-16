@@ -36,5 +36,21 @@
 #endif
 
 //TODO: add PARAMS_DEFAULT
-//#define SX1276_PARAMS_DEFAULT
+#define SX1276_PARAMS_DEFAULT    {.spi = SX1276_PARAM_SPI, \
+                                  .nss_pin = SX1276_PARAM_SPI_NSS, \
+                                  .reset_pin = SX1276_PARAM_RESET, \
+                                  .dio0_pin = SX1276_PARAM_DIO0, \
+                                  .dio1_pin = SX1276_PARAM_DIO1, \
+                                  .dio2_pin = SX1276_PARAM_DIO2, \
+                                  .dio3_pin = SX1276_PARAM_DIO3}
+
+static const sx1276_params_t sx1276_params[] =
+{
+#ifdef SX1276_PARAMS_BOARD
+    SX1276_PARAMS_BOARD,
+#else
+    SX1276_PARAMS_DEFAULT,
+#endif
+}
+
 
