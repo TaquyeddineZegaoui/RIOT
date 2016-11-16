@@ -4,6 +4,7 @@ include ../Makefile.tests_common
 FEATURES_REQUIRED = periph_spi periph_gpio
 
 DISABLE_MODULE += auto_init
+BOARD := samr21-xpro
 
 USEMODULE += od
 USEMODULE += shell
