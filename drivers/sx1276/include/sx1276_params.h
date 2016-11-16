@@ -1,22 +1,24 @@
+#ifndef SX1276_PARAMS_H_
+#define SX1276_PARAMS_H_
 
 #ifndef SX1276_PARAM_DIO0
-#define SX1276_PARAM_DIO0 GPIO_PIN(PORT_A, 8)
+#define SX1276_PARAM_DIO0 GPIO_PIN(0, 8)
 #endif
 
 #ifndef SX1276_PARAM_DIO1 
-#define SX1276_PARAM_DIO1 GPIO_PIN(PORT_A, 9)
+#define SX1276_PARAM_DIO1 GPIO_PIN(0, 9)
 #endif
 
 #ifndef SX1276_PARAM_DIO2 
-#define SX1276_PARAM_DIO2 GPIO_PIN(PORT_A, 10)
+#define SX1276_PARAM_DIO2 GPIO_PIN(0, 10)
 #endif
 
 #ifndef SX1276_PARAM_DIO3 
-#define SX1276_PARAM_DIO3 GPIO_PIN(PORT_A, 11)
+#define SX1276_PARAM_DIO3 GPIO_PIN(0, 11)
 #endif
 
 #ifndef SX1276_PARAM_RESET 
-#define SX1276_PARAM_RESET GPIO_PIN(PORT_C, 6)
+#define SX1276_PARAM_RESET GPIO_PIN(2, 6)
 #endif
 
 #ifndef SX1276_PARAM_SPI
@@ -28,7 +30,7 @@
 #endif
 
 #ifndef SX1276_PARAM_SPI_NSS 
-#define SX1276_PARAM_SPI_NSS GPIO_PIN(PORT_A, 4)
+#define SX1276_PARAM_SPI_NSS GPIO_PIN(0, 4)
 #endif
 
 #ifndef SX1276_PARAM_SPI_MODE 
@@ -51,6 +53,7 @@ static const sx1276_params_t sx1276_params[] =
 #else
     SX1276_PARAMS_DEFAULT,
 #endif
-}
+};
 
 
+#endif
