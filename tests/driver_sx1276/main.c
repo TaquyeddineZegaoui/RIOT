@@ -244,6 +244,10 @@ int main(void)
     xtimer_init();
 
     sx1276.params = &sx1276_params;
+    (netdev2_t*) netdev = (netdev2_t*) sx1276;
+    netdev->driver = sx1276_driver;
+    netdev->driver->init(netdev);
+
     /* start the shell */
     puts("Initialization successful - starting the shell now");
     char line_buf[SHELL_DEFAULT_BUFSIZE];
