@@ -240,9 +240,6 @@ static const shell_command_t shell_commands[] = {
     { NULL, NULL, NULL }
 };
 
-void sx1276_reset(sx1276_t *sx1276);
-void sx1276_set_op_mode(sx1276_t *sx1276, int opmode);
-
 int main(void)
 {
     xtimer_init();
