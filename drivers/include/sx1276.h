@@ -30,6 +30,13 @@
 
 #define SX1276_EVENT_HANDLER_STACK_SIZE 2048
 
+#define SX1276_IRQ_DIO0 (1<<0)
+#define SX1276_IRQ_DIO1 (1<<1)
+#define SX1276_IRQ_DIO2 (1<<2)
+#define SX1276_IRQ_DIO3 (1<<3)
+#define SX1276_IRQ_DIO4 (1<<4)
+#define SX1276_IRQ_DIO5 (1<<5)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
