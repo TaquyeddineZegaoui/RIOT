@@ -26,7 +26,7 @@ static void _isr(netdev2_t *netdev);
 static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len);
 static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len);
 
-const netdev2_driver_t at86rf2xx_driver = {
+const netdev2_driver_t sx1276_driver = {
     .send = _send,
     .recv = _recv,
     .init = _init,
