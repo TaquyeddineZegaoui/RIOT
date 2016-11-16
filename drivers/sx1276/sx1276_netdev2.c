@@ -41,9 +41,9 @@ static int _init(netdev2_t *netdev)
 
     sx1276->irq = 0;
     sx1276_settings_t settings;
-    settings->channel = RF_FREQUENCY;
-    settings->modem = SX1276_MODEM_LORA;
-    settings->state = SX1276_RF_IDLE;
+    settings.channel = RF_FREQUENCY;
+    settings.modem = SX1276_MODEM_LORA;
+    settings.state = SX1276_RF_IDLE;
 
     sx1276->settings = settings;
 
