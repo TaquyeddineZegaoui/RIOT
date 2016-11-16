@@ -26,6 +26,9 @@
 #include "xtimer.h"
 #include "thread.h"
 
+#define ENABLE_DEBUG 1
+#include "debug.h"
+
 #include "sx1276.h"
 #include "include/sx1276_regs_fsk.h"
 #include "include/sx1276_regs_lora.h"
@@ -111,12 +114,6 @@ static void _init_isrs(sx1276_t *dev)
     gpio_init_int(dev->params.dio3_pin, GPIO_IN, GPIO_RISING, sx1276_on_dio3_isr, dev);
 }
 
-static inline void send_event(sx1276_t *dev, sx1276_event_type_t event_type)
-{
-	assert(dev->sx1276_event_cb != NULL);
-	dev->sx1276_event_cb(dev, event_type);
-}
-
 /**
  * @brief Timeout timers internal routines
  */
@@ -124,8 +121,9 @@ static void _on_tx_timeout(void *arg)
 {
     sx1276_t *dev = (sx1276_t *) arg;
 
+    /*TODO: Add TIMEOUT event in netdev2*/
     /* TX timeout. Send event message to the application's thread */
-    send_event(dev, SX1276_TX_TIMEOUT);
+    (void) dev;
 }
 
 static void _on_rx_timeout(void *arg)
@@ -133,7 +131,8 @@ static void _on_rx_timeout(void *arg)
     sx1276_t *dev = (sx1276_t *) arg;
 
     /* RX timeout. Send event message to the application's thread */
-    send_event(dev, SX1276_RX_TIMEOUT);
+    /*TODO: Add TIMEOUT event in netdev2*/
+    (void) dev;
 }
 
 /**
@@ -204,7 +203,9 @@ sx1276_init_result_t sx1276_init(sx1276_t *dev)
     /* Set current frequency */
     sx1276_set_channel(dev, dev->settings.channel);
 
+    /* TODO: Remove */
     /* Create DIO event lines handler */
+    #if 0
     kernel_pid_t pid = thread_create((char *) dev->_internal.dio_polling_thread_stack, 
 							sizeof(dev->_internal.dio_polling_thread_stack), 
 							THREAD_PRIORITY_MAIN, THREAD_CREATE_STACKTEST, 
@@ -215,6 +216,7 @@ sx1276_init_result_t sx1276_init(sx1276_t *dev)
         return SX1276_ERR_THREAD;
     }
     dev->_internal.dio_polling_thread_pid = pid;
+#endif
 
     return SX1276_INIT_OK;
 }
@@ -899,18 +901,18 @@ void sx1276_reset(sx1276_t *dev)
      * 3. Wait at least 5 milliseconds
      */
 
-    gpio_init(dev->reset_pin, GPIO_OUT);
+    gpio_init(dev->params.reset_pin, GPIO_OUT);
 
     /* Set reset pin to 0 */
-    gpio_clear(dev->reset_pin);
+    gpio_clear(dev->params.reset_pin);
 
     /* Wait 1 ms */
     xtimer_usleep(1000);
 
     /* Put reset pin in High-Z */
-    gpio_init(dev->reset_pin, GPIO_OD);
+    gpio_init(dev->params.reset_pin, GPIO_OD);
 
-    gpio_set(dev->reset_pin);
+    gpio_set(dev->params.reset_pin);
 
     /* Wait 10 ms */
     xtimer_usleep(1000 * 10);
@@ -965,15 +967,15 @@ void sx1276_reg_write_burst(sx1276_t *dev, uint8_t addr, uint8_t *buffer,
 {
     unsigned int cpsr;
 
-    spi_acquire(dev->spi);
+    spi_acquire(dev->params.spi);
     cpsr = irq_disable();
 
-    gpio_clear(dev->nss_pin);
-    spi_transfer_regs(dev->spi, addr | 0x80, (char *) buffer, NULL, size);
-    gpio_set(dev->nss_pin);
+    gpio_clear(dev->params.nss_pin);
+    spi_transfer_regs(dev->params.spi, addr | 0x80, (char *) buffer, NULL, size);
+    gpio_set(dev->params.nss_pin);
 
     irq_restore(cpsr);
-    spi_release(dev->spi);
+    spi_release(dev->params.spi);
 }
 
 void sx1276_reg_read_burst(sx1276_t *dev, uint8_t addr, uint8_t *buffer,
@@ -983,13 +985,13 @@ void sx1276_reg_read_burst(sx1276_t *dev, uint8_t addr, uint8_t *buffer,
 
     cpsr = irq_disable();
 
-    spi_acquire(dev->spi);
+    spi_acquire(dev->params.spi);
 
-    gpio_clear(dev->nss_pin);
-    spi_transfer_regs(dev->spi, addr & 0x7F, NULL, (char *) buffer, size);
-    gpio_set(dev->nss_pin);
+    gpio_clear(dev->params.nss_pin);
+    spi_transfer_regs(dev->params.spi, addr & 0x7F, NULL, (char *) buffer, size);
+    gpio_set(dev->params.nss_pin);
 
-    spi_release(dev->spi);
+    spi_release(dev->params.spi);
 
     irq_restore(cpsr);
 }
@@ -1067,14 +1069,14 @@ void sx1276_on_dio5_isr(void *arg)
 void sx1276_on_dio0(void *arg)
 {
     sx1276_t *dev = (sx1276_t *) arg;
+    netdev2_t *netdev = &dev->netdev;
 
     switch (dev->settings.state) {
         case SX1276_RF_RX_RUNNING:
             switch (dev->settings.modem) {
                 case SX1276_MODEM_LORA:
                 {
-                    netdev2_t *netdev = (netdev2_t*) arg;
-                    dev->event_callback(netdev, NETDEV2_EVENT_RX_COMPLETE);
+                    netdev->event_callback(netdev, NETDEV2_EVENT_RX_COMPLETE);
                 }
                 break;
                 default:
@@ -1087,7 +1089,7 @@ void sx1276_on_dio0(void *arg)
             sx1276_reg_write(dev, SX1276_REG_LR_IRQFLAGS, SX1276_RF_LORA_IRQFLAGS_TXDONE);   /* Clear IRQ */
             sx1276_set_status(dev,  SX1276_RF_IDLE);
 
-            dev->event_callback(netdev, NETDEV2_EVENT_TX_COMPLETE);
+            netdev->event_callback(netdev, NETDEV2_EVENT_TX_COMPLETE);
             break;
         default:
             break;
@@ -1107,7 +1109,8 @@ void sx1276_on_dio1(void *arg)
 
                     sx1276_set_status(dev,  SX1276_RF_IDLE);
 
-                    send_event(dev, SX1276_RX_TIMEOUT);
+                    /*TODO: Implement RX timeout */
+                    //send_event(dev, SX1276_RX_TIMEOUT);
                     break;
                 default:
                     break;
@@ -1134,7 +1137,8 @@ void sx1276_on_dio2(void *arg)
                         sx1276_reg_write(dev, SX1276_REG_LR_IRQFLAGS, SX1276_RF_LORA_IRQFLAGS_FHSSCHANGEDCHANNEL);
 
                         dev->_internal.last_channel = sx1276_reg_read(dev, SX1276_REG_LR_HOPCHANNEL) & SX1276_RF_LORA_HOPCHANNEL_CHANNEL_MASK;
-                        send_event(dev, SX1276_FHSS_CHANGE_CHANNEL);
+                        /* TODO: Implement channel change */
+                        //send_event(dev, SX1276_FHSS_CHANGE_CHANNEL);
                     }
 
                     break;
@@ -1152,7 +1156,8 @@ void sx1276_on_dio2(void *arg)
                         sx1276_reg_write(dev, SX1276_REG_LR_IRQFLAGS, SX1276_RF_LORA_IRQFLAGS_FHSSCHANGEDCHANNEL);
 
                         dev->_internal.last_channel = sx1276_reg_read(dev, SX1276_REG_LR_HOPCHANNEL) & SX1276_RF_LORA_HOPCHANNEL_CHANNEL_MASK;
-                        send_event(dev, SX1276_FHSS_CHANGE_CHANNEL);
+                        /* TODO: Implement channel change */
+                        //send_event(dev, SX1276_FHSS_CHANGE_CHANNEL);
                     }
                     break;
                 default:
@@ -1178,7 +1183,8 @@ void sx1276_on_dio3(void *arg)
 
             /* Send event message */
             dev->_internal.is_last_cad_success = (sx1276_reg_read(dev, SX1276_REG_LR_IRQFLAGS) & SX1276_RF_LORA_IRQFLAGS_CADDETECTED) == SX1276_RF_LORA_IRQFLAGS_CADDETECTED;
-            send_event(dev, SX1276_CAD_DONE);
+            /* TODO: Implement CAD done */
+            //send_event(dev, SX1276_CAD_DONE);
             break;
         default:
             break;
