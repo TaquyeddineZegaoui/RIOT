@@ -36,7 +36,10 @@
 #include "sx1276_regs_lora.h"
 #include "sx1276_regs_fsk.h"
 #include "sx1276_params.h"
+#include "sx1276_netdev.h"
 
+/*TODO: Implement*/
+#if 0
 int random(int argc, char **argv)
 {
     printf("random: number from sx1276: %u\n", (unsigned int) sx1276_random(&sx1276));
@@ -44,6 +47,7 @@ int random(int argc, char **argv)
 
     return 0;
 }
+#endif
 
 int regs(int argc, char **argv)
 {
@@ -226,7 +230,7 @@ int lora_setup(int argc, char **argv) {
 }
 
 static const shell_command_t shell_commands[] = {
-    { "random", "Get random number from sx1276", random },
+    //{ "random", "Get random number from sx1276", random },
     { "get", "<all | num> - gets value of registers of sx1276, all or by specified number from 0 to 255", regs },
     { "set", "<num> <value> - sets value of register with specified number", regs_set },
     { "tx_test", "<payload> Send test payload string", tx_test },
@@ -243,9 +247,9 @@ int main(void)
 {
     xtimer_init();
 
-    sx1276.params = &sx1276_params;
-    (netdev2_t*) netdev = (netdev2_t*) sx1276;
-    netdev->driver = sx1276_driver;
+    memcpy(&sx1276.params, sx1276_params, sizeof(sx1276_params));
+    netdev2_t *netdev = (netdev2_t*) &sx1276;
+    netdev->driver = &sx1276_driver;
     netdev->driver->init(netdev);
 
     /* start the shell */
