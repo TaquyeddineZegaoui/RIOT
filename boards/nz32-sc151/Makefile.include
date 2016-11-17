@@ -9,7 +9,6 @@ PORT_DARWIN ?= $(firstword $(sort $(wildcard /dev/tty.SLAB_USBtoUART*)))
 # set the default id
 export ID ?= 0483:df11
 
->>>>>>> NZ32-SC151
 export BINFILE = $(patsubst %.elf,%.bin,$(ELFFILE))
 
 export FLASHER = dfu-util
