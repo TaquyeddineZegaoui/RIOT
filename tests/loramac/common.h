@@ -49,7 +49,7 @@ extern "C" {
 
 /** SX1276 SPI */
 
-#define USE_SPI_1
+#define USE_SPI_0
 
 #ifdef USE_SPI_1
 #define SX1276_SPI SPI_1
@@ -60,7 +60,7 @@ extern "C" {
 
 #ifdef USE_SPI_0
 #define SX1276_SPI SPI_0
-#define SX1276_SPI_NSS GPIO_PIN(PORT_A, 4)
+#define SX1276_SPI_NSS GPIO_PIN(PORT_C, 8)
 #define SX1276_SPI_MODE SPI_CONF_FIRST_RISING
 #define SX1276_SPI_SPEED SPI_SPEED_1MHZ
 #endif

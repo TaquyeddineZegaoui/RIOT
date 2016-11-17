@@ -682,14 +682,16 @@ void event_handler_thread(void *arg, sx1276_event_type_t event_type)
 {
     sx1276_rx_packet_t *packet = (sx1276_rx_packet_t *) &sx1276._internal.last_packet;
     RadioEvents_t *events = radio_get_event_ptr();
-
+    puts("EVENT");
     switch (event_type) {
 
         case SX1276_TX_DONE:
+            puts("sx1276: transmission done.");
             events->TxDone();
             break;
 
         case SX1276_TX_TIMEOUT:
+            puts("sx1276: TX timeout");
             events->TxTimeout();
             break;
 
@@ -935,6 +937,10 @@ int main(void)
     xtimer_init();
     init_radio();
 
+    sx1276_configure_lora_bw(&sx1276, SX1276_BW_125_KHZ);
+    sx1276_configure_lora_sf(&sx1276, 12);
+    sx1276_configure_lora_cr(&sx1276, 5);
+
     radio_set_ptr(&sx1276);
 
     DeviceState = DEVICE_STATE_INIT;
@@ -947,7 +953,6 @@ int main(void)
         {
             case DEVICE_STATE_INIT:
             {
-                puts("DEVICE INIT");
                 LoRaMacPrimitives.MacMcpsConfirm = McpsConfirm;
                 LoRaMacPrimitives.MacMcpsIndication = McpsIndication;
                 LoRaMacPrimitives.MacMlmeConfirm = MlmeConfirm;
@@ -989,7 +994,6 @@ int main(void)
             }
             case DEVICE_STATE_JOIN:
             {
-                puts("DEVICE JOIN");
 #if( OVER_THE_AIR_ACTIVATION != 0 )
                 MlmeReq_t mlmeReq;
                 // Initialize LoRaMac device unique ID
@@ -1012,8 +1016,8 @@ int main(void)
                 if( DevAddr == 0 )
                 {
                     // Random seed initialization
-                    // srand1( BoardGetRandomSeed( ) );
-                    srand1( 4);
+                    srand1( BoardGetRandomSeed( ) );
+                    //srand1( 4);
                     // Choose a random device address
                     DevAddr = randr( 0, 0x01FFFFFF );
                 }
@@ -1044,7 +1048,6 @@ int main(void)
             }
             case DEVICE_STATE_SEND:
             {
-                puts("DEVICE SEND");
                 if( NextTx == true )
                 {
                     PrepareTxFrame( AppPort );
@@ -1066,7 +1069,6 @@ int main(void)
             }
             case DEVICE_STATE_CYCLE:
             {
-                puts("DEVICE CYCLE");
                 DeviceState = DEVICE_STATE_SLEEP;
 
                 // Schedule next packet transmission
@@ -1076,7 +1078,6 @@ int main(void)
             }
             case DEVICE_STATE_SLEEP:
             {
-                puts("SLEEP");
                 // Wake up through events
                 TimerLowPowerHandler( );
                 break;

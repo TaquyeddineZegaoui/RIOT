@@ -57,8 +57,6 @@ extern "C" {
     { GPIO_PIN(PORT_A, 6), 6 },\
     { GPIO_PIN(PORT_A, 7), 7 },\
     { GPIO_PIN(PORT_A, 4), 4 },\
-    { GPIO_PIN(PORT_B, 0), 8 },\
-    { GPIO_PIN(PORT_B, 1), 9 },\
     { GPIO_PIN(PORT_B, 12), 18 }\
 }
 
@@ -85,9 +83,11 @@ extern "C" {
 static const timer_conf_t timer_config[] = {
     /* device, RCC bit, IRQ bit */
     {TIM5, 3, TIM5_IRQn},
+    {TIM3, 1, TIM3_IRQn},
 };
 /* interrupt routines */
 #define TIMER_0_ISR         (isr_tim5)
+#define TIMER_1_ISR         (isr_tim3)
 /* number of defined timers */
 #define TIMER_NUMOF         (sizeof(timer_config) / sizeof(timer_config[0]))
 /** @} */
@@ -98,7 +98,7 @@ static const timer_conf_t timer_config[] = {
  */
 #define UART_NUMOF          (UART_0_EN + UART_1_EN + UART_2_EN )
 #define UART_0_EN           1
-#define UART_1_EN           1
+#define UART_1_EN           0
 #define UART_2_EN           1
 #define UART_IRQ_PRIO       1
 
