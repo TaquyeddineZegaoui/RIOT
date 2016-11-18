@@ -266,25 +266,16 @@ static void PrepareTxFrame( uint8_t port )
             AppData[1] = 'E';
             AppData[2] = 'S';
             AppData[3] = 'T';
-            AppData[4] = ' ';
-            AppData[5] = 'S';
-            AppData[6] = 'I';
-            AppData[7] = 'G';
-            AppData[8] = 'N';
-            AppData[9] = 'A';
-            AppData[10] = 'L';
 #elif defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
-            AppData[0] = 'T';
-            AppData[1] = 'E';
-            AppData[2] = 'S';
-            AppData[3] = 'T';
-            AppData[4] = ' ';
-            AppData[5] = 'S';
-            AppData[6] = 'I';
-            AppData[7] = 'G';
-            AppData[8] = 'N';
-            AppData[9] = 'A';
-            AppData[10] = 'L';
+            AppData[0] = 'P';
+            AppData[1] = 'R';
+            AppData[2] = 'U';
+            AppData[3] = 'E';
+            AppData[4] = 'B';
+            AppData[5] = 'A';
+            AppData[6] = '-';
+            AppData[7] = '0';
+            AppData[8] = '1';
 #endif
         }
         break;
@@ -396,7 +387,7 @@ static void OnTxNextPacketTimerEvent( void )
 static void OnLed1TimerEvent( void )
 {
     TimerStop( &Led1Timer );
-    LED0_ON;
+    LED0_TOGGLE;
     // Switch LED 1 OFF
 }
 
@@ -686,7 +677,7 @@ void event_handler_thread(void *arg, sx1276_event_type_t event_type)
     switch (event_type) {
 
         case SX1276_TX_DONE:
-            puts("sx1276: transmission done.");
+            puts("sx1276: TX done");
             events->TxDone();
             break;
 
@@ -919,10 +910,29 @@ int regs(int argc, char **argv)
     return 0;
 }
 
+int tx_test(int argc, char **argv)
+{
+    if (argc <= 1) {
+        puts("tx_test: payload is not specified");
+        return -1;
+    }
+
+    printf("tx_test: sending \"%s\" payload (%d bytes)\n", argv[1], strlen(argv[1]) + 1);
+
+    sx1276_send(&sx1276, (uint8_t *) argv[1], strlen(argv[1]) + 1);
+
+    xtimer_usleep(10000); /* wait for the chip */
+
+    puts("tx_test: sended");
+
+    return 0;
+}
+
 static const shell_command_t shell_commands[] = {
     { "random", "Get random number from sx1276", random },
     { "get", "<all | num> - gets value of registers of sx1276, all or by specified number from 0 to 255", regs },
     { "set", "<num> <value> - sets value of register with specified number", regs_set },
+    { "tx_test", "<payload> Send test payload string", tx_test },
     { "lora_setup", "<BW (125, 250, 512)> <SF (7..12)> <CR 4/(5,6,7,8)> - sets up LoRa modulation settings", lora_setup},
 
     { NULL, NULL, NULL }
@@ -936,10 +946,6 @@ int main(void)
 
     xtimer_init();
     init_radio();
-
-    sx1276_configure_lora_bw(&sx1276, SX1276_BW_125_KHZ);
-    sx1276_configure_lora_sf(&sx1276, 12);
-    sx1276_configure_lora_cr(&sx1276, 5);
 
     radio_set_ptr(&sx1276);
 
@@ -1043,6 +1049,9 @@ int main(void)
                 LoRaMacMibSetRequestConfirm( &mibReq );
 
                 DeviceState = DEVICE_STATE_SEND;
+
+                if(mibReq.Param.IsNetworkJoined)
+                puts("JOINED");
 #endif
                 break;
             }
@@ -1055,7 +1064,6 @@ int main(void)
                 }
                 if( ComplianceTest.Running == true )
                 {
-
                     // Schedule next packet transmission
                     TxDutyCycleTime = 5000; // 5000 ms
                 }
