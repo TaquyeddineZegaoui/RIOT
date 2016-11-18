@@ -45,7 +45,7 @@ void TimerSetValue( TimerEvent_t *obj, uint32_t value )
 {
     if(obj->running)
         xtimer_remove(obj->dev);
-    obj->timeout = value;
+    obj->timeout = value*1000;
 }
 
 TimerTime_t TimerGetCurrentTime( void )

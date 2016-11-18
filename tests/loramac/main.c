@@ -396,6 +396,7 @@ static void OnTxNextPacketTimerEvent( void )
 static void OnLed1TimerEvent( void )
 {
     TimerStop( &Led1Timer );
+    LED0_ON;
     // Switch LED 1 OFF
 }
 
@@ -682,7 +683,6 @@ void event_handler_thread(void *arg, sx1276_event_type_t event_type)
 {
     sx1276_rx_packet_t *packet = (sx1276_rx_packet_t *) &sx1276._internal.last_packet;
     RadioEvents_t *events = radio_get_event_ptr();
-    puts("EVENT");
     switch (event_type) {
 
         case SX1276_TX_DONE:
