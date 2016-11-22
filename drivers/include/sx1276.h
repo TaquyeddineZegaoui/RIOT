@@ -43,7 +43,7 @@
  * @name SX1276 configuration
  * @{
  */
-#define RF_FREQUENCY                                868900000   // Hz, 868.9MHz
+#define RF_FREQUENCY                                915000000   // Hz, 868.9MHz
 
 #define TX_OUTPUT_POWER                             10          // dBm
 
