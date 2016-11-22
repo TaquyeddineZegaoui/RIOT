@@ -315,19 +315,16 @@ static int _get_state(sx1276_t *dev, void *val, size_t len)
     switch(op_mode)
     {
         case SX1276_RF_OPMODE_SLEEP:
-        case SX1276_RF_LORA_OPMODE_SLEEP:
             state = NETOPT_STATE_SLEEP;
             break;
         case SX1276_RF_OPMODE_STANDBY:
-        case SX1276_RF_LORA_OPMODE_STANDBY:
             state = NETOPT_STATE_STANDBY;
             break;
-        case SX1276_RF_OPMODE_TRANSMITTER:
         case SX1276_RF_OPMODE_TRANSMITTER:
             state = NETOPT_STATE_TX;
             break;
         case SX1276_RF_OPMODE_RECEIVER:
-        case SX1276_RF_LORA_OPMODE_RECEIVER:
+        case SX1276_RF_LORA_OPMODE_RECEIVER_SINGLE:
             state = NETOPT_STATE_IDLE;
             break;
         default:

@@ -138,8 +138,6 @@ int tx_test(int argc, char **argv)
     vec[0].iov_len = strlen(argv[1]) + 1;
     nd->driver->send(nd, vec, 1); 
     
-    //sx1276_send(&sx1276, (uint8_t *) argv[1], strlen(argv[1]) + 1);
-
     xtimer_usleep(10000); /* wait for the chip */
 
     puts("tx_test: sended");

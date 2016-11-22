@@ -497,7 +497,7 @@ void sx1276_set_op_mode(sx1276_t *dev, uint8_t op_mode);
 /**
  * @brief Gets the SX1276 operating mode
  */
-void sx1276_get_op_mode(sx1276_t *dev);
+uint8_t sx1276_get_op_mode(sx1276_t *dev);
 
 /**
  * @brief Reads the contents of the SX1276 FIFO
