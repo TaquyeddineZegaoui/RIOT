@@ -278,6 +278,8 @@ static void _event_cb(netdev2_t *dev, netdev2_event_t event)
         case NETDEV2_EVENT_ISR:
             msg_send(&msg, *pid);
             break;
+        case NETDEV2_EVENT_TX_COMPLETE:
+            printf("TX DONE\n");
         default:
             break;
     }
