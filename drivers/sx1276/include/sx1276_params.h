@@ -22,7 +22,7 @@
 #endif
 
 #ifndef SX1276_PARAM_SPI
-#define SX1276_PARAM_SPI (SPI_0)
+#define SX1276_PARAM_SPI (SPI_1)
 #endif
 
 #ifndef SX1276_PARAM_SPI_SPEED
