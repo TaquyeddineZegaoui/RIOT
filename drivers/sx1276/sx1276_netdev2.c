@@ -21,6 +21,7 @@
 #include "sx1276.h"
 #include <stddef.h>
 #include <string.h>
+#include "errno.h"
 
 static int _send(netdev2_t *netdev, const struct iovec *vector, int count);
 static int _recv(netdev2_t *netdev, char *buf, int len, void *info);
@@ -313,7 +314,14 @@ static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
 }
 static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len)
 {
-    //TODO
+    switch(opt)
+    {
+        case NETOPT_STATE:
+            _set_state((sx1276_t*) netdev, *((netopt_state_t*) val));
+            break;
+        default:
+            break;
+    }
     return 0;
 }
 
