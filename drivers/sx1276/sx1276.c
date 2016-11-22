@@ -898,11 +898,16 @@ void sx1276_reset(sx1276_t *dev)
     xtimer_usleep(1000 * 10);
 }
 
+
+void sx1276_get_op_mode(sx1276_t *dev)
+{
+    return sx1276_reg_read(dev, SX1276_REG_OPMODE) & ~SX1276_RF_OPMODE_MASK;
+}
 void sx1276_set_op_mode(sx1276_t *dev, uint8_t op_mode)
 {
     static uint8_t op_mode_prev = 0;
 
-    op_mode_prev = sx1276_reg_read(dev, SX1276_REG_OPMODE) & ~SX1276_RF_OPMODE_MASK;
+    op_mode_prev = sx1276_get_op_mode(dev);
 
     if (op_mode != op_mode_prev) {
         /* Replace previous mode value and setup new mode value */
