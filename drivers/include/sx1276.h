@@ -495,6 +495,11 @@ void sx1276_set_status(sx1276_t *dev, sx1276_radio_state_t state);
 void sx1276_set_op_mode(sx1276_t *dev, uint8_t op_mode);
 
 /**
+ * @brief Gets the SX1276 operating mode
+ */
+void sx1276_get_op_mode(sx1276_t *dev);
+
+/**
  * @brief Reads the contents of the SX1276 FIFO
  *
  * @param [OUT] buffer Buffer where to copy the FIFO read data.
