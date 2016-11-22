@@ -124,9 +124,9 @@ static int _send(netdev2_t *netdev, const struct iovec *vector, int count)
 {
     sx1276_t *dev = (sx1276_t*) netdev;
     uint8_t size;
+    size = get_tx_len(vector, count);
     switch (dev->settings.modem) {
         case SX1276_MODEM_FSK:
-            size = get_tx_len(vector, count);
             sx1276_write_fifo(dev, &size, 1);
             for(int i=0;i<count;i++)
             {
