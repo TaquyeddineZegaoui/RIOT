@@ -1000,7 +1000,7 @@ void sx1276_on_dio0_isr(void *arg)
 {
     sx1276_t *dev = (sx1276_t*) arg;
 
-    dev->irq &= SX1276_IRQ_DIO0;
+    dev->irq |= SX1276_IRQ_DIO0;
     sx1276_isr((netdev2_t*) dev);
 }
 
@@ -1008,7 +1008,7 @@ void sx1276_on_dio1_isr(void *arg)
 {
     sx1276_t *dev = (sx1276_t*) arg;
 
-    dev->irq &= SX1276_IRQ_DIO1;
+    dev->irq |= SX1276_IRQ_DIO1;
     sx1276_isr((netdev2_t*) dev);
 }
 
@@ -1016,7 +1016,7 @@ void sx1276_on_dio2_isr(void *arg)
 {
     sx1276_t *dev = (sx1276_t*) arg;
 
-    dev->irq &= SX1276_IRQ_DIO2;
+    dev->irq |= SX1276_IRQ_DIO2;
     sx1276_isr((netdev2_t*) dev);
 }
 
@@ -1024,7 +1024,7 @@ void sx1276_on_dio3_isr(void *arg)
 {
     sx1276_t *dev = (sx1276_t*) arg;
 
-    dev->irq &= SX1276_IRQ_DIO3;
+    dev->irq |= SX1276_IRQ_DIO3;
     sx1276_isr((netdev2_t*) dev);
 }
 
@@ -1032,7 +1032,7 @@ void sx1276_on_dio4_isr(void *arg)
 {
     sx1276_t *dev = (sx1276_t*) arg;
 
-    dev->irq &= SX1276_IRQ_DIO4;
+    dev->irq |= SX1276_IRQ_DIO4;
     sx1276_isr((netdev2_t*) dev);
 }
 
@@ -1040,7 +1040,7 @@ void sx1276_on_dio5_isr(void *arg)
 {
     sx1276_t *dev = (sx1276_t*) arg;
 
-    dev->irq &= SX1276_IRQ_DIO5;
+    dev->irq |= SX1276_IRQ_DIO5;
     sx1276_isr((netdev2_t*) dev);
 }
 
