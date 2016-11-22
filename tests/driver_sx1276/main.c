@@ -253,15 +253,44 @@ static const shell_command_t shell_commands[] = {
 void *_event_loop(void *arg)
 {
     static msg_t _msg_q[GNRC_LORA_MSG_QUEUE];
-    msg_t msg;
+    msg_t msg, reply;
     netdev2_t *netdev = (netdev2_t*) arg;
     msg_init_queue(_msg_q, GNRC_LORA_MSG_QUEUE);
+
+    gnrc_netapi_opt_t *opt;
+    int res;
 
     while (1) {
         msg_receive(&msg);
         switch (msg.type) {
             case NETDEV2_MSG_TYPE_EVENT:
                 netdev->driver->isr(netdev);
+                break;
+            case GNRC_NETAPI_MSG_TYPE_SND:
+                gnrc_pktsnip_t *pkt = msg.content.ptr;
+                //gnrc_netdev2->send(gnrc_netdev2, pkt);
+                break;
+            case GNRC_NETAPI_MSG_TYPE_SET:
+                /* read incoming options */
+                opt = msg.content.ptr;
+                /* set option for device driver */
+                res = dev->driver->set(dev, opt->opt, opt->data, opt->data_len);
+                /* send reply to calling thread */
+                reply.type = GNRC_NETAPI_MSG_TYPE_ACK;
+                reply.content.value = (uint32_t)res;
+                msg_reply(&msg, &reply);
+                break;
+            case GNRC_NETAPI_MSG_TYPE_GET:
+                /* read incoming options */
+                opt = msg.content.ptr;
+                /* get option from device driver */
+                res = dev->driver->get(dev, opt->opt, opt->data, opt->data_len);
+                /* send reply to calling thread */
+                reply.type = GNRC_NETAPI_MSG_TYPE_ACK;
+                reply.content.value = (uint32_t)res;
+                msg_reply(&msg, &reply);
+                break;
+            default:
                 break;
         }
     }
