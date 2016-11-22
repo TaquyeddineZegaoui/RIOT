@@ -502,6 +502,10 @@ void sx1276_set_op_mode(sx1276_t *dev, uint8_t op_mode);
  */
 void sx1276_read_fifo(sx1276_t *dev, uint8_t *buffer, uint8_t size);
 
+/**
+ * @brief Resets the SX1276
+ */
+void sx1276_reset(sx1276_t *dev);
 #ifdef __cplusplus
 }
 #endif
