@@ -65,7 +65,7 @@ static int _init(netdev2_t *netdev)
 
     sx1276_configure_lora(sx1276, &lora_settings);
 
-    sx1276_set_channel(sx1276, 868500000);
+    sx1276_set_channel(sx1276, RF_FREQUENCY);
 
     /* Put chip into sleep */
     sx1276_set_sleep(sx1276);
