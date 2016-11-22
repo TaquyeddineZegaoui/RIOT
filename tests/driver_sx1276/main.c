@@ -267,14 +267,14 @@ void *_event_loop(void *arg)
                 netdev->driver->isr(netdev);
                 break;
             case GNRC_NETAPI_MSG_TYPE_SND:
-                gnrc_pktsnip_t *pkt = msg.content.ptr;
+                //gnrc_pktsnip_t *pkt = msg.content.ptr;
                 //gnrc_netdev2->send(gnrc_netdev2, pkt);
                 break;
             case GNRC_NETAPI_MSG_TYPE_SET:
                 /* read incoming options */
                 opt = msg.content.ptr;
                 /* set option for device driver */
-                res = dev->driver->set(dev, opt->opt, opt->data, opt->data_len);
+                res = netdev->driver->set(netdev, opt->opt, opt->data, opt->data_len);
                 /* send reply to calling thread */
                 reply.type = GNRC_NETAPI_MSG_TYPE_ACK;
                 reply.content.value = (uint32_t)res;
@@ -284,7 +284,7 @@ void *_event_loop(void *arg)
                 /* read incoming options */
                 opt = msg.content.ptr;
                 /* get option from device driver */
-                res = dev->driver->get(dev, opt->opt, opt->data, opt->data_len);
+                res = netdev->driver->get(netdev, opt->opt, opt->data, opt->data_len);
                 /* send reply to calling thread */
                 reply.type = GNRC_NETAPI_MSG_TYPE_ACK;
                 reply.content.value = (uint32_t)res;
