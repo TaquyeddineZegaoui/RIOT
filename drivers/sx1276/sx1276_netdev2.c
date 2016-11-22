@@ -282,6 +282,30 @@ static int _recv(netdev2_t *netdev, char *buf, int len, void *info)
     return size;
 }
 
+static int _set_state(sx1276_t *dev, netopt_state_t state)
+{
+    switch (state) {
+        case NETOPT_STATE_SLEEP:
+            sx1276_set_sleep(dev);
+            break;
+        case NETOPT_STATE_STANDBY:
+            sx1276_set_standby(dev); 
+            break;
+        case NETOPT_STATE_IDLE:
+            sx1276_set_rx(dev, 0);
+            break;
+        case NETOPT_STATE_TX:
+            //TODO: Implement preloading
+            break;
+        case NETOPT_STATE_RESET:
+            sx1276_reset(dev);
+            break;
+        default:
+            return -ENOTSUP;
+    }
+    return sizeof(netopt_state_t);
+}
+
 static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
 {
     //TODO
