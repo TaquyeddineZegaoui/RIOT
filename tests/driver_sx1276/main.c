@@ -268,11 +268,13 @@ void *_event_loop(void *arg)
     return NULL;
 }
 
+static char message[32];
 static void _event_cb(netdev2_t *dev, netdev2_event_t event)
 {
     msg_t msg;
     msg.type = NETDEV2_MSG_TYPE_EVENT;
     kernel_pid_t *pid = (kernel_pid_t*) dev->context;
+    size_t len;
     switch(event)
     {
         case NETDEV2_EVENT_ISR:
@@ -280,6 +282,11 @@ static void _event_cb(netdev2_t *dev, netdev2_event_t event)
             break;
         case NETDEV2_EVENT_TX_COMPLETE:
             printf("TX DONE\n");
+            break;
+        case NETDEV2_EVENT_RX_COMPLETE:
+            len = dev->driver->recv(dev, NULL, 5, NULL);
+            dev->driver->recv(dev, message, len, NULL);
+            printf("%s\n",message);
         default:
             break;
     }
