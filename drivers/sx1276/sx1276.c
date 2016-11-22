@@ -903,6 +903,7 @@ void sx1276_get_op_mode(sx1276_t *dev)
 {
     return sx1276_reg_read(dev, SX1276_REG_OPMODE) & ~SX1276_RF_OPMODE_MASK;
 }
+
 void sx1276_set_op_mode(sx1276_t *dev, uint8_t op_mode)
 {
     static uint8_t op_mode_prev = 0;
