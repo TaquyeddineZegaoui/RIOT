@@ -307,35 +307,46 @@ static int _set_state(sx1276_t *dev, netopt_state_t state)
     return sizeof(netopt_state_t);
 }
 
-static int _get_state(sx1276_t *dev)
+static int _get_state(sx1276_t *dev, void *val, size_t len)
 {
-    sx1276_radio_state_t state;
     uint8_t op_mode;
-    state = sx1276_get_status(dev);
     op_mode = sx1276_get_op_mode(dev);
+    netopt_state_t state;
     switch(op_mode)
     {
         case SX1276_RF_OPMODE_SLEEP:
         case SX1276_RF_LORA_OPMODE_SLEEP:
-            return NETOPT_STATE_SLEEP;
+            state = NETOPT_STATE_SLEEP;
+            break;
         case SX1276_RF_OPMODE_STANDBY:
         case SX1276_RF_LORA_OPMODE_STANDBY:
-            return NETOPT_STATE_STANDBY;
+            state = NETOPT_STATE_STANDBY;
+            break;
         case SX1276_RF_OPMODE_TRANSMITTER:
         case SX1276_RF_OPMODE_TRANSMITTER:
-            return NETOPT_STATE_TX;
+            state = NETOPT_STATE_TX;
+            break;
         case SX1276_RF_OPMODE_RECEIVER:
         case SX1276_RF_LORA_OPMODE_RECEIVER:
-            return NETOPT_STATE_IDLE;
+            state = NETOPT_STATE_IDLE;
+            break;
         default:
             //TODO: Add RX
             break;
     }
+    memcpy(val, &state, sizeof(netopt_state_t));
+    return sizeof(netopt_state_t);
 }
 
 static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
 {
-    //TODO
+    switch(opt)
+    {
+        case NETOPT_STATE:
+            return _get_state((sx1276_t*) netdev, *((netopt_state_t*) val));
+        default:
+            break;
+    }
     return 0;
 }
 static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len)
@@ -343,7 +354,8 @@ static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len)
     switch(opt)
     {
         case NETOPT_STATE:
-            _set_state((sx1276_t*) netdev, *((netopt_state_t*) val));
+            int state;
+            state = _get_state((sx1276_t*) netdev, *((netopt_state_t*) val));
             break;
         default:
             break;
