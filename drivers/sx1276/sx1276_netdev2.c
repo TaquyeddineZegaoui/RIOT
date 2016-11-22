@@ -307,6 +307,32 @@ static int _set_state(sx1276_t *dev, netopt_state_t state)
     return sizeof(netopt_state_t);
 }
 
+static int _get_state(sx1276_t *dev)
+{
+    sx1276_radio_state_t state;
+    uint8_t op_mode;
+    state = sx1276_get_status(dev);
+    op_mode = sx1276_get_op_mode(dev);
+    switch(op_mode)
+    {
+        case SX1276_RF_OPMODE_SLEEP:
+        case SX1276_RF_LORA_OPMODE_SLEEP:
+            return NETOPT_STATE_SLEEP;
+        case SX1276_RF_OPMODE_STANDBY:
+        case SX1276_RF_LORA_OPMODE_STANDBY:
+            return NETOPT_STATE_STANDBY;
+        case SX1276_RF_OPMODE_TRANSMITTER:
+        case SX1276_RF_OPMODE_TRANSMITTER:
+            return NETOPT_STATE_TX;
+        case SX1276_RF_OPMODE_RECEIVER:
+        case SX1276_RF_LORA_OPMODE_RECEIVER:
+            return NETOPT_STATE_IDLE;
+        default:
+            //TODO: Add RX
+            break;
+    }
+}
+
 static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
 {
     //TODO
