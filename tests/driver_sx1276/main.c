@@ -137,6 +137,7 @@ int tx_test(int argc, char **argv)
     vec[0].iov_base = argv[1];
     vec[0].iov_len = strlen(argv[1]) + 1;
     nd->driver->send(nd, vec, 1); 
+    
     //sx1276_send(&sx1276, (uint8_t *) argv[1], strlen(argv[1]) + 1);
 
     xtimer_usleep(10000); /* wait for the chip */
@@ -269,15 +270,23 @@ void *_event_loop(void *arg)
 
 static void _event_cb(netdev2_t *dev, netdev2_event_t event)
 {
+    msg_t msg;
+    msg.type = NETDEV2_MSG_TYPE_EVENT;
+    kernel_pid_t *pid = (kernel_pid_t*) dev->context;
     switch(event)
     {
         case NETDEV2_EVENT_ISR:
-            printf("Received ISR");
+            msg_send(&msg, *pid);
             break;
         default:
             break;
     }
 }
+
+#define SX1276_MAC_STACKSIZE    (THREAD_STACKSIZE_DEFAULT)
+
+static char stack[SX1276_MAC_STACKSIZE];
+
 int main(void)
 {
     xtimer_init();
@@ -289,6 +298,10 @@ int main(void)
     netdev->driver->init(netdev);
     netdev->event_callback = _event_cb;
 
+    kernel_pid_t pid;
+    pid = thread_create(stack, sizeof(stack), THREAD_PRIORITY_MAIN - 5, THREAD_CREATE_STACKTEST,
+                     _event_loop, (void *) netdev, "asd");
+    netdev->context = &pid;
     /* start the shell */
     puts("Initialization successful - starting the shell now");
     char line_buf[SHELL_DEFAULT_BUFSIZE];
