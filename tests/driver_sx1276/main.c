@@ -41,6 +41,7 @@
 
 #define GNRC_LORA_MSG_QUEUE 16
 
+static netdev2_t *nd;
 /*TODO: Implement*/
 #if 0
 int random(int argc, char **argv)
@@ -131,7 +132,12 @@ int tx_test(int argc, char **argv)
 
     printf("tx_test: sending \"%s\" payload (%d bytes)\n", argv[1], strlen(argv[1]) + 1);
 
-    sx1276_send(&sx1276, (uint8_t *) argv[1], strlen(argv[1]) + 1);
+     
+    struct iovec vec[1];
+    vec[0].iov_base = argv[1];
+    vec[0].iov_len = strlen(argv[1]) + 1;
+    nd->driver->send(nd, vec, 1); 
+    //sx1276_send(&sx1276, (uint8_t *) argv[1], strlen(argv[1]) + 1);
 
     xtimer_usleep(10000); /* wait for the chip */
 
@@ -278,6 +284,7 @@ int main(void)
 
     memcpy(&sx1276.params, sx1276_params, sizeof(sx1276_params));
     netdev2_t *netdev = (netdev2_t*) &sx1276;
+    nd = netdev;
     netdev->driver = &sx1276_driver;
     netdev->driver->init(netdev);
     netdev->event_callback = _event_cb;
