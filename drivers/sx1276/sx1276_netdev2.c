@@ -307,7 +307,7 @@ static int _set_state(sx1276_t *dev, netopt_state_t state)
     return sizeof(netopt_state_t);
 }
 
-static int _get_state(sx1276_t *dev, void *val, size_t len)
+static int _get_state(sx1276_t *dev, void *val)
 {
     uint8_t op_mode;
     op_mode = sx1276_get_op_mode(dev);
@@ -340,7 +340,7 @@ static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
     switch(opt)
     {
         case NETOPT_STATE:
-            return _get_state((sx1276_t*) netdev, *((netopt_state_t*) val));
+            return _get_state((sx1276_t*) netdev, val);
         default:
             break;
     }
@@ -351,8 +351,7 @@ static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len)
     switch(opt)
     {
         case NETOPT_STATE:
-            int state;
-            state = _get_state((sx1276_t*) netdev, *((netopt_state_t*) val));
+            return _set_state((sx1276_t*) netdev, *((netopt_state_t*) val));
             break;
         default:
             break;
