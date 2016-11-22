@@ -247,6 +247,9 @@ typedef enum {
      *
      * @note    Interfaces are not meant to respond to that.
      */
+    NETOPT_LORA_BANDWITH,
+    NETOPT_LORA_SPREADING_FACTOR,
+    NETOPT_LORA_CODING_RATE,
     NETOPT_NUMOF,
 } netopt_t;
 
