@@ -37,6 +37,9 @@
 #include "sx1276_regs_fsk.h"
 #include "sx1276_params.h"
 #include "sx1276_netdev.h"
+#include "net/gnrc/netdev2.h"
+
+#define GNRC_LORA_MSG_QUEUE 16
 
 /*TODO: Implement*/
 #if 0
@@ -240,6 +243,35 @@ static const shell_command_t shell_commands[] = {
     { NULL, NULL, NULL }
 };
 
+void *_event_loop(void *arg)
+{
+    static msg_t _msg_q[GNRC_LORA_MSG_QUEUE];
+    msg_t msg;
+    netdev2_t *netdev = (netdev2_t*) arg;
+    msg_init_queue(_msg_q, GNRC_LORA_MSG_QUEUE);
+
+    while (1) {
+        msg_receive(&msg);
+        switch (msg.type) {
+            case NETDEV2_MSG_TYPE_EVENT:
+                netdev->driver->isr(netdev);
+                break;
+        }
+    }
+    return NULL;
+}
+
+static void _event_cb(netdev2_t *dev, netdev2_event_t event)
+{
+    switch(event)
+    {
+        case NETDEV2_EVENT_ISR:
+            printf("Received ISR");
+            break;
+        default:
+            break;
+    }
+}
 int main(void)
 {
     xtimer_init();
@@ -248,6 +280,7 @@ int main(void)
     netdev2_t *netdev = (netdev2_t*) &sx1276;
     netdev->driver = &sx1276_driver;
     netdev->driver->init(netdev);
+    netdev->event_callback = _event_cb;
 
     /* start the shell */
     puts("Initialization successful - starting the shell now");
