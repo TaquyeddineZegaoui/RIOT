@@ -1187,3 +1187,27 @@ void sx1276_on_dio5(void *arg)
     (void) arg;
 }
 
+void init_configs(sx1276_t *dev)
+{
+    sx1276_lora_settings_t lora_settings;
+
+    lora_settings.bandwidth = SX1276_BW_125_KHZ;
+    lora_settings.coderate = SX1276_CR_4_5;
+    lora_settings.datarate = SX1276_SF12;
+    lora_settings.crc_on = true;
+    lora_settings.freq_hop_on = false;
+    lora_settings.hop_period = 0;
+    lora_settings.implicit_header = false;
+    lora_settings.iq_inverted = false;
+    lora_settings.low_datarate_optimize = false;
+    lora_settings.payload_len = 0;
+    lora_settings.power = 14;
+    lora_settings.preamble_len = LORA_PREAMBLE_LENGTH;
+    lora_settings.rx_continuous = true;
+    lora_settings.tx_timeout = 1000 * 1000 * 30; // 30 sec
+    lora_settings.rx_timeout = LORA_SYMBOL_TIMEOUT;
+
+    sx1276_configure_lora(dev, &lora_settings);
+
+    sx1276_set_channel(dev, RF_FREQUENCY);
+}
