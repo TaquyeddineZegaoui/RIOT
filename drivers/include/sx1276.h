@@ -513,6 +513,13 @@ void sx1276_read_fifo(sx1276_t *dev, uint8_t *buffer, uint8_t size);
 void sx1276_reset(sx1276_t *dev);
 
 void init_configs(sx1276_t *dev);
+
+sx1276_lora_bandwidth_t sx1276_get_bandwidth(sx1276_t *dev);
+
+sx1276_lora_spreading_factor_t sx1276_get_spreading_factor(sx1276_t *dev);
+
+sx1276_lora_coding_rate_t sx1276_get_coding_rate(sx1276_t *dev);
+
 #ifdef __cplusplus
 }
 #endif
