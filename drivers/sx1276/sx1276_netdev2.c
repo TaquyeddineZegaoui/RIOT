@@ -211,7 +211,7 @@ static int _recv(netdev2_t *netdev, char *buf, int len, void *info)
         xtimer_remove(&dev->_internal.rx_timeout_timer);
 
         //TODO: Error code
-        return -1;
+        return -EBADMSG;
     }
 
     //TODO: Add snr info to rx_info
