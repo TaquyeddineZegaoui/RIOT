@@ -338,29 +338,6 @@ static int _get_state(sx1276_t *dev, void *val)
     return sizeof(netopt_state_t);
 }
 
-static int _get_bw(sx1276_t *dev, void *val)
-{
-    sx1276_lora_bandwidth_t bw = dev->settings.lora.bandwidth;
-
-    memcpy(val, &bw, sizeof(sx1276_lora_bandwidth_t));
-    return sizeof(sx1276_lora_bandwidth_t);
-}
-
-static int _get_sf(sx1276_t *dev, void *val)
-{
-    sx1276_lora_spreading_factor_t sf = dev->settings.lora.datarate;
-
-    memcpy(val, &sf, sizeof(sx1276_lora_spreading_factor_t));
-    return sizeof(sx1276_lora_spreading_factor_t);
-}
-
-static int _get_cr(sx1276_t *dev, void *val)
-{
-    sx1276_lora_coding_rate_t cr = dev->settings.lora.coderate;
-
-    memcpy(val, &cr, sizeof(sx1276_lora_coding_rate_t));
-    return sizeof(sx1276_lora_coding_rate_t);
-}
 
 static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
 {
@@ -369,11 +346,14 @@ static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
         case NETOPT_STATE:
             return _get_state((sx1276_t*) netdev, val);
         case NETOPT_LORA_BANDWIDTH:
-            return _get_bw((sx1276_t*) netdev, val);
+            *((sx1276_lora_bandwidth_t*) val) = sx1276_get_bandwidth((sx1276_t*) netdev);
+            return sizeof(sx1276_lora_bandwidth_t);
         case NETOPT_LORA_SPREADING_FACTOR:
-            return _get_sf((sx1276_t*) netdev, val);
+            *((sx1276_lora_spreading_factor_t*) val) = sx1276_get_spreading_factor((sx1276_t*) netdev);
+            return sizeof(sx1276_lora_spreading_factor_t);
         case NETOPT_LORA_CODING_RATE:
-            return _get_cr((sx1276_t*) netdev, val);
+            *((sx1276_lora_coding_rate_t*) val) = sx1276_get_coding_rate((sx1276_t*) netdev);
+            return sizeof(sx1276_lora_coding_rate_t);
         default:
             break;
     }
