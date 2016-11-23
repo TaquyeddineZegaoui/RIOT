@@ -25,6 +25,9 @@
 #include <string.h>
 #include "errno.h"
 
+#define RSSI_OFFSET_LF                              -164
+#define RSSI_OFFSET_HF                              -157
+
 static int _send(netdev2_t *netdev, const struct iovec *vector, int count);
 static int _recv(netdev2_t *netdev, char *buf, int len, void *info);
 static int _init(netdev2_t *netdev);
@@ -211,38 +214,41 @@ static int _recv(netdev2_t *netdev, char *buf, int len, void *info)
         return -1;
     }
 
-    //TODO: Return info
-#if 0
-    int8_t snr = 0;
-    packet->snr_value = sx1276_reg_read(dev,  SX1276_REG_LR_PKTSNRVALUE);
-    if (packet->snr_value & 0x80) { /* The SNR is negative */
-        /* Invert and divide by 4 */
-        snr = ((~packet->snr_value + 1) & 0xFF) >> 2;
-        snr = -snr;
-    }
-    else {
-        /* Divide by 4 */
-        snr = (packet->snr_value & 0xFF) >> 2;
-    }
+    //TODO: Add snr info to rx_info
+    if(info)
+    {
+        int8_t snr = 0;
+        uint8_t snr_value = sx1276_reg_read(dev,  SX1276_REG_LR_PKTSNRVALUE);
+        if (snr_value & 0x80) { /* The SNR is negative */
+            /* Invert and divide by 4 */
+            snr = ((~snr_value + 1) & 0xFF) >> 2;
+            snr = -snr;
+        }
+        else {
+            /* Divide by 4 */
+            snr = (snr_value & 0xFF) >> 2;
+        }
 
-    int16_t rssi = sx1276_reg_read(dev, SX1276_REG_LR_PKTRSSIVALUE);
-    if (snr < 0) {
-        if (dev->settings.channel > SX1276_RF_MID_BAND_THRESH) {
-            packet->rssi_value = RSSI_OFFSET_HF + rssi + (rssi >> 4) + snr;
+        int16_t rssi = sx1276_reg_read(dev, SX1276_REG_LR_PKTRSSIVALUE);
+        netdev2_sx1276_rx_info_t *rx_info = info;
+
+        if (snr < 0) {
+            if (dev->settings.channel > SX1276_RF_MID_BAND_THRESH) {
+                rx_info->rssi = RSSI_OFFSET_HF + rssi + (rssi >> 4) + snr;
+            }
+            else {
+                rx_info->rssi = RSSI_OFFSET_LF + rssi + (rssi >> 4) + snr;
+            }
         }
         else {
-            packet->rssi_value = RSSI_OFFSET_LF + rssi + (rssi >> 4) + snr;
+            if (dev->settings.channel > SX1276_RF_MID_BAND_THRESH) {
+                rx_info->rssi = RSSI_OFFSET_HF + rssi + (rssi >> 4);
+            }
+            else {
+                rx_info->rssi = RSSI_OFFSET_LF + rssi + (rssi >> 4);
+            }
         }
     }
-    else {
-        if (dev->settings.channel > SX1276_RF_MID_BAND_THRESH) {
-            packet->rssi_value = RSSI_OFFSET_HF + rssi + (rssi >> 4);
-        }
-        else {
-            packet->rssi_value = RSSI_OFFSET_LF + rssi + (rssi >> 4);
-        }
-    }
-#endif
     /* TODO: Check if uint8_t or uint16_t */
     uint16_t size = sx1276_reg_read(dev, SX1276_REG_LR_RXNBBYTES);
     if (buf == NULL)
@@ -309,7 +315,6 @@ static int _get_state(sx1276_t *dev, void *val)
             state = NETOPT_STATE_IDLE;
             break;
         default:
-            //TODO: Add RX
             break;
     }
     memcpy(val, &state, sizeof(netopt_state_t));
