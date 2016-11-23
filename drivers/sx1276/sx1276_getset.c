@@ -165,3 +165,14 @@ void sx1276_set_max_payload_len(sx1276_t *dev, sx1276_radio_modems_t modem, uint
             break;
     }
 }
+
+void sx1276_set_rx_single(sx1276_t *dev, uint8_t single)
+{
+    dev->settings.lora.rx_continuous = single ? false : true;
+}
+
+uint8_t sx1276_get_rx_single(sx1276_t *dev)
+{
+    return dev->settings.lora.rx_continuous ? false : true;
+}
+
