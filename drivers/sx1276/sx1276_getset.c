@@ -1,5 +1,6 @@
 #include "sx1276.h"
-#include "include/sx1276_registers.h"
+#include "sx1276_registers.h"
+#include "sx1276_internal.h"
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
