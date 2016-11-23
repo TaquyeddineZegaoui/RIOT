@@ -442,6 +442,8 @@ sx1276_lora_spreading_factor_t sx1276_get_spreading_factor(sx1276_t *dev);
 
 sx1276_lora_coding_rate_t sx1276_get_coding_rate(sx1276_t *dev);
 
+void sx1276_set_rx_single(sx1276_t *dev, uint8_t single);
+uint8_t sx1276_get_rx_single(sx1276_t *dev);
 #ifdef __cplusplus
 }
 #endif
