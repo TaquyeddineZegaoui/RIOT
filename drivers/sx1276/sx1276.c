@@ -193,21 +193,6 @@ sx1276_init_result_t sx1276_init(sx1276_t *dev)
     /* Set current frequency */
     sx1276_set_channel(dev, dev->settings.channel);
 
-    /* TODO: Remove */
-    /* Create DIO event lines handler */
-    #if 0
-    kernel_pid_t pid = thread_create((char *) dev->_internal.dio_polling_thread_stack, 
-							sizeof(dev->_internal.dio_polling_thread_stack), 
-							THREAD_PRIORITY_MAIN, THREAD_CREATE_STACKTEST, 
-							dio_polling_thread, dev, "sx1276 DIO handler");
-
-    if (pid <= KERNEL_PID_UNDEF) {
-        DEBUG("sx1276: creation of DIO handling thread\n");
-        return SX1276_ERR_THREAD;
-    }
-    dev->_internal.dio_polling_thread_pid = pid;
-#endif
-
     return SX1276_INIT_OK;
 }
 
