@@ -253,6 +253,9 @@ static int _recv(netdev2_t *netdev, char *buf, int len, void *info)
     if (buf == NULL)
         return size;
 
+    if (size > len)
+        return -ENOBUFS;
+
     if (!dev->settings.lora.rx_continuous) {
         sx1276_set_status(dev,  SX1276_RF_IDLE);
     }
