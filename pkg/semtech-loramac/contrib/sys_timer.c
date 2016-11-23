@@ -18,9 +18,9 @@ Maintainer: Miguel Luis and Gregory Cristian
 
 void TimerInit( TimerEvent_t *obj, void ( *cb )( void ) )
 {
-    obj->dev->target = 0;
+    obj->dev.target = 0;
     obj->running = 0;
-    obj->dev->callback = (xtimer_callback_t) cb;
+    obj->dev.callback = (xtimer_callback_t) cb;
 }
 
 void TimerReset( TimerEvent_t *obj )
@@ -32,20 +32,20 @@ void TimerReset( TimerEvent_t *obj )
 void TimerStart( TimerEvent_t *obj )
 {
     obj->running = 1;
-    xtimer_set(obj->dev, obj->timeout);
+    xtimer_set(&(obj->dev), obj->timeout);
 }
  
 void TimerStop( TimerEvent_t *obj )
 {
     obj->running = 0;
-    xtimer_remove(obj->dev);
+    xtimer_remove(&(obj->dev));
 }
  
 void TimerSetValue( TimerEvent_t *obj, uint32_t value )
 {
     if(obj->running)
-        xtimer_remove(obj->dev);
-    obj->timeout = value;
+        xtimer_remove(&(obj->dev));
+    obj->timeout = value*1000;
 }
 
 TimerTime_t TimerGetCurrentTime( void )

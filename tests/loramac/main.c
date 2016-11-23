@@ -57,7 +57,7 @@ static sx1276_t sx1276;
 /*!
  * Defines the application data transmission duty cycle. 5s, value in [ms].
  */
-#define APP_TX_DUTYCYCLE                            5000
+#define APP_TX_DUTYCYCLE                            1000
 
 /*!
  * Defines a random delay for application data transmission duty cycle. 1s,
@@ -176,8 +176,7 @@ static uint32_t TxDutyCycleTime;
 /*!
  * Timer to handle the application data transmission duty cycle
  */
-static xtimer_t xtimerNextPaquet;
-static TimerEvent_t TxNextPacketTimer = {0, 0, &xtimerNextPaquet};
+static TimerEvent_t TxNextPacketTimer;
 
 /*!
  * Specifies the state of the application LED
@@ -187,15 +186,12 @@ static bool AppLedStateOn = false;
 /*!
  * Timer to handle the state of LED1
  */
-static xtimer_t xtimerLed1;
-static TimerEvent_t Led1Timer = {0, 0, &xtimerLed1};
-//Led1Timer.dev = &xtimerLed1;
+static TimerEvent_t Led1Timer;
 
 /*!
  * Timer to handle the state of LED2
  */
-static xtimer_t xtimerLed2;
-static TimerEvent_t Led2Timer = {0, 0, &xtimerLed2};
+static TimerEvent_t Led2Timer;
 
 /*!
  * Indicates if a new packet can be sent
@@ -266,25 +262,18 @@ static void PrepareTxFrame( uint8_t port )
             AppData[1] = 'E';
             AppData[2] = 'S';
             AppData[3] = 'T';
-            AppData[4] = ' ';
-            AppData[5] = 'S';
-            AppData[6] = 'I';
-            AppData[7] = 'G';
-            AppData[8] = 'N';
-            AppData[9] = 'A';
-            AppData[10] = 'L';
 #elif defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
-            AppData[0] = 'T';
-            AppData[1] = 'E';
-            AppData[2] = 'S';
-            AppData[3] = 'T';
-            AppData[4] = ' ';
-            AppData[5] = 'S';
-            AppData[6] = 'I';
-            AppData[7] = 'G';
-            AppData[8] = 'N';
-            AppData[9] = 'A';
-            AppData[10] = 'L';
+            AppData[0] = '\\';
+            AppData[1] = '!';            
+            AppData[2] = '#';
+            AppData[3] = '3';
+            AppData[4] = '#';
+            AppData[5] = 'T';
+            AppData[6] = '/';
+            AppData[7] = '2';
+            AppData[8] = '2';
+            AppData[9] = '.';
+            AppData[10] = '0';
 #endif
         }
         break;
@@ -396,6 +385,7 @@ static void OnTxNextPacketTimerEvent( void )
 static void OnLed1TimerEvent( void )
 {
     TimerStop( &Led1Timer );
+    LED0_TOGGLE;
     // Switch LED 1 OFF
 }
 
@@ -682,14 +672,15 @@ void event_handler_thread(void *arg, sx1276_event_type_t event_type)
 {
     sx1276_rx_packet_t *packet = (sx1276_rx_packet_t *) &sx1276._internal.last_packet;
     RadioEvents_t *events = radio_get_event_ptr();
-
     switch (event_type) {
 
         case SX1276_TX_DONE:
+            puts("sx1276: TX done");
             events->TxDone();
             break;
 
         case SX1276_TX_TIMEOUT:
+            puts("sx1276: TX timeout");
             events->TxTimeout();
             break;
 
@@ -754,7 +745,8 @@ void init_radio(void)
     puts("init_radio: sx1276 initialization done");
 }
 
-int lora_setup(int argc, char **argv) {
+int lora_setup(int argc, char **argv) 
+{
     if (argc < 4) {
         return -1;
     }
@@ -917,10 +909,29 @@ int regs(int argc, char **argv)
     return 0;
 }
 
+int tx_test(int argc, char **argv)
+{
+    if (argc <= 1) {
+        puts("tx_test: payload is not specified");
+        return -1;
+    }
+
+    printf("tx_test: sending \"%s\" payload (%d bytes)\n", argv[1], strlen(argv[1]) + 1);
+
+    sx1276_send(&sx1276, (uint8_t *) argv[1], strlen(argv[1]) + 1);
+
+    xtimer_usleep(10000); /* wait for the chip */
+
+    puts("tx_test: sended");
+
+    return 0;
+}
+
 static const shell_command_t shell_commands[] = {
     { "random", "Get random number from sx1276", random },
     { "get", "<all | num> - gets value of registers of sx1276, all or by specified number from 0 to 255", regs },
     { "set", "<num> <value> - sets value of register with specified number", regs_set },
+    { "tx_test", "<payload> Send test payload string", tx_test },
     { "lora_setup", "<BW (125, 250, 512)> <SF (7..12)> <CR 4/(5,6,7,8)> - sets up LoRa modulation settings", lora_setup},
 
     { NULL, NULL, NULL }
@@ -947,7 +958,6 @@ int main(void)
         {
             case DEVICE_STATE_INIT:
             {
-                puts("DEVICE INIT");
                 LoRaMacPrimitives.MacMcpsConfirm = McpsConfirm;
                 LoRaMacPrimitives.MacMcpsIndication = McpsIndication;
                 LoRaMacPrimitives.MacMlmeConfirm = MlmeConfirm;
@@ -985,11 +995,11 @@ int main(void)
 
 #endif
                 DeviceState = DEVICE_STATE_JOIN;
+                puts("INIT");
                 break;
             }
             case DEVICE_STATE_JOIN:
             {
-                puts("DEVICE JOIN");
 #if( OVER_THE_AIR_ACTIVATION != 0 )
                 MlmeReq_t mlmeReq;
                 // Initialize LoRaMac device unique ID
@@ -1012,8 +1022,8 @@ int main(void)
                 if( DevAddr == 0 )
                 {
                     // Random seed initialization
-                    // srand1( BoardGetRandomSeed( ) );
-                    srand1( 4);
+                    srand1( BoardGetRandomSeed( ) );
+                    //srand1( 4);
                     // Choose a random device address
                     DevAddr = randr( 0, 0x01FFFFFF );
                 }
@@ -1039,12 +1049,14 @@ int main(void)
                 LoRaMacMibSetRequestConfirm( &mibReq );
 
                 DeviceState = DEVICE_STATE_SEND;
+
+                if(mibReq.Param.IsNetworkJoined)
+                puts("JOINED");
 #endif
                 break;
             }
             case DEVICE_STATE_SEND:
             {
-                puts("DEVICE SEND");
                 if( NextTx == true )
                 {
                     PrepareTxFrame( AppPort );
@@ -1052,9 +1064,8 @@ int main(void)
                 }
                 if( ComplianceTest.Running == true )
                 {
-
                     // Schedule next packet transmission
-                    TxDutyCycleTime = 5000; // 5000 ms
+                    TxDutyCycleTime = APP_TX_DUTYCYCLE; // 5000 ms
                 }
                 else
                 {
@@ -1066,7 +1077,6 @@ int main(void)
             }
             case DEVICE_STATE_CYCLE:
             {
-                puts("DEVICE CYCLE");
                 DeviceState = DEVICE_STATE_SLEEP;
 
                 // Schedule next packet transmission
@@ -1076,7 +1086,6 @@ int main(void)
             }
             case DEVICE_STATE_SLEEP:
             {
-                puts("SLEEP");
                 // Wake up through events
                 TimerLowPowerHandler( );
                 break;
