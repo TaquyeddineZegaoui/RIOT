@@ -222,9 +222,11 @@ typedef enum {
      *
      * @note    Interfaces are not meant to respond to that.
      */
-    NETOPT_LORA_BANDWIDTH,
-    NETOPT_LORA_SPREADING_FACTOR,
-    NETOPT_LORA_CODING_RATE,
+    NETOPT_LORA_BANDWIDTH,   /**< bandwidth of LoRa */
+    NETOPT_LORA_SPREADING_FACTOR, /**< spreading factor of LoRa */
+    NETOPT_LORA_CODING_RATE,  /**< coding rate of LoRa */
+    NETOPT_LORA_SINGLE_RECEIVE, /**< when enabled, RX is turned of upon reception of a packet */
+    NETOPT_LORA_RX_TIMEOUT, /**< Reception timeout of LoRa packet */
     NETOPT_NUMOF,
 } netopt_t;
 
