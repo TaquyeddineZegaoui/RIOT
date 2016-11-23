@@ -30,22 +30,8 @@ static void _isr(netdev2_t *netdev);
 static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len);
 static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len);
 
-static int _init(netdev2_t *netdev)
+void init_configs(sx1276_t *dev)
 {
-    sx1276_t *sx1276 = (sx1276_t*) netdev;
-
-    sx1276->irq = 0;
-    sx1276_settings_t settings;
-    settings.channel = RF_FREQUENCY;
-    settings.modem = SX1276_MODEM_LORA;
-    settings.state = SX1276_RF_IDLE;
-
-    sx1276->settings = settings;
-
-    /* Launch initialization of driver and device */
-    puts("init_radio: initializing driver...");
-    sx1276_init(sx1276);
-
     sx1276_lora_settings_t lora_settings;
 
     lora_settings.bandwidth = SX1276_BW_125_KHZ;
@@ -64,10 +50,27 @@ static int _init(netdev2_t *netdev)
     lora_settings.tx_timeout = 1000 * 1000 * 30; // 30 sec
     lora_settings.rx_timeout = LORA_SYMBOL_TIMEOUT;
 
-    sx1276_configure_lora(sx1276, &lora_settings);
+    sx1276_configure_lora(dev, &lora_settings);
 
-    sx1276_set_channel(sx1276, RF_FREQUENCY);
+    sx1276_set_channel(dev, RF_FREQUENCY);
+}
+static int _init(netdev2_t *netdev)
+{
+    sx1276_t *sx1276 = (sx1276_t*) netdev;
 
+    sx1276->irq = 0;
+    sx1276_settings_t settings;
+    settings.channel = RF_FREQUENCY;
+    settings.modem = SX1276_MODEM_LORA;
+    settings.state = SX1276_RF_IDLE;
+
+    sx1276->settings = settings;
+
+    /* Launch initialization of driver and device */
+    puts("init_radio: initializing driver...");
+    sx1276_init(sx1276);
+
+    init_configs(sx1276);
     /* Put chip into sleep */
     sx1276_set_sleep(sx1276);
 
