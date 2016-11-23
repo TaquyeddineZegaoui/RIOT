@@ -210,7 +210,6 @@ static int _recv(netdev2_t *netdev, char *buf, int len, void *info)
 
         xtimer_remove(&dev->_internal.rx_timeout_timer);
 
-        //TODO: Error code
         return -EBADMSG;
     }
 
@@ -249,8 +248,8 @@ static int _recv(netdev2_t *netdev, char *buf, int len, void *info)
             }
         }
     }
-    /* TODO: Check if uint8_t or uint16_t */
-    uint16_t size = sx1276_reg_read(dev, SX1276_REG_LR_RXNBBYTES);
+
+    uint8_t size = sx1276_reg_read(dev, SX1276_REG_LR_RXNBBYTES);
     if (buf == NULL)
         return size;
 
