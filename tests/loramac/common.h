@@ -18,6 +18,9 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
+//#define SAMR21_XPRO
+#define NZ32_SC151
+
 #include <stdint.h>
 
 #include "sx1276.h"
@@ -40,7 +43,7 @@ extern "C" {
 #define LORA_FIX_LENGTH_PAYLOAD_ON                  false
 #define LORA_IQ_INVERSION                           false
 
-/*
+#ifdef NZ32_SC151
 
 #define SX1276_DIO0 GPIO_PIN(PORT_B, 0)
 #define SX1276_DIO1 GPIO_PIN(PORT_B, 1)
@@ -48,6 +51,8 @@ extern "C" {
 #define SX1276_DIO3 GPIO_PIN(PORT_A, 10)
 
 #define SX1276_RESET GPIO_PIN(PORT_A, 9)
+
+/** SX1276 SPI */
 
 #define USE_SPI_0
 
@@ -65,8 +70,9 @@ extern "C" {
 #define SX1276_SPI_SPEED SPI_SPEED_1MHZ
 #endif
 
-*/
+#endif
 
+#ifdef SAMR21_XPRO
 
 #define SX1276_DIO0 GPIO_PIN(PA, 13)
 #define SX1276_DIO1 GPIO_PIN(PA, 7)
@@ -74,6 +80,8 @@ extern "C" {
 #define SX1276_DIO3 GPIO_PIN(PA, 18)
 
 #define SX1276_RESET GPIO_PIN(PA, 28)
+
+/** SX1276 SPI */
 
 #define USE_SPI_1
 
@@ -90,6 +98,9 @@ extern "C" {
 #define SX1276_SPI_MODE SPI_CONF_FIRST_RISING
 #define SX1276_SPI_SPEED SPI_SPEED_1MHZ
 #endif
+
+#endif
+
 
 void init_radio(void);
 
