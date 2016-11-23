@@ -37,11 +37,11 @@
 #include "sx1276_params.h"
 #include "sx1276_netdev.h"
 #include "net/gnrc/netdev2.h"
+#include "net/netdev2.h"
 
 #define GNRC_LORA_MSG_QUEUE 16
 
 static netdev2_t *nd;
-/*TODO: Implement*/
 int random(int argc, char **argv)
 {
     printf("random: number from sx1276: %u\n", (unsigned int) sx1276_random((sx1276_t*) nd));
@@ -299,6 +299,7 @@ static void _event_cb(netdev2_t *dev, netdev2_event_t event)
     msg.type = NETDEV2_MSG_TYPE_EVENT;
     kernel_pid_t *pid = (kernel_pid_t*) dev->context;
     size_t len;
+    struct netdev2_radio_rx_info rx_info;
     switch(event)
     {
         case NETDEV2_EVENT_ISR:
@@ -308,9 +309,9 @@ static void _event_cb(netdev2_t *dev, netdev2_event_t event)
             printf("TX DONE\n");
             break;
         case NETDEV2_EVENT_RX_COMPLETE:
-            len = dev->driver->recv(dev, NULL, 5, NULL);
+            len = dev->driver->recv(dev, NULL, 5, &rx_info);
             dev->driver->recv(dev, message, len, NULL);
-            printf("%s\n",message);
+            printf("%s\n. {RSSI: %i\n", message, rx_info.rssi);
         default:
             break;
     }
