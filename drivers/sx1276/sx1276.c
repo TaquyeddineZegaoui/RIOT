@@ -30,8 +30,7 @@
 #include "debug.h"
 
 #include "sx1276.h"
-#include "include/sx1276_regs_fsk.h"
-#include "include/sx1276_regs_lora.h"
+#include "include/sx1276_registers.h"
 
 /**
  * Radio registers definition
