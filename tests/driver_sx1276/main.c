@@ -33,8 +33,7 @@
 
 #include "board.h"
 
-#include "sx1276_regs_lora.h"
-#include "sx1276_regs_fsk.h"
+#include "sx1276_internal.h"
 #include "sx1276_params.h"
 #include "sx1276_netdev.h"
 #include "net/gnrc/netdev2.h"

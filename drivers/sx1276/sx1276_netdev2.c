@@ -18,6 +18,7 @@
 
 #include "net/netdev2.h"
 #include "include/sx1276_registers.h"
+#include "include/sx1276_internal.h"
 #include "sx1276_netdev.h"
 #include "sx1276.h"
 #include <stddef.h>

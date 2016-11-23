@@ -19,6 +19,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#include "sx1276_internal.h"
 
 #include "periph/gpio.h"
 #include "periph/spi.h"
