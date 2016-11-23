@@ -43,15 +43,13 @@
 
 static netdev2_t *nd;
 /*TODO: Implement*/
-#if 0
 int random(int argc, char **argv)
 {
-    printf("random: number from sx1276: %u\n", (unsigned int) sx1276_random(&sx1276));
-    init_configs();
+    printf("random: number from sx1276: %u\n", (unsigned int) sx1276_random((sx1276_t*) nd));
+    init_configs((sx1276_t*) nd);
 
     return 0;
 }
-#endif
 
 int regs(int argc, char **argv)
 {
@@ -238,7 +236,7 @@ int lora_setup(int argc, char **argv) {
 }
 
 static const shell_command_t shell_commands[] = {
-    //{ "random", "Get random number from sx1276", random },
+    { "random", "Get random number from sx1276", random },
     { "get", "<all | num> - gets value of registers of sx1276, all or by specified number from 0 to 255", regs },
     { "set", "<num> <value> - sets value of register with specified number", regs_set },
     { "tx_test", "<payload> Send test payload string", tx_test },

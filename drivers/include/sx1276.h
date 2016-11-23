@@ -511,6 +511,8 @@ void sx1276_read_fifo(sx1276_t *dev, uint8_t *buffer, uint8_t size);
  * @brief Resets the SX1276
  */
 void sx1276_reset(sx1276_t *dev);
+
+void init_configs(sx1276_t *dev);
 #ifdef __cplusplus
 }
 #endif
