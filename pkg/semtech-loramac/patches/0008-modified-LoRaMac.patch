@@ -1,0 +1,133 @@
+From acb189ee0f53a824bf28baa8d02632aa3464927c Mon Sep 17 00:00:00 2001
+From: Francisco <femolina@uc.cl>
+Date: Wed, 23 Nov 2016 18:16:47 -0300
+Subject: [PATCH] fixed difference bewtween LoRaMAC and cros driver
+
+---
+ src/mac/LoRaMac.c | 28 ++++++++++++++++------------
+ 1 file changed, 16 insertions(+), 12 deletions(-)
+
+diff --git a/src/mac/LoRaMac.c b/src/mac/LoRaMac.c
+index 080594e..c2431ff 100644
+--- a/src/mac/LoRaMac.c
++++ b/src/mac/LoRaMac.c
+@@ -17,7 +17,10 @@ License: Revised BSD License, see LICENSE.TXT file include in the project
+ 
+ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jäckle ( STACKFORCE )
+ */
+-#include "loramac/board_definitions.h"
++#define ENABLE_DEBUG  (1)
++#include "debug.h"
++
++#include "loramac/board_definitions.h"
+ 
+ #include "LoRaMacCrypto.h"
+ #include "LoRaMac.h"
+@@ -868,7 +871,7 @@ static void OnRadioTxDone( void )
+     // Update Aggregated last tx done time
+     AggregatedLastTxDoneTime = curTime;
+ 
+-    if( IsRxWindowsEnabled == true )
++    if( IsRxWindowsEnabled == true)
+     {
+         TimerSetValue( &RxWindowTimer1, RxWindow1Delay );
+         TimerStart( &RxWindowTimer1 );
+@@ -2632,6 +2635,7 @@ LoRaMacStatus_t Send( LoRaMacHeader_t *macHdr, uint8_t fPort, void *fBuffer, uin
+     fCtrl.Bits.AdrAckReq     = false;
+     fCtrl.Bits.Adr           = AdrCtrlOn;
+ 
++
+     // Prepare the frame
+     status = PrepareFrame( macHdr, &fCtrl, fPort, fBuffer, fBufferSize );
+ 
+@@ -2651,7 +2655,7 @@ LoRaMacStatus_t Send( LoRaMacHeader_t *macHdr, uint8_t fPort, void *fBuffer, uin
+     return status;
+ }
+ 
+-static LoRaMacStatus_t ScheduleTx(void)
++static LoRaMacStatus_t ScheduleTx(void)
+ {
+     TimerTime_t dutyCycleTimeOff = 0;
+ 
+@@ -2997,6 +3001,7 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
+                 }
+                 memcpy1( LoRaMacBuffer + pktHeaderLen, LoRaMacPayload, payloadSize );
+             }
++
+             LoRaMacBufferPktLen = pktHeaderLen + payloadSize;
+ 
+             LoRaMacComputeMic( LoRaMacBuffer, LoRaMacBufferPktLen, LoRaMacNwkSKey, LoRaMacDevAddr, UP_LINK, UpLinkCounter, &mic );
+@@ -3037,38 +3042,39 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
+     McpsConfirm.Datarate = LoRaMacParams.ChannelsDatarate;
+     McpsConfirm.TxPower = txPowerIndex;
+ 
+-    Radio.SetChannel( channel.Frequency );
++    //Radio.SetChannel( channel.Frequency );
++    Radio.SetChannel( 915000000 );
+ 
+ #if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
+     if( LoRaMacParams.ChannelsDatarate == DR_7 )
+     { // High Speed FSK channel
+         Radio.SetMaxPayloadLength( MODEM_FSK, LoRaMacBufferPktLen );
+-        Radio.SetTxConfig( MODEM_FSK, txPower, 25e3, 0, datarate * 1e3, 0, 5, false, true, 0, 0, false, 3e3 );
++        Radio.SetTxConfig( MODEM_FSK, txPower, 25e3, 7, datarate * 1e3, 1, 5, false, true, 0, 0, false, 3e6 );
+         TxTimeOnAir = Radio.TimeOnAir( MODEM_FSK, LoRaMacBufferPktLen );
+ 
+     }
+     else if( LoRaMacParams.ChannelsDatarate == DR_6 )
+     { // High speed LoRa channel
+         Radio.SetMaxPayloadLength( MODEM_LORA, LoRaMacBufferPktLen );
+-        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 1, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
++        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 8, datarate, 1, 8, false, true, 0, 0, false, 3e6 );
+         TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
+     }
+     else
+     { // Normal LoRa channel
+         Radio.SetMaxPayloadLength( MODEM_LORA, LoRaMacBufferPktLen );
+-        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 0, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
++        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 7, datarate, 1, 8, false, true, 0, 0, false, 3e6 );
+         TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
+     }
+ #elif defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
+     Radio.SetMaxPayloadLength( MODEM_LORA, LoRaMacBufferPktLen );
+     if( LoRaMacParams.ChannelsDatarate >= DR_4 )
+     { // High speed LoRa channel BW500 kHz
+-        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 2, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
++        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 9, datarate, 1, 8, false, true, 0, 0, false, 3e6 );
+         TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
+     }
+     else
+     { // Normal LoRa channel
+-        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 0, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
++        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 7, SX1276_SF12, 1, 8, false, true, 0, 0, false, 5e6 );
+         TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
+     }
+ #else
+@@ -3083,7 +3089,6 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
+     TimerSetValue( &MacStateCheckTimer, MAC_STATE_CHECK_TIMEOUT );
+     TimerStart( &MacStateCheckTimer );
+ 
+-    // Send now
+     Radio.Send( LoRaMacBuffer, LoRaMacBufferPktLen );
+ 
+     LoRaMacState |= MAC_TX_RUNNING;
+@@ -3148,7 +3153,7 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacC
+ 
+     LoRaMacParamsDefaults.Rx2Channel = ( Rx2ChannelParams_t )RX_WND_2_CHANNEL;
+ 
+-    // Channel mask
++// Channel mask
+ #if defined( USE_BAND_433 )
+     LoRaMacParamsDefaults.ChannelsMask[0] = LC( 1 ) + LC( 2 ) + LC( 3 );
+ #elif defined( USE_BAND_780 )
+@@ -3200,7 +3205,6 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacC
+     TimerInit( &RxWindowTimer1, OnRxWindow1TimerEvent );
+     TimerInit( &RxWindowTimer2, OnRxWindow2TimerEvent );
+     TimerInit( &AckTimeoutTimer, OnAckTimeoutTimerEvent );
+-
+     // Initialize Radio driver
+     RadioEvents.TxDone = OnRadioTxDone;
+     RadioEvents.RxDone = OnRadioRxDone;
+-- 
+2.7.4
+
