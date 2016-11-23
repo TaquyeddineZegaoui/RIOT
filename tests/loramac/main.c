@@ -57,7 +57,7 @@ static sx1276_t sx1276;
 /*!
  * Defines the application data transmission duty cycle. 5s, value in [ms].
  */
-#define APP_TX_DUTYCYCLE                            5000
+#define APP_TX_DUTYCYCLE                            1000
 
 /*!
  * Defines a random delay for application data transmission duty cycle. 1s,
@@ -176,8 +176,7 @@ static uint32_t TxDutyCycleTime;
 /*!
  * Timer to handle the application data transmission duty cycle
  */
-static xtimer_t xtimerNextPaquet;
-static TimerEvent_t TxNextPacketTimer = {0, 0, &xtimerNextPaquet};
+static TimerEvent_t TxNextPacketTimer;
 
 /*!
  * Specifies the state of the application LED
@@ -187,15 +186,12 @@ static bool AppLedStateOn = false;
 /*!
  * Timer to handle the state of LED1
  */
-static xtimer_t xtimerLed1;
-static TimerEvent_t Led1Timer = {0, 0, &xtimerLed1};
-//Led1Timer.dev = &xtimerLed1;
+static TimerEvent_t Led1Timer;
 
 /*!
  * Timer to handle the state of LED2
  */
-static xtimer_t xtimerLed2;
-static TimerEvent_t Led2Timer = {0, 0, &xtimerLed2};
+static TimerEvent_t Led2Timer;
 
 /*!
  * Indicates if a new packet can be sent
@@ -389,7 +385,7 @@ static void OnTxNextPacketTimerEvent( void )
 static void OnLed1TimerEvent( void )
 {
     TimerStop( &Led1Timer );
-    //LED0_TOGGLE;
+    LED0_TOGGLE;
     // Switch LED 1 OFF
 }
 
@@ -951,6 +947,7 @@ int main(void)
     init_radio();
 
     radio_set_ptr(&sx1276);
+
     DeviceState = DEVICE_STATE_INIT;
 
     puts("LoRaMAC compiled");
@@ -966,9 +963,6 @@ int main(void)
                 LoRaMacPrimitives.MacMlmeConfirm = MlmeConfirm;
                 LoRaMacCallbacks.GetBatteryLevel = BoardGetBatteryLevel;
                 LoRaMacInitialization( &LoRaMacPrimitives, &LoRaMacCallbacks );
-
-                (void) LoRaMacPrimitives;
-                (void) LoRaMacCallbacks;
 
                 TimerInit( &TxNextPacketTimer, OnTxNextPacketTimerEvent );
 
@@ -1001,6 +995,7 @@ int main(void)
 
 #endif
                 DeviceState = DEVICE_STATE_JOIN;
+                puts("INIT");
                 break;
             }
             case DEVICE_STATE_JOIN:
@@ -1070,7 +1065,7 @@ int main(void)
                 if( ComplianceTest.Running == true )
                 {
                     // Schedule next packet transmission
-                    TxDutyCycleTime = 5000; // 5000 ms
+                    TxDutyCycleTime = APP_TX_DUTYCYCLE; // 5000 ms
                 }
                 else
                 {
