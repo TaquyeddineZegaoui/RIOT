@@ -5,6 +5,8 @@ FEATURES_REQUIRED = periph_spi periph_gpio
 BOARD ?= samr21-xpro
 
 CFLAGS += -DUSE_BAND_915
+CFLAGS += -DCRYPTO_AES
+CFLAGS += -DDEVELHELP
 
 RIOTBASE ?= $(CURDIR)/../..
 

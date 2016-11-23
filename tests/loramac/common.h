@@ -40,14 +40,14 @@ extern "C" {
 #define LORA_FIX_LENGTH_PAYLOAD_ON                  false
 #define LORA_IQ_INVERSION                           false
 
+/*
+
 #define SX1276_DIO0 GPIO_PIN(PORT_B, 0)
 #define SX1276_DIO1 GPIO_PIN(PORT_B, 1)
 #define SX1276_DIO2 GPIO_PIN(PORT_C, 6)
 #define SX1276_DIO3 GPIO_PIN(PORT_A, 10)
 
 #define SX1276_RESET GPIO_PIN(PORT_A, 9)
-
-/** SX1276 SPI */
 
 #define USE_SPI_0
 
@@ -61,6 +61,32 @@ extern "C" {
 #ifdef USE_SPI_0
 #define SX1276_SPI SPI_0
 #define SX1276_SPI_NSS GPIO_PIN(PORT_C, 8)
+#define SX1276_SPI_MODE SPI_CONF_FIRST_RISING
+#define SX1276_SPI_SPEED SPI_SPEED_1MHZ
+#endif
+
+*/
+
+
+#define SX1276_DIO0 GPIO_PIN(PA, 13)
+#define SX1276_DIO1 GPIO_PIN(PA, 7)
+#define SX1276_DIO2 GPIO_PIN(PA, 6)
+#define SX1276_DIO3 GPIO_PIN(PA, 18)
+
+#define SX1276_RESET GPIO_PIN(PA, 28)
+
+#define USE_SPI_1
+
+#ifdef USE_SPI_1
+#define SX1276_SPI SPI_1
+#define SX1276_SPI_NSS GPIO_PIN(PA, 19)
+#define SX1276_SPI_MODE SPI_CONF_FIRST_RISING
+#define SX1276_SPI_SPEED SPI_SPEED_1MHZ
+#endif
+
+#ifdef USE_SPI_0
+#define SX1276_SPI SPI_0
+#define SX1276_SPI_NSS GPIO_PIN(PA, 4)
 #define SX1276_SPI_MODE SPI_CONF_FIRST_RISING
 #define SX1276_SPI_SPEED SPI_SPEED_1MHZ
 #endif

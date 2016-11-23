@@ -267,15 +267,17 @@ static void PrepareTxFrame( uint8_t port )
             AppData[2] = 'S';
             AppData[3] = 'T';
 #elif defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
-            AppData[0] = 'P';
-            AppData[1] = 'R';
-            AppData[2] = 'U';
-            AppData[3] = 'E';
-            AppData[4] = 'B';
-            AppData[5] = 'A';
-            AppData[6] = '-';
-            AppData[7] = '0';
-            AppData[8] = '1';
+            AppData[0] = '\\';
+            AppData[1] = '!';            
+            AppData[2] = '#';
+            AppData[3] = '3';
+            AppData[4] = '#';
+            AppData[5] = 'T';
+            AppData[6] = '/';
+            AppData[7] = '2';
+            AppData[8] = '2';
+            AppData[9] = '.';
+            AppData[10] = '0';
 #endif
         }
         break;
@@ -387,7 +389,7 @@ static void OnTxNextPacketTimerEvent( void )
 static void OnLed1TimerEvent( void )
 {
     TimerStop( &Led1Timer );
-    LED0_TOGGLE;
+    //LED0_TOGGLE;
     // Switch LED 1 OFF
 }
 
@@ -747,7 +749,8 @@ void init_radio(void)
     puts("init_radio: sx1276 initialization done");
 }
 
-int lora_setup(int argc, char **argv) {
+int lora_setup(int argc, char **argv) 
+{
     if (argc < 4) {
         return -1;
     }
@@ -948,7 +951,6 @@ int main(void)
     init_radio();
 
     radio_set_ptr(&sx1276);
-
     DeviceState = DEVICE_STATE_INIT;
 
     puts("LoRaMAC compiled");
@@ -964,6 +966,9 @@ int main(void)
                 LoRaMacPrimitives.MacMlmeConfirm = MlmeConfirm;
                 LoRaMacCallbacks.GetBatteryLevel = BoardGetBatteryLevel;
                 LoRaMacInitialization( &LoRaMacPrimitives, &LoRaMacCallbacks );
+
+                (void) LoRaMacPrimitives;
+                (void) LoRaMacCallbacks;
 
                 TimerInit( &TxNextPacketTimer, OnTxNextPacketTimerEvent );
 
