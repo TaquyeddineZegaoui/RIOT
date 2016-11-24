@@ -18,8 +18,8 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
-//#define SAMR21_XPRO
-#define NZ32_SC151
+#define SAMR21_XPRO
+//#define NZ32_SC151
 
 #include <stdint.h>
 

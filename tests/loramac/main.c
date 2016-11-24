@@ -46,6 +46,7 @@
 #include "Comissioning.h"
 
 static sx1276_t sx1276;
+uint32_t count = 0;
 
 /*!
  * Unique Devices IDs register set ( STM32L1xxx )
@@ -57,7 +58,7 @@ static sx1276_t sx1276;
 /*!
  * Defines the application data transmission duty cycle. 5s, value in [ms].
  */
-#define APP_TX_DUTYCYCLE                            1000
+#define APP_TX_DUTYCYCLE                            5000
 
 /*!
  * Defines a random delay for application data transmission duty cycle. 1s,
@@ -665,7 +666,7 @@ void init_configs(void)
 
     sx1276_configure_lora(&sx1276, &settings);
 
-    sx1276_set_channel(&sx1276, 915000000);
+    sx1276_set_channel(&sx1276, RF_FREQUENCY);
 }
 
 void event_handler_thread(void *arg, sx1276_event_type_t event_type)
@@ -675,7 +676,9 @@ void event_handler_thread(void *arg, sx1276_event_type_t event_type)
     switch (event_type) {
 
         case SX1276_TX_DONE:
-            puts("sx1276: TX done");
+            count++;
+            //puts("sx1276: TX done");
+            printf("TX done, COUNT : %lu \r\n",count);
             events->TxDone();
             break;
 
@@ -711,6 +714,25 @@ void event_handler_thread(void *arg, sx1276_event_type_t event_type)
 
 void init_radio(void)
 {
+    sx1276_lora_settings_t settings_lora;
+    sx1276_settings_t settings;
+
+    settings_lora.bandwidth = SX1276_BW_125_KHZ;
+    settings_lora.coderate = SX1276_CR_4_5;
+    settings_lora.datarate = SX1276_SF12;
+    settings_lora.crc_on = true;
+    settings_lora.freq_hop_on = false;
+    settings_lora.hop_period = 0;
+    settings_lora.implicit_header = false;
+    settings_lora.iq_inverted = false;
+    settings_lora.low_datarate_optimize = false;
+    settings_lora.payload_len = 0;
+    settings_lora.power = 14;
+    settings_lora.preamble_len = LORA_PREAMBLE_LENGTH;
+    settings_lora.rx_continuous = true;
+    settings_lora.tx_timeout = 1000 * 1000 * 30; // 30 sec
+    settings_lora.rx_timeout = LORA_SYMBOL_TIMEOUT;
+
     sx1276.nss_pin = SX1276_SPI_NSS;
     sx1276.spi = SX1276_SPI;
 
@@ -723,24 +745,20 @@ void init_radio(void)
     sx1276.dio5_pin = (gpio_t) NULL;
     sx1276.reset_pin = (gpio_t) SX1276_RESET;
 
-    sx1276_settings_t settings;
     settings.channel = RF_FREQUENCY;
     settings.modem = SX1276_MODEM_LORA;
     settings.state = SX1276_RF_IDLE;
+    settings.lora = settings_lora;
 
     sx1276.settings = settings;
-
     sx1276.sx1276_event_cb = event_handler_thread;
 
     /* Launch initialization of driver and device */
     puts("init_radio: initializing driver...");
+
+    #ifdef NZ32_SC151
     sx1276_init(&sx1276);
-
-    /* Configure the device */
-    init_configs();
-
-    /* Put chip into sleep */
-    sx1276_set_sleep(&sx1276);
+    #endif
 
     puts("init_radio: sx1276 initialization done");
 }
@@ -1061,6 +1079,9 @@ int main(void)
                 {
                     PrepareTxFrame( AppPort );
                     NextTx = SendFrame( );
+                    #ifdef ENABLE_DEBUG 
+                        puts("SendFrame");
+                    #endif
                 }
                 if( ComplianceTest.Running == true )
                 {
