@@ -688,14 +688,17 @@ void event_handler_thread(void *arg, sx1276_event_type_t event_type)
             break;
 
         case SX1276_RX_DONE:
+            puts("sx1276: RX Done");
             events->RxDone(packet->content, packet->size, packet->rssi_value, packet-> snr_value);
             break;
 
         case SX1276_RX_TIMEOUT:
+            puts("sx1276: RX timeout");
             events->RxTimeout();
             break;
 
         case SX1276_RX_ERROR_CRC:
+            puts("sx1276: RX CRC_ERROR");
             events->RxError();
             break;
 
