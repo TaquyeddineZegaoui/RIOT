@@ -56,7 +56,6 @@ extern "C" {
 #define ADC_CONFIG {            \
     { GPIO_PIN(PORT_A, 6), 6 },\
     { GPIO_PIN(PORT_A, 7), 7 },\
-    { GPIO_PIN(PORT_A, 4), 4 },\
     { GPIO_PIN(PORT_B, 0), 8 },\
     { GPIO_PIN(PORT_B, 1), 9 },\
     { GPIO_PIN(PORT_B, 12), 18 }\
