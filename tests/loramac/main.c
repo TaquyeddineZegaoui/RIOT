@@ -1079,9 +1079,6 @@ int main(void)
                 {
                     PrepareTxFrame( AppPort );
                     NextTx = SendFrame( );
-                    #ifdef ENABLE_DEBUG 
-                        puts("SendFrame");
-                    #endif
                 }
                 if( ComplianceTest.Running == true )
                 {

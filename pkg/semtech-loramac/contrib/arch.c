@@ -8,7 +8,7 @@ void srand1( uint32_t seed )
 
 int32_t randr( int32_t min, int32_t max )
 {
-    return random_uint32_range(min, max);
+    return random_uint32_range(min, max + 1);
 }
 
 
