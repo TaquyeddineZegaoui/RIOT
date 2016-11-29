@@ -783,8 +783,6 @@ void sx1276_on_dio1(void *arg)
                 case SX1276_MODEM_LORA:
                     sx1276_set_status(dev,  SX1276_RF_IDLE);
 
-                    /*TODO: Implement RX timeout */
-                    //send_event(dev, SX1276_RX_TIMEOUT);
                     break;
                 default:
                     break;
