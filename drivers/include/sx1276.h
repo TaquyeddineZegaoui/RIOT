@@ -170,10 +170,6 @@ typedef struct {
     /* Data that will be passed to events handler in application */
     uint32_t last_channel;                  /**< Last channel in frequency hopping sequence */
     bool is_last_cad_success;               /**< Sign of success of last CAD operation (activity detected) */
-
-    /* Timers */
-    xtimer_t tx_timeout_timer;              /**< TX operation timeout timer */
-    xtimer_t rx_timeout_timer;              /**< RX operation timeout timer */
 } sx1276_internal_t;
 
 /**
@@ -360,7 +356,7 @@ void sx1276_set_standby(sx1276_t *dev);
  *
  * @param	[IN]	timeout	reception timeout [us] [0: continuous, others: timeout]
  */
-void sx1276_set_rx(sx1276_t *dev, uint32_t timeout);
+void sx1276_set_rx(sx1276_t *dev);
 
 /**
  * @brief Sets the radio in transmission mode for given amount of time.
