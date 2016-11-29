@@ -45,7 +45,18 @@
 #include "loramac/board_definitions.h" 
 #include "Comissioning.h"
 
+/*!
+ * Thread Variables and packet count
+ */
+
 static sx1276_t sx1276;
+
+char stack[THREAD_STACKSIZE_MAIN];
+
+LoRaMacPrimitives_t LoRaMacPrimitives;
+LoRaMacCallback_t LoRaMacCallbacks;
+MibRequestConfirm_t mibReq;
+
 uint32_t count = 0;
 
 /*!
@@ -227,6 +238,12 @@ struct ComplianceTest_s
     uint8_t DemodMargin;
     uint8_t NbGateways;
 }ComplianceTest;
+
+/*!
+*   Thread for MAC iteration Handling
+*/
+void *MAC_thread_handler(void *arg);
+
 
 uint32_t BoardGetRandomSeed( void )
 {
@@ -960,9 +977,6 @@ static const shell_command_t shell_commands[] = {
 
 int main(void)
 {
-    LoRaMacPrimitives_t LoRaMacPrimitives;
-    LoRaMacCallback_t LoRaMacCallbacks;
-    MibRequestConfirm_t mibReq;
 
     xtimer_init();
     init_radio();
@@ -971,8 +985,29 @@ int main(void)
 
     DeviceState = DEVICE_STATE_INIT;
 
-    puts("LoRaMAC compiled");
+    puts("LoRaMAC compiled, Starting Thread");
 
+    kernel_pid_t pid = thread_create(stack, sizeof(stack),
+                                     THREAD_PRIORITY_MAIN - 1,
+                                     THREAD_CREATE_STACKTEST,
+                                     MAC_thread_handler, NULL,
+                                     "thread");
+    (void) pid;
+
+    /* start the shell */
+    puts("Initialization successful - starting the shell now");
+    char line_buf[SHELL_DEFAULT_BUFSIZE];
+    shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
+
+
+    return 0;
+}
+
+
+void *MAC_thread_handler(void *arg)
+{
+    (void) arg;
+    /* ... */
     while(1)
     {
         switch( DeviceState )
@@ -1119,11 +1154,5 @@ int main(void)
         }
     }
 
-         /* start the shell */
-     puts("Initialization successful - starting the shell now");
-     char line_buf[SHELL_DEFAULT_BUFSIZE];
-     shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
-
-
-    return 0;
+    return NULL;
 }
