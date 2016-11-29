@@ -268,18 +268,23 @@ static int _set_state(sx1276_t *dev, netopt_state_t state)
         case NETOPT_STATE_SLEEP:
             sx1276_set_sleep(dev);
             break;
+
         case NETOPT_STATE_STANDBY:
             sx1276_set_standby(dev); 
             break;
+
         case NETOPT_STATE_IDLE:
             sx1276_set_rx(dev);
             break;
+
         case NETOPT_STATE_TX:
             //TODO: Implement preloading
             break;
+
         case NETOPT_STATE_RESET:
             sx1276_reset(dev);
             break;
+
         default:
             return -ENOTSUP;
     }
@@ -296,16 +301,20 @@ static int _get_state(sx1276_t *dev, void *val)
         case SX1276_RF_OPMODE_SLEEP:
             state = NETOPT_STATE_SLEEP;
             break;
+
         case SX1276_RF_OPMODE_STANDBY:
             state = NETOPT_STATE_STANDBY;
             break;
+
         case SX1276_RF_OPMODE_TRANSMITTER:
             state = NETOPT_STATE_TX;
             break;
+
         case SX1276_RF_OPMODE_RECEIVER:
         case SX1276_RF_LORA_OPMODE_RECEIVER_SINGLE:
             state = NETOPT_STATE_IDLE;
             break;
+
         default:
             break;
     }
@@ -320,18 +329,22 @@ static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
     {
         case NETOPT_STATE:
             return _get_state((sx1276_t*) netdev, val);
+
         case NETOPT_LORA_BANDWIDTH:
             *((sx1276_lora_bandwidth_t*) val) = sx1276_get_bandwidth((sx1276_t*) netdev);
             return sizeof(sx1276_lora_bandwidth_t);
+
         case NETOPT_LORA_SPREADING_FACTOR:
             *((sx1276_lora_spreading_factor_t*) val) = sx1276_get_spreading_factor((sx1276_t*) netdev);
             return sizeof(sx1276_lora_spreading_factor_t);
         case NETOPT_LORA_CODING_RATE:
             *((sx1276_lora_coding_rate_t*) val) = sx1276_get_coding_rate((sx1276_t*) netdev);
             return sizeof(sx1276_lora_coding_rate_t);
+
         case NETOPT_LORA_SINGLE_RECEIVE:
             *((uint8_t*) val) = sx1276_get_rx_single((sx1276_t*) netdev);
             return sizeof(uint8_t);
+
         default:
             break;
     }
@@ -343,18 +356,26 @@ static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len)
     {
         case NETOPT_STATE:
             return _set_state((sx1276_t*) netdev, *((netopt_state_t*) val));
+
         case NETOPT_LORA_BANDWIDTH:
             sx1276_configure_lora_bw((sx1276_t*) netdev, *((sx1276_lora_bandwidth_t*) val));
             return sizeof(sx1276_lora_bandwidth_t);
+
         case NETOPT_LORA_SPREADING_FACTOR:
             sx1276_configure_lora_sf((sx1276_t*) netdev, *((sx1276_lora_spreading_factor_t*) val));
             return sizeof(sx1276_lora_spreading_factor_t);
         case NETOPT_LORA_CODING_RATE:
             sx1276_configure_lora_cr((sx1276_t*) netdev, *((sx1276_lora_coding_rate_t*) val));
             return sizeof(sx1276_lora_coding_rate_t);
+
         case NETOPT_LORA_SINGLE_RECEIVE:
             sx1276_set_rx_single((sx1276_t*) netdev, *((uint8_t*) val));
             return sizeof(uint8_t);
+
+        case NETOPT_CHANNEL:
+            sx1276_set_channel((sx1276_t*) netdev, *((uint32_t*) val));
+            return sizeof(uint32_t);
+
         default:
             break;
     }
