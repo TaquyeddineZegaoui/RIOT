@@ -988,7 +988,7 @@ int main(void)
     puts("LoRaMAC compiled, Starting Thread");
 
     kernel_pid_t pid = thread_create(stack, sizeof(stack),
-                                     THREAD_PRIORITY_MAIN - 1,
+                                     THREAD_PRIORITY_MAIN,
                                      THREAD_CREATE_STACKTEST,
                                      MAC_thread_handler, NULL,
                                      "thread");
