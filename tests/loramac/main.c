@@ -124,7 +124,7 @@ uint32_t count = 0;
 /*!
  * LoRaWAN application port
  */
-#define LORAWAN_APP_PORT                            2
+#define LORAWAN_APP_PORT                            1
 
 /*!
  * User application data buffer size
@@ -273,6 +273,28 @@ static void PrepareTxFrame( uint8_t port )
 {
     switch( port )
     {
+    case 1:
+        {
+#if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
+            AppData[0] = 'T';
+            AppData[1] = 'E';
+            AppData[2] = 'S';
+            AppData[3] = 'T';
+#elif defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
+            AppData[0] = '\\';
+            AppData[1] = '!';            
+            AppData[2] = '#';
+            AppData[3] = '3';
+            AppData[4] = '#';
+            AppData[5] = 'T';
+            AppData[6] = '/';
+            AppData[7] = '2';
+            AppData[8] = '2';
+            AppData[9] = '.';
+            AppData[10] = '0';
+#endif
+        }
+
     case 2:
         {
 #if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
@@ -281,6 +303,7 @@ static void PrepareTxFrame( uint8_t port )
             AppData[2] = 'S';
             AppData[3] = 'T';
 #elif defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
+            puts("Appsend");
             AppData[0] = '\\';
             AppData[1] = '!';            
             AppData[2] = '#';
@@ -510,7 +533,13 @@ static void McpsIndication( McpsIndication_t *mcpsIndication )
     {
         switch( mcpsIndication->Port )
         {
-        case 1: // The application LED can be controlled on port 1 or 2
+        case 1:
+            if( mcpsIndication->BufferSize == 1 )
+            {
+                AppLedStateOn = mcpsIndication->Buffer[0] & 0x01;
+                gpio_write( LED0_PIN, ( ( AppLedStateOn & 0x01 ) != 0 ) ? 0 : 1 );
+            }
+            break;
         case 2:
             if( mcpsIndication->BufferSize == 1 )
             {
@@ -693,9 +722,9 @@ void event_handler_thread(void *arg, sx1276_event_type_t event_type)
     switch (event_type) {
 
         case SX1276_TX_DONE:
-            count++;
             //puts("sx1276: TX done");
             printf("TX done, COUNT : %lu \r\n",count);
+            count++;
             events->TxDone();
             break;
 
@@ -737,21 +766,21 @@ void init_radio(void)
     sx1276_lora_settings_t settings_lora;
     sx1276_settings_t settings;
 
-    settings_lora.bandwidth = SX1276_BW_125_KHZ;
-    settings_lora.coderate = SX1276_CR_4_5;
-    settings_lora.datarate = SX1276_SF12;
-    settings_lora.crc_on = true;
-    settings_lora.freq_hop_on = false;
-    settings_lora.hop_period = 0;
-    settings_lora.implicit_header = false;
-    settings_lora.iq_inverted = false;
-    settings_lora.low_datarate_optimize = false;
-    settings_lora.payload_len = 0;
-    settings_lora.power = 14;
-    settings_lora.preamble_len = LORA_PREAMBLE_LENGTH;
-    settings_lora.rx_continuous = true;
-    settings_lora.tx_timeout = 1000 * 1000 * 30; // 30 sec
-    settings_lora.rx_timeout = LORA_SYMBOL_TIMEOUT;
+    //settings_lora.bandwidth = SX1276_BW_125_KHZ;
+    //settings_lora.coderate = SX1276_CR_4_5;
+    // settings_lora.datarate = SX1276_SF12;
+    // settings_lora.crc_on = true;
+    // settings_lora.freq_hop_on = false;
+    // settings_lora.hop_period = 0;
+    // settings_lora.implicit_header = false;
+    // settings_lora.iq_inverted = false;
+    // settings_lora.low_datarate_optimize = false;
+    // settings_lora.payload_len = 0;
+    // settings_lora.power = 14;
+    // settings_lora.preamble_len = LORA_PREAMBLE_LENGTH;
+    // settings_lora.rx_continuous = true;
+    // settings_lora.tx_timeout = 1000 * 1000 * 30; // 30 sec
+    // settings_lora.rx_timeout = LORA_SYMBOL_TIMEOUT;
 
     sx1276.nss_pin = SX1276_SPI_NSS;
     sx1276.spi = SX1276_SPI;
@@ -765,7 +794,7 @@ void init_radio(void)
     sx1276.dio5_pin = (gpio_t) NULL;
     sx1276.reset_pin = (gpio_t) SX1276_RESET;
 
-    settings.channel = RF_FREQUENCY;
+    //settings.channel = RF_FREQUENCY;
     settings.modem = SX1276_MODEM_LORA;
     settings.state = SX1276_RF_IDLE;
     settings.lora = settings_lora;
@@ -985,6 +1014,21 @@ int main(void)
 
     DeviceState = DEVICE_STATE_INIT;
 
+
+    #ifdef NZ32_SC151
+    BoardGetUniqueId( DevEui );
+
+    printf("BoardID: ");
+
+    for(uint8_t i = 0; i < 8; i++)
+    {
+        printf("%02x ",*(DevEui + i));
+    }
+
+    printf("\n");
+
+    #endif
+
     puts("LoRaMAC compiled, Starting Thread");
 
     kernel_pid_t pid = thread_create(stack, sizeof(stack),
@@ -1057,6 +1101,7 @@ void *MAC_thread_handler(void *arg)
             case DEVICE_STATE_JOIN:
             {
 #if( OVER_THE_AIR_ACTIVATION != 0 )
+                puts("OA");
                 MlmeReq_t mlmeReq;
                 // Initialize LoRaMac device unique ID
                 BoardGetUniqueId( DevEui );
@@ -1074,6 +1119,7 @@ void *MAC_thread_handler(void *arg)
                 DeviceState = DEVICE_STATE_SLEEP;
 
 #else
+                puts("ACP");
                 // Choose a random device address if not already defined in Comissioning.h
                 if( DevAddr == 0 )
                 {
@@ -1107,7 +1153,7 @@ void *MAC_thread_handler(void *arg)
                 DeviceState = DEVICE_STATE_SEND;
 
                 if(mibReq.Param.IsNetworkJoined)
-                puts("JOINED");
+                    puts("JOINED");
 #endif
                 break;
             }

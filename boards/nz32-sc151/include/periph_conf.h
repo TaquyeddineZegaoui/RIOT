@@ -110,8 +110,8 @@ static const timer_conf_t timer_config[] = {
 #define UART_0_ISR          isr_usart3
 #define UART_0_BUS_FREQ     32000000
 /* UART 0 pin configuration */
-#define UART_0_RX_PIN       GPIO_PIN(PORT_C, 11)
-#define UART_0_TX_PIN       GPIO_PIN(PORT_C, 10)
+#define UART_0_RX_PIN       GPIO_PIN(PORT_B, 11)
+#define UART_0_TX_PIN       GPIO_PIN(PORT_B, 10)
 #define UART_0_AF           GPIO_AF7
 
 /* UART 1 device configuration */
@@ -183,8 +183,8 @@ static const timer_conf_t timer_config[] = {
   * @{
  */
 #define I2C_NUMOF           (I2C_0_EN + I2C_1_EN)
-#define I2C_0_EN            1
-#define I2C_1_EN            1
+#define I2C_0_EN            0
+#define I2C_1_EN            0
 #define I2C_IRQ_PRIO        1
 #define I2C_APBCLK          (36000000U)          // Configurable from 2MHz to 50Mhz, steps of 2Mhz     
 

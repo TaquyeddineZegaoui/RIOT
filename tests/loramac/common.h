@@ -18,12 +18,16 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
-//#define SAMR21_XPRO
-#define NZ32_SC151
 
 #include <stdint.h>
-
 #include "sx1276.h"
+#include "board.h"
+
+#ifdef AT86RF2XX_PARAMS_BOARD
+	#define SAMR21_XPRO
+#else
+	#define NZ32_SC151
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -103,19 +107,6 @@ extern "C" {
 
 
 void init_radio(void);
-
-/**
- * @brief   Application-internal functions and variables for sx1276 tests
- * @internal
-
- * @{
- */
-
-int test1(int argc, char **argv);
-int test2(int argc, char **argv);
-/**
- * @}
- */
 
 #ifdef __cplusplus
 }
