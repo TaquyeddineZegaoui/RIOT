@@ -94,7 +94,7 @@ void cmac_final(cmac_context_t *ctx, void *digest)
 
     if (L[0] & 0x80) {
         _leftshift(L, K);
-        L[15] ^= 0x87;
+        K[15] ^= 0x87;
     }
     else {
         _leftshift(L, K);
