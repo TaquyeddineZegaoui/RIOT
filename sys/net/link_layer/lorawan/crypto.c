@@ -28,5 +28,5 @@ void lorawan_calc_mic(const void *buf, size_t size, const uint8_t *key, uint32_t
     cmac_update(&ctx, buf, size);
     cmac_final(&ctx, out);
    
-   *mic = (uint32_t) ((uint32_t) out[3] << 24) | ((uint32_t) out[2] << 16) | ((uint32_t) out[1] << 8) | ((uint32_t) out[0]);
+   *mic = (uint32_t) ((uint32_t) out[0] << 24) | ((uint32_t) out[1] << 16) | ((uint32_t) out[2] << 8) | ((uint32_t) out[3]);
 }
