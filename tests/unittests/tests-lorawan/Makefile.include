@@ -1,0 +1,5 @@
+USEMODULE += lorawan
+USEMODULE += crypto
+USEMODULE += hashes
+
+CFLAGS += -DCRYPTO_AES
