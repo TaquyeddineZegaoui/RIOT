@@ -1,9 +1,10 @@
+#include <stdio.h>
 #include "net/lorawan/crypto.h"
+#include "hashes/cmac.h"
 
 #define INITIAL_BLOCK {0x49, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
 
-
-void lorawan_calc_mic(void *buf, size_t size, uint8_t *key, uint32_t address, uint8_t dir, uint32_t seq_counter, uint32_t *mic)
+void lorawan_calc_mic(const void *buf, size_t size, const uint8_t *key, uint32_t address, uint8_t dir, uint32_t seq_counter, uint32_t *mic)
 {
     uint8_t block[16] = INITIAL_BLOCK;
     uint8_t out[16];
@@ -14,10 +15,10 @@ void lorawan_calc_mic(void *buf, size_t size, uint8_t *key, uint32_t address, ui
     block[8] = (address >> 16) & 0xff;
     block[9] = (address >> 24) & 0xff;
 
-    block[10] = seq_counter & 0xff
-    block[11] = (seq_counter >> 8) & 0xff
-    block[12] = (seq_counter >> 16) & 0xff
-    block[13] = (seq_counter >> 24) & 0xff
+    block[10] = seq_counter & 0xff;
+    block[11] = (seq_counter >> 8) & 0xff;
+    block[12] = (seq_counter >> 16) & 0xff;
+    block[13] = (seq_counter >> 24) & 0xff;
 
     block[15] = size & 0xff;
 
