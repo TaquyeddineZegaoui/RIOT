@@ -27,7 +27,7 @@ void lorawan_calc_mic(const void *buf, size_t size, const uint8_t *key, uint32_t
 
 void lorawan_payload_encrypt(void *buf, size_t size, uint8_t *key, uint32_t address, uint8_t dir, uint32_t seq_counter, void *enc_payload);
 
-void lorawan_payload_encrypt(void *buf, size_t size, uint8_t *key, uint32_t address, uint8_t dir, uint32_t seq_counter, void *dec_payload);
+void lorawan_payload_decrypt(void *buf, size_t size, uint8_t *key, uint32_t address, uint8_t dir, uint32_t seq_counter, void *dec_payload);
 
 void lorawan_join_calc_mic(void *buf, size_t size, uint8_t *key, void *mic);
 
