@@ -21,17 +21,21 @@
 
 //TODO: Add source
 
-#include "crypto/ciphers.h"
 #include <stdio.h>
+#include "crypto/ciphers.h"
+
 #define CMAC_BLOCK_SIZE 16
-typedef struct _AES_CMAC_CTX {
-            cipher_t    aes_ctx;
-            uint8_t        X[CMAC_BLOCK_SIZE];
-            /** last block **/
-            uint8_t        M_last[CMAC_BLOCK_SIZE];
-            /** number of 128-bit blocks*/
-            uint32_t       M_n;
-} cmac_context;
+
+typedef struct {
+    /** AES128 context */
+    cipher_t aes_ctx;
+    /** auxiliar array for CMAC calculations **/
+    uint8_t X[CMAC_BLOCK_SIZE];
+    /** current last block **/
+    uint8_t M_last[CMAC_BLOCK_SIZE];
+    /** last byte in last block */
+    uint32_t M_n;
+} cmac_context_t;
 
 /**
  * @brief Initialize CMAC message digest context
@@ -40,7 +44,7 @@ typedef struct _AES_CMAC_CTX {
  * @param[in] key     Key to be set
  * @param[in] key     Size of the key
  */
-void cmac_init(cmac_context *ctx, const uint8_t *key, uint8_t keySize);
+int cmac_init(cmac_context_t *ctx, const uint8_t *key, uint8_t keySize);
 
 /**
  * @brief Update the CMAC context with a portion of the message being hashed
@@ -49,7 +53,7 @@ void cmac_init(cmac_context *ctx, const uint8_t *key, uint8_t keySize);
  * @param[in] data Input data
  * @param[in] len  Length of @p data
  */
-void cmac_update(cmac_context *ctx, const void *data, size_t len);
+void cmac_update(cmac_context_t *ctx, const void *data, size_t len);
 
 /**
  * @brief Finalizes the CMAC message digest
@@ -58,7 +62,7 @@ void cmac_update(cmac_context *ctx, const void *data, size_t len);
  * @param[out] digest Result location
  *
  */
-void cmac_final(cmac_context *ctx, void *digest);
+void cmac_final(cmac_context_t *ctx, void *digest);
 
 /**
  * @brief   Calculate a CMAC hash from the given data
