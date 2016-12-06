@@ -22,7 +22,7 @@
 extern "C" {
 #endif
 
-void lorawan_calc_mic(void *buf, size_t size, uint8_t *key, uint32_t address, uint8_t dir, uint32_t seq_counter, void *mic);
+void lorawan_calc_mic(void *buf, size_t size, uint8_t *key, uint32_t address, uint8_t dir, uint32_t seq_counter, uint32_t *mic);
 
 void lorawan_payload_encrypt(void *buf, size_t size, uint8_t *key, uint32_t address, uint8_t dir, uint32_t seq_counter, void *enc_payload);
 
