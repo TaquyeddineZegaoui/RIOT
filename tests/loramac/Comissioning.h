@@ -12,6 +12,8 @@ Maintainer: Miguel Luis and Gregory Cristian
 #ifndef __LORA_COMMISSIONING_H__
 #define __LORA_COMMISSIONING_H__
 
+#include "common.h"
+
 /*!
  * When set to 1 the application uses the Over-the-Air activation procedure
  * When set to 0 the application uses the Personalization activation procedure
@@ -58,7 +60,11 @@ Maintainer: Miguel Luis and Gregory Cristian
  *         a pseudo random generator seeded with a value derived from
  *         BoardUniqueId value if LORAWAN_DEVICE_ADDRESS is set to 0
  */
+#ifdef SAMR21_XPRO 
 #define LORAWAN_DEVICE_ADDRESS                      ( uint32_t )0x166fb58e
+#else
+#define LORAWAN_DEVICE_ADDRESS                      ( uint32_t )0x16090661
+#endif
 
 /*!
  * AES encryption/decryption cipher network session key

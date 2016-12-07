@@ -228,6 +228,20 @@ int tx_test(int argc, char **argv)
     return 0;
 }
 
+int channel(int argc, char **argv)
+{
+    if (argc <= 1) {
+        puts("tx_test: payload is not specified");
+        return -1;
+    }
+
+    sx1276_set_channel(&sx1276, atol(argv[1]));
+
+    printf("Frequency set: %lu \n", atol(argv[1]));
+
+    return 0;
+}
+
 int regs_set(int argc, char **argv)
 {
     if (argc <= 2) {
@@ -327,6 +341,7 @@ static const shell_command_t shell_commands[] = {
     { "tx_test", "<payload> Send test payload string", tx_test },
     { "rx_test", "Start rx test", rx_test },
 	{ "lora_setup", "<BW (125, 250, 512)> <SF (7..12)> <CR 4/(5,6,7,8)> - sets up LoRa modulation settings", lora_setup},
+    { "channel", "Set Frequency", channel},
 
     { NULL, NULL, NULL }
 };
