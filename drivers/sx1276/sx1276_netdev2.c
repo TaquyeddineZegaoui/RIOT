@@ -28,8 +28,8 @@
 #define RSSI_OFFSET_LF                              -164
 #define RSSI_OFFSET_HF                              -157
 
-static int _send(netdev2_t *netdev, const struct iovec *vector, int count);
-static int _recv(netdev2_t *netdev, char *buf, int len, void *info);
+static int _send(netdev2_t *netdev, const struct iovec *vector, unsigned count);
+static int _recv(netdev2_t *netdev, void *buf, size_t len, void *info);
 static int _init(netdev2_t *netdev);
 static void _isr(netdev2_t *netdev);
 static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len);
@@ -105,7 +105,7 @@ static uint8_t get_tx_len(const struct iovec *vector, unsigned count)
     return len;
 }
 
-static int _send(netdev2_t *netdev, const struct iovec *vector, int count)
+static int _send(netdev2_t *netdev, const struct iovec *vector, unsigned count)
 {
     sx1276_t *dev = (sx1276_t*) netdev;
     uint8_t size;
@@ -188,7 +188,7 @@ static int _send(netdev2_t *netdev, const struct iovec *vector, int count)
     return 0;
 }
 
-static int _recv(netdev2_t *netdev, char *buf, int len, void *info)
+static int _recv(netdev2_t *netdev, void *buf, size_t len, void *info)
 {
     /* Clear IRQ */
     volatile uint8_t irq_flags = 0;
