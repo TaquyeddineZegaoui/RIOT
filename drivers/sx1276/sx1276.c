@@ -9,6 +9,14 @@
  *******************************************************************************/
 
 #include <stdio.h>
+#include "periph/spi.h"
+#include "periph/gpio.h"
+#include <assert.h>
+#include <xtimer.h>
+#include <string.h>
+#define ASSERT(x) assert(x)
+
+#define CFG_sx1276_radio 1
 // ---------------------------------------- 
 // Registers Mapping
 #define RegFifo                                    0x00 // common
@@ -246,8 +254,166 @@
 
 // RADIO STATE
 // (initialized by radio_init(), used by radio_rand1())
-static u1_t randbuf[16];
+typedef unsigned char      bit_t;
+typedef unsigned char      u1_t;
+typedef   signed char      s1_t;
+typedef unsigned short     u2_t;
+typedef          short     s2_t;
+typedef unsigned int       u4_t;
+typedef          int       s4_t;
+typedef unsigned long long u8_t;
+typedef          long long s8_t;
+typedef unsigned int       uint;
+typedef const char* str_t;
+typedef s4_t ostime_t;
+typedef u2_t rps_t;
+typedef u1_t sf_t;
+typedef u1_t* xref2u1_t;
+typedef u1_t bw_t;
+typedef u1_t dr_t;
+typedef u1_t cr_t;
 
+enum _bw_t { BW125=0, BW250, BW500, BWrfu };
+enum _cr_t { CR_4_5=0, CR_4_6, CR_4_7, CR_4_8 };
+enum _sf_t { FSK=0, SF7, SF8, SF9, SF10, SF11, SF12, SFrfu };
+static u1_t randbuf[16];
+inline sf_t getSf (rps_t params) { return (sf_t)(params & 0x7); }
+inline bw_t getBw (rps_t params) { return (bw_t)((params >> 3) & 0x3); }
+inline cr_t getCr (rps_t params) { return (cr_t)((params >> 5) & 0x3); }
+inline int getIh (rps_t params) { return ((params >> 8) & 0xFF); }
+inline int getNocrc(rps_t params) { return ((params >> 7) & 0x1); }
+typedef u4_t devaddr_t;
+
+
+enum { MAX_LEN_FRAME = 64 };
+
+enum {
+    // Data frame format
+    OFF_DAT_HDR      = 0,
+    OFF_DAT_ADDR     = 1,
+    OFF_DAT_FCT      = 5,
+    OFF_DAT_SEQNO    = 6,
+    OFF_DAT_OPTS     = 8,
+};
+enum { MAX_LEN_PAYLOAD = MAX_LEN_FRAME-(int)OFF_DAT_OPTS-4 };
+
+typedef struct lmic_t {
+    // Radio settings TX/RX (also accessed by HAL)
+    ostime_t    txend;
+    ostime_t    rxtime;
+    u4_t        freq;
+    s1_t        rssi;
+    s1_t        snr;
+    rps_t       rps;
+    u1_t        rxsyms;
+    //u1_t        dndr;
+    s1_t        txpow;     // dBm
+
+    //osjob_t     osjob;
+
+    // Channel scheduling
+#if defined(CFG_eu868)
+    //band_t      bands[MAX_BANDS];
+    //u4_t        channelFreq[MAX_CHANNELS];
+    //u2_t        channelDrMap[MAX_CHANNELS];
+    //u2_t        channelMap;
+#elif defined(CFG_us915)
+    //u4_t        xchFreq[MAX_XCHANNELS];    // extra channel frequencies (if device is behind a repeater)
+    //u2_t        xchDrMap[MAX_XCHANNELS];   // extra channel datarate ranges  ---XXX: ditto
+    //u2_t        channelMap[(72+MAX_XCHANNELS+15)/16];  // enabled bits
+    //u2_t        chRnd;        // channel randomizer
+#endif
+    //u1_t        txChnl;          // channel for next TX
+    //u1_t        globalDutyRate;  // max rate: 1/2^k
+    //ostime_t    globalDutyAvail; // time device can send again
+    
+    //u4_t        netid;        // current network id (~0 - none)
+    //u2_t        opmode;
+    //u1_t        upRepeat;     // configured up repeat
+    //s1_t        adrTxPow;     // ADR adjusted TX power
+    //u1_t        datarate;     // current data rate
+    //u1_t        errcr;        // error coding rate (used for TX only)
+    //u1_t        rejoinCnt;    // adjustment for rejoin datarate
+    //s2_t        drift;        // last measured drift
+    //s2_t        lastDriftDiff;
+    //s2_t        maxDriftDiff;
+
+    //u1_t        pendTxPort;
+    //u1_t        pendTxConf;   // confirmed data
+    //u1_t        pendTxLen;    // +0x80 = confirmed
+    //u1_t        pendTxData[MAX_LEN_PAYLOAD];
+
+    //u2_t        devNonce;     // last generated nonce
+    //u1_t        nwkKey[16];   // network session key
+    //u1_t        artKey[16];   // application router session key
+    //devaddr_t   devaddr;
+    //u4_t        seqnoDn;      // device level down stream seqno
+    //u4_t        seqnoUp;
+
+    //u1_t        dnConf;       // dn frame confirm pending: LORA::FCT_ACK or 0
+    //s1_t        adrAckReq;    // counter until we reset data rate (0=off)
+    //u1_t        adrChanged;
+
+    //u1_t        margin;
+    //bit_t       ladrAns;      // link adr adapt answer pending
+    //bit_t       devsAns;      // device status answer pending
+    //u1_t        adrEnabled;
+    //u1_t        moreData;     // NWK has more data pending
+    //bit_t       dutyCapAns;   // have to ACK duty cycle settings
+    //u1_t        snchAns;      // answer set new channel
+    // 2nd RX window (after up stream)
+    //u1_t        dn2Dr;
+    //u4_t        dn2Freq;
+    //u1_t        dn2Ans;       // 0=no answer pend, 0x80+ACKs
+
+    // Class B state
+    //u1_t        missedBcns;   // unable to track last N beacons
+    //u1_t        bcninfoTries; // how often to try (scan mode only)
+    //u1_t        pingSetAns;   // answer set cmd and ACK bits
+    //rxsched_t   ping;         // pingable setup
+
+    // Public part of MAC state
+    //u1_t        txCnt;
+    //u1_t        txrxFlags;  // transaction flags (TX-RX combo)
+    //u1_t        dataBeg;    // 0 or start of data (dataBeg-1 is port)
+    u1_t        dataLen;    // 0 no data or zero length data, >0 byte count of data
+    u1_t        frame[MAX_LEN_FRAME];
+
+    //u1_t        bcnChnl;
+    //u1_t        bcnRxsyms;    // 
+    //ostime_t    bcnRxtime;
+    //bcninfo_t   bcninfo;      // Last received beacon info
+} lmic_t;
+
+lmic_t LMIC;
+void hal_pin_rxtx(int val)
+{
+    (void) val;
+}
+void hal_waitUntil(int time)
+{
+    xtimer_usleep(time*32);
+}
+
+void hal_disableIRQs(void)
+{
+    irq_disable();
+}
+
+void hal_enableIRQs(void)
+{
+    irq_enable();
+}
+
+void hal_pin_rst(int rst)
+{
+}
+
+void set_lmic_frame(char *buf, size_t size)
+{
+    memcpy(LMIC.frame, buf, size);
+    LMIC.dataLen = size;
+}
 
 #ifdef CFG_sx1276_radio
 #define LNA_RX_GAIN (0x20|0x1)
@@ -258,18 +424,22 @@ static u1_t randbuf[16];
 #endif
 
 
+#define PARAMS_SPI SPI_1
+#define PARAMS_NSS GPIO_PIN(PA, 19)
+#define PARAMS_RESET GPIO_PIN(PA, 28)
+
 static void writeReg (u1_t addr, u1_t data ) {
     unsigned int cpsr;
 
-    spi_acquire(dev->params.spi);
+    spi_acquire(PARAMS_SPI);
     cpsr = irq_disable();
 
-    gpio_clear(dev->params.nss_pin);
-    spi_transfer_regs(dev->params.spi, addr | 0x80, (char *) &data, NULL, 1);
-    gpio_set(dev->params.nss_pin);
+    gpio_clear(PARAMS_NSS);
+    spi_transfer_regs(PARAMS_SPI, addr | 0x80, (char *) &data, NULL, 1);
+    gpio_set(PARAMS_NSS);
 
     irq_restore(cpsr);
-    spi_release(dev->params.spi)
+    spi_release(PARAMS_SPI);
 
 }
 
@@ -278,14 +448,14 @@ static u1_t readReg (u1_t addr) {
 
     cpsr = irq_disable();
 
-    spi_acquire(dev->params.spi);
+    spi_acquire(PARAMS_SPI);
 
     char buffer;
-    gpio_clear(dev->params.nss_pin);
-    spi_transfer_regs(dev->params.spi, addr & 0x7F, NULL, (char *) &buffer, 1);
-    gpio_set(dev->params.nss_pin);
+    gpio_clear(PARAMS_NSS);
+    spi_transfer_regs(PARAMS_SPI, addr & 0x7F, NULL, (char *) &buffer, 1);
+    gpio_set(PARAMS_NSS);
 
-    spi_release(dev->params.spi);
+    spi_release(PARAMS_SPI);
 
     irq_restore(cpsr);
     return (u1_t) buffer;
@@ -295,15 +465,15 @@ static u1_t readReg (u1_t addr) {
 static void writeBuf (u1_t addr, xref2u1_t buf, u1_t len) {
     unsigned int cpsr;
 
-    spi_acquire(dev->params.spi);
+    spi_acquire(PARAMS_SPI);
     cpsr = irq_disable();
 
-    gpio_clear(dev->params.nss_pin);
-    spi_transfer_regs(dev->params.spi, addr | 0x80, buf, NULL, len);
-    gpio_set(dev->params.nss_pin);
+    gpio_clear(PARAMS_NSS);
+    spi_transfer_regs(PARAMS_SPI, addr | 0x80, (char*) buf, NULL, len);
+    gpio_set(PARAMS_NSS);
 
     irq_restore(cpsr);
-    spi_release(dev->params.spi)
+    spi_release(PARAMS_SPI);
 }
 
 static void readBuf (u1_t addr, xref2u1_t buf, u1_t len) {
@@ -311,24 +481,22 @@ static void readBuf (u1_t addr, xref2u1_t buf, u1_t len) {
 
     cpsr = irq_disable();
 
-    spi_acquire(dev->params.spi);
+    spi_acquire(PARAMS_SPI);
 
-    char buffer;
-    gpio_clear(dev->params.nss_pin);
-    spi_transfer_regs(dev->params.spi, addr & 0x7F, NULL, buf, len);
-    gpio_set(dev->params.nss_pin);
+    gpio_clear(PARAMS_NSS);
+    spi_transfer_regs(PARAMS_SPI, addr & 0x7F, NULL, (char*) buf, len);
+    gpio_set(PARAMS_NSS);
 
-    spi_release(dev->params.spi);
+    spi_release(PARAMS_SPI);
 
     irq_restore(cpsr);
-    return (u1_t) buffer;
 }
 
 static void opmode (u1_t mode) {
     writeReg(RegOpMode, (readReg(RegOpMode) & ~OPMODE_MASK) | mode);
 }
 
-static void opmodeLora() {
+static void opmodeLora(void) {
     u1_t u = OPMODE_LORA;
 #ifdef CFG_sx1276_radio
     u |= 0x8;   // TBD: sx1276 high freq
@@ -336,7 +504,7 @@ static void opmodeLora() {
     writeReg(RegOpMode, u);
 }
 
-static void opmodeFSK() {
+static void opmodeFSK(void) {
     u1_t u = 0;
 #ifdef CFG_sx1276_radio
     u |= 0x8;   // TBD: sx1276 high freq
@@ -345,7 +513,7 @@ static void opmodeFSK() {
 }
 
 // configure LoRa modem (cfg1, cfg2)
-static void configLoraModem () {
+static void configLoraModem (void) {
     sf_t sf = getSf(LMIC.rps);
 
 #ifdef CFG_sx1276_radio
@@ -417,7 +585,7 @@ static void configLoraModem () {
 #endif /* CFG_sx1272_radio */
 }
 
-static void configChannel () {
+static void configChannel (void) {
     // set frequency: FQ = (FRF * 32 Mhz) / (2 ^ 19)
     u8_t frf = ((u8_t)LMIC.freq << 19) / 32000000;
     writeReg(RegFrfMsb, (u1_t)(frf>>16));
@@ -427,7 +595,7 @@ static void configChannel () {
 
 
 
-static void configPower () {
+static void configPower (void) {
 #ifdef CFG_sx1276_radio
     // no boost used for now
     s1_t pw = (s1_t)LMIC.txpow;
@@ -463,7 +631,7 @@ static void configPower () {
 #endif /* CFG_sx1272_radio */
 }
 
-static void txfsk () {
+static void txfsk (void) {
     // select FSK modem (from sleep mode)
     writeReg(RegOpMode, 0x10); // FSK, BT=0.5
     ASSERT(readReg(RegOpMode) == 0x10);
@@ -506,7 +674,7 @@ static void txfsk () {
     opmode(OPMODE_TX);
 }
 
-static void txlora () {
+static void txlora (void) {
     // select LoRa modem (from sleep mode)
     //writeReg(RegOpMode, OPMODE_LORA);
     opmodeLora();
@@ -547,7 +715,7 @@ static void txlora () {
 }
 
 // start transmitter (buf=LMIC.frame, len=LMIC.dataLen)
-static void starttx () {
+void starttx (void) {
     ASSERT( (readReg(RegOpMode) & OPMODE_MASK) == OPMODE_SLEEP );
     if(getSf(LMIC.rps) == FSK) { // FSK modem
         txfsk();
@@ -606,7 +774,7 @@ static void rxlora (u1_t rxmode) {
 
     // now instruct the radio to receive
     if (rxmode == RXMODE_SINGLE) { // single rx
-        hal_waitUntil(LMIC.rxtime); // busy wait until exact rx time
+        xtimer_usleep(32*LMIC.rxtime); // busy wait until exact rx time
         opmode(OPMODE_RX_SINGLE);
     } else { // continous rx (scan or rssi)
         opmode(OPMODE_RX); 
@@ -660,11 +828,11 @@ static void rxfsk (u1_t rxmode) {
     hal_pin_rxtx(0);
     
     // now instruct the radio to receive
-    hal_waitUntil(LMIC.rxtime); // busy wait until exact rx time
+    xtimer_usleep(32*LMIC.rxtime); // busy wait until exact rx time
     opmode(OPMODE_RX); // no single rx mode available in FSK
 }
 
-static void startrx (u1_t rxmode) {
+void startrx (u1_t rxmode) {
     ASSERT( (readReg(RegOpMode) & OPMODE_MASK) == OPMODE_SLEEP );
     if(getSf(LMIC.rps) == FSK) { // FSK modem
         rxfsk(rxmode);
@@ -676,23 +844,34 @@ static void startrx (u1_t rxmode) {
 }
 
 // get random seed from wideband noise rssi
-void radio_init () {
+void radio_init (void) {
     hal_disableIRQs();
 
+    gpio_init(PARAMS_NSS, GPIO_OUT);
     // manually reset radio
+    gpio_init(PARAMS_RESET, GPIO_OUT);
 #ifdef CFG_sx1276_radio
-    hal_pin_rst(0); // drive RST pin low
+    //hal_pin_rst(0); // drive RST pin low
+    gpio_clear(PARAMS_RESET);
 #else
-    hal_pin_rst(1); // drive RST pin high
+    gpio_set(PARAMS_RESET);
+    //hal_pin_rst(1); // drive RST pin high
 #endif
-    hal_waitUntil(os_getTime()+ms2osticks(1)); // wait >100us
-    hal_pin_rst(2); // configure RST pin floating!
-    hal_waitUntil(os_getTime()+ms2osticks(5)); // wait 5ms
+    xtimer_usleep(1000); // wait >100us
+    gpio_init(PARAMS_RESET, GPIO_OD);
+    //hal_pin_rst(2); // configure RST pin floating!
+    xtimer_usleep(5000); // wait 5ms
+    //gpio_set(PARAMS_RESET);
+    //gpio_init_int(dev->params.dio0_pin, GPIO_IN, GPIO_RISING, radio_irq_handler, NULL);
 
+     spi_acquire(PARAMS_SPI);
+     spi_init_master(PARAMS_SPI, SPI_CONF_FIRST_RISING, SPI_SPEED_1MHZ);
+     spi_release(PARAMS_SPI);
     opmode(OPMODE_SLEEP);
 
     // some sanity checks, e.g., read version number
     u1_t v = readReg(RegVersion);
+    printf("%i\n", (int) v);
 #ifdef CFG_sx1276_radio
     ASSERT(v == 0x12 ); 
 #elif CFG_sx1272_radio
@@ -701,6 +880,7 @@ void radio_init () {
 #error Missing CFG_sx1272_radio/CFG_sx1276_radio
 #endif
     // seed 15-byte randomness via noise rssi
+    puts("OK");
     rxlora(RXMODE_RSSI);
     while( (readReg(RegOpMode) & OPMODE_MASK) != OPMODE_RX ); // continuous rx
     for(int i=1; i<16; i++) {
@@ -738,7 +918,7 @@ void radio_init () {
 
 // return next random byte derived from seed buffer
 // (buf[0] holds index of next byte to be returned)
-u1_t radio_rand1 () {
+/*u1_t radio_rand1 (void) {
     u1_t i = randbuf[0];
     ASSERT( i != 0 );
     if( i==16 ) {
@@ -749,8 +929,9 @@ u1_t radio_rand1 () {
     randbuf[0] = i;
     return v;
 }
+*/
 
-u1_t radio_rssi () {
+u1_t radio_rssi (void) {
     hal_disableIRQs();
     u1_t r = readReg(LORARegRssiValue);
     hal_enableIRQs();
@@ -758,24 +939,24 @@ u1_t radio_rssi () {
 }
 
 static const u2_t LORA_RXDONE_FIXUP[] = {
-    [FSK]  =     us2osticks(0), // (   0 ticks)
-    [SF7]  =     us2osticks(0), // (   0 ticks)
-    [SF8]  =  us2osticks(1648), // (  54 ticks)
-    [SF9]  =  us2osticks(3265), // ( 107 ticks)
-    [SF10] =  us2osticks(7049), // ( 231 ticks)
-    [SF11] = us2osticks(13641), // ( 447 ticks)
-    [SF12] = us2osticks(31189), // (1022 ticks)
+    [FSK]  =     0, // (   0 ticks)
+    [SF7]  =     0, // (   0 ticks)
+    [SF8]  =  54, // (  54 ticks)
+    [SF9]  =  107, // ( 107 ticks)
+    [SF10] =  231, // ( 231 ticks)
+    [SF11] =  447, // ( 447 ticks)
+    [SF12] =  1022, // (1022 ticks)
 };
 
 // called by hal ext IRQ handler
 // (radio goes to stanby mode after tx/rx operations)
 void radio_irq_handler (u1_t dio) {
-    ostime_t now = os_getTime();
+    ostime_t now = 0;
     if( (readReg(RegOpMode) & OPMODE_LORA) != 0) { // LORA modem
         u1_t flags = readReg(LORARegIrqFlags);
         if( flags & IRQ_LORA_TXDONE_MASK ) {
             // save exact tx time
-            LMIC.txend = now - us2osticks(43); // TXDONE FIXUP
+            LMIC.txend = now - (43<<5); // TXDONE FIXUP
         } else if( flags & IRQ_LORA_RXDONE_MASK ) {
             // save exact rx time
             if(getBw(LMIC.rps) == BW125) {
@@ -830,10 +1011,10 @@ void radio_irq_handler (u1_t dio) {
     // go from stanby to sleep
     opmode(OPMODE_SLEEP);
     // run os job (use preset func ptr)
-    os_setCallback(&LMIC.osjob, LMIC.osjob.func);
+    //os_setCallback(&LMIC.osjob, LMIC.osjob.func);
 }
 
-void os_radio (u1_t mode) {
+/*void os_radio (u1_t mode) {
     hal_disableIRQs();
     switch (mode) {
       case RADIO_RST:
@@ -858,3 +1039,4 @@ void os_radio (u1_t mode) {
     }
     hal_enableIRQs();
 }
+*/
