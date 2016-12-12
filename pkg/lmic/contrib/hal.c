@@ -26,9 +26,19 @@
  */
 
 #include "lmic.h"
+#include "board.h"
+#include "periph/spi.h"
+#include "periph/gpio.h"
 
 // -----------------------------------------------------------------------------
 // I/O
+
+#ifdef AT86RF2XX_PARAMS_BOARD 
+    #define SAMR21_XPRO
+#else
+    #define NZ32_SC151
+#endif
+
 
 #ifdef SAMR21_XPRO
 
@@ -92,14 +102,35 @@ static struct {
     u4_t ticks;
 } HAL;
 
+/**
+ * IRQ handlers
+ */
+void sx1276_on_dio0_isr(void *arg)
+{
+ // invoke radio handler (on IRQ!)
+        radio_irq_handler(0);
+}
+
+void sx1276_on_dio1_isr(void *arg)
+{
+  // invoke radio handler (on IRQ!)
+        radio_irq_handler(1);
+}
+
+void sx1276_on_dio2_isr(void *arg)
+{
+ // invoke radio handler (on IRQ!)
+        radio_irq_handler(2);
+}
+
 
 // -----------------------------------------------------------------------------
 // I/O
 
-static void hal_io_init () {
-    gpio_init_int(SX1276_DIO0, GPIO_IN, GPIO_RISING, sx1276_on_dio0_isr);
-    gpio_init_int(SX1276_DIO1, GPIO_IN, GPIO_RISING, sx1276_on_dio1_isr);
-    gpio_init_int(SX1276_DIO2, GPIO_IN, GPIO_RISING, sx1276_on_dio2_isr);
+static void hal_io_init (void) {
+    gpio_init_int(SX1276_DIO0, GPIO_IN, GPIO_RISING, sx1276_on_dio0_isr, NULL);
+    gpio_init_int(SX1276_DIO1, GPIO_IN, GPIO_RISING, sx1276_on_dio1_isr, NULL);
+    gpio_init_int(SX1276_DIO2, GPIO_IN, GPIO_RISING, sx1276_on_dio2_isr, NULL);
 
     int res;
     /* Setup SPI for SX1276 */
@@ -110,14 +141,14 @@ static void hal_io_init () {
     if (res < 0) {
         printf("sx1276: error initializing SPI_%i device (code %i)\n",
                 SX1276_SPI, res);
-        return 0;
+        return;
     }
 
-    res = gpio_init(dSX1276_SPI_NSS, GPIO_OUT);
+    res = gpio_init(SX1276_SPI_NSS, GPIO_OUT);
     if (res < 0) {
         printf("sx1276: error initializing GPIO_%ld as CS line (code %i)\n",
                (long)SX1276_SPI_NSS, res);
-        return 0;
+        return;
     }
 }
 
@@ -138,36 +169,12 @@ void hal_pin_rst (u1_t val) {
 
 extern void radio_irq_handler(u1_t dio);
 
-/**
- * IRQ handlers
- */
-void sx1276_on_dio0_isr(void *arg)
-{
- // invoke radio handler (on IRQ!)
-        EXTI->PR = (1<<SX1276_DIO0);
-        radio_irq_handler(0);
-}
-
-void sx1276_on_dio1_isr(void *arg)
-{
-  // invoke radio handler (on IRQ!)
-        EXTI->PR = (1<<SX1276_DIO1);
-        radio_irq_handler(1);
-}
-
-void sx1276_on_dio2_isr(void *arg)
-{
- // invoke radio handler (on IRQ!)
-        EXTI->PR = (1<<SX1276_DIO2);
-        radio_irq_handler(2);
-}
-
 // -----------------------------------------------------------------------------
 // SPI
 
 // for sx1272 and 1276
 
-static void hal_spi_init () {
+static void hal_spi_init (void) {
     int res;
 
     /* Setup SPI for SX1276 */
@@ -178,14 +185,14 @@ static void hal_spi_init () {
     if (res < 0) {
         printf("sx1276: error initializing SPI_%i device (code %i)\n",
                 SX1276_SPI, res);
-        return 0;
+        return;
     }
 
     res = gpio_init(SX1276_SPI_NSS, GPIO_OUT);
     if (res < 0) {
         printf("sx1276: error initializing GPIO_%ld as CS line (code %i)\n",
                (long)SX1276_SPI_NSS, res);
-        return 0;
+        return;
     }
 
     gpio_set(SX1276_SPI_NSS);
@@ -196,7 +203,7 @@ static void hal_spi_init () {
 // -----------------------------------------------------------------------------
 // TIME
 
-static void hal_time_init () {
+static void hal_time_init (void) {
 #ifndef CFG_clock_HSE
     PWR->CR |= PWR_CR_DBP; // disable write protect
     RCC->CSR |= RCC_CSR_LSEON; // switch on low-speed oscillator @32.768kHz
@@ -220,7 +227,7 @@ static void hal_time_init () {
     TIM9->CR1 = TIM_CR1_CEN;
 }
 
-u4_t hal_ticks () {
+u4_t hal_ticks (void) {
     hal_disableIRQs();
     u4_t t = HAL.ticks;
     u2_t cnt = TIM9->CNT;
@@ -263,7 +270,7 @@ u1_t hal_checkTimer (u4_t time) {
     }
 }
   
-void TIM9_IRQHandler () {
+void TIM9_IRQHandler (void) {
     if(TIM9->SR & TIM_SR_UIF) { // overflow
         HAL.ticks++;
     }
@@ -276,18 +283,18 @@ void TIM9_IRQHandler () {
 // -----------------------------------------------------------------------------
 // IRQ
 
-void hal_disableIRQs () {
+void hal_disableIRQs (void) {
     __disable_irq();
     HAL.irqlevel++;
 }
 
-void hal_enableIRQs () {
+void hal_enableIRQs (void) {
     if(--HAL.irqlevel == 0) {
         __enable_irq();
     }
 }
 
-void hal_sleep () {
+void hal_sleep (void) {
     // low power sleep mode
 #ifndef CFG_no_low_power_sleep_mode
     PWR->CR |= PWR_CR_LPSDSR;
@@ -298,7 +305,7 @@ void hal_sleep () {
 
 // -----------------------------------------------------------------------------
 
-void hal_init () {
+void hal_init (void) {
     memset(&HAL, 0x00, sizeof(HAL));
     hal_disableIRQs();
 
@@ -312,7 +319,7 @@ void hal_init () {
     hal_enableIRQs();
 }
 
-void hal_failed () {
+void hal_failed (void) {
     // HALT...
     hal_disableIRQs();
     hal_sleep();

@@ -1,5 +1,3 @@
 INCLUDES += -I$(BINDIRBASE)/pkg/$(BOARD)/lmic/lmic
 
-ifneq (,$(filter lmiccontrib,$(USEMODULE)))
-  DIRS += $(RIOTBASE)/pkg/lmic/contrib
-endif
+DIRS += $(RIOTBASE)/pkg/lmic/contrib
