@@ -30,44 +30,11 @@
 #include "periph/spi.h"
 #include "periph/gpio.h"
 #include "stm32l1xx.h"
+#include <stdio.h>
+#include <string.h>
 
 // -----------------------------------------------------------------------------
 // I/O
-
-#ifdef AT86RF2XX_PARAMS_BOARD 
-    #define SAMR21_XPRO
-#else
-    #define NZ32_SC151
-#endif
-
-
-#ifdef SAMR21_XPRO
-
-#define SX1276_DIO0 GPIO_PIN(PA, 13)
-#define SX1276_DIO1 GPIO_PIN(PA, 7)
-#define SX1276_DIO2 GPIO_PIN(PA, 6)
-
-#define SX1276_RESET GPIO_PIN(PA, 28)
-
-/** SX1276 SPI */
-
-#define USE_SPI_1
-
-#ifdef USE_SPI_1
-#define SX1276_SPI SPI_1
-#define SX1276_SPI_NSS GPIO_PIN(PA, 19)
-#define SX1276_SPI_MODE SPI_CONF_FIRST_RISING
-#define SX1276_SPI_SPEED SPI_SPEED_1MHZ
-#endif
-
-#ifdef USE_SPI_0
-#define SX1276_SPI SPI_0
-#define SX1276_SPI_NSS GPIO_PIN(PA, 4)
-#define SX1276_SPI_MODE SPI_CONF_FIRST_RISING
-#define SX1276_SPI_SPEED SPI_SPEED_1MHZ
-#endif
-
-#elif NZ32_SC151
 
 #define SX1276_DIO0 GPIO_PIN(PORT_B, 0)
 #define SX1276_DIO1 GPIO_PIN(PORT_B, 1)
@@ -93,13 +60,9 @@
 #define SX1276_SPI_SPEED SPI_SPEED_1MHZ
 #endif
 
-#else
-#error Missing BOARD
-#endif
-
 // HAL state
 static struct {
-    int irqlevel;
+    unsigned int cpsr;
     u4_t ticks;
 } HAL;
 
@@ -132,25 +95,6 @@ static void hal_io_init (void) {
     gpio_init_int(SX1276_DIO0, GPIO_IN, GPIO_RISING, sx1276_on_dio0_isr, NULL);
     gpio_init_int(SX1276_DIO1, GPIO_IN, GPIO_RISING, sx1276_on_dio1_isr, NULL);
     gpio_init_int(SX1276_DIO2, GPIO_IN, GPIO_RISING, sx1276_on_dio2_isr, NULL);
-
-    int res;
-    /* Setup SPI for SX1276 */
-    spi_acquire(SX1276_SPI);
-    res = spi_init_master(SX1276_SPI, SPI_CONF_FIRST_RISING, SPI_SPEED_1MHZ);
-    spi_release(SX1276_SPI);
-
-    if (res < 0) {
-        printf("sx1276: error initializing SPI_%i device (code %i)\n",
-                SX1276_SPI, res);
-        return;
-    }
-
-    res = gpio_init(SX1276_SPI_NSS, GPIO_OUT);
-    if (res < 0) {
-        printf("sx1276: error initializing GPIO_%ld as CS line (code %i)\n",
-               (long)SX1276_SPI_NSS, res);
-        return;
-    }
 }
 
 // set radio NSS pin to given value
@@ -165,6 +109,7 @@ void hal_pin_rst (u1_t val) {
         gpio_write (SX1276_RESET, val);
     } else { // keep pin floating
         gpio_init(SX1276_RESET, GPIO_OD);
+        gpio_set(SX1276_RESET);
     }
 }
 
@@ -197,6 +142,13 @@ static void hal_spi_init (void) {
     }
 
     gpio_set(SX1276_SPI_NSS);
+}
+
+// perform SPI transaction with radio
+u1_t hal_spi (u1_t out) {
+    char in;
+    spi_transfer_byte(SX1276_SPI, (char) out, &in);
+    return (u1_t) in; // in
 }
 
 #ifdef CFG_lmic_clib
@@ -264,7 +216,7 @@ u1_t hal_checkTimer (u4_t time) {
         TIM9->DIER &= ~TIM_DIER_CC2IE; // disable IE
         return 1;
     } else { // rewind timer (fully or to exact time))
-        TIM9->CCR2 = TIM9->CNT + dt;   // set comparator
+        TIM9->CCR[2] = TIM9->CNT + dt;   // set comparator
         TIM9->DIER |= TIM_DIER_CC2IE;  // enable IE
         TIM9->CCER |= TIM_CCER_CC2E;   // enable capture/compare uint 2
         return 0;
@@ -285,14 +237,11 @@ void TIM9_IRQHandler (void) {
 // IRQ
 
 void hal_disableIRQs (void) {
-    __disable_irq();
-    HAL.irqlevel++;
+    HAL.cpsr = irq_disable();
 }
 
 void hal_enableIRQs (void) {
-    if(--HAL.irqlevel == 0) {
-        __enable_irq();
-    }
+    irq_restore(HAL.cpsr);
 }
 
 void hal_sleep (void) {

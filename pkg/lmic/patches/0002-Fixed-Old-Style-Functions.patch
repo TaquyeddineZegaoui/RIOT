@@ -1,0 +1,190 @@
+From a20c43ba97fe6e0f390db2f67b68b9039d42e99b Mon Sep 17 00:00:00 2001
+From: Francisco <femolina@uc.cl>
+Date: Mon, 12 Dec 2016 13:13:39 -0300
+Subject: [PATCH] fixed old style functions
+
+---
+ lmic/aes.c    |  2 +-
+ lmic/lmic.c   |  4 ++--
+ lmic/lmic.h   |  3 ++-
+ lmic/oslmic.c |  4 ++--
+ lmic/radio.c  | 22 +++++++++++-----------
+ 5 files changed, 18 insertions(+), 17 deletions(-)
+
+diff --git a/lmic/aes.c b/lmic/aes.c
+index a026eef..c80ebdc 100644
+--- a/lmic/aes.c
++++ b/lmic/aes.c
+@@ -205,7 +205,7 @@ u4_t AESKEY[11*16/sizeof(u4_t)];
+ 
+ // generate 1+10 roundkeys for encryption with 128-bit key
+ // read 128-bit key from AESKEY in MSBF, generate roundkey words in place
+-static void aesroundkeys () {
++static void aesroundkeys (void) {
+     int i;
+     u4_t b;
+ 
+diff --git a/lmic/lmic.c b/lmic/lmic.c
+index cf6a4c1..ee7da35 100644
+--- a/lmic/lmic.c
++++ b/lmic/lmic.c
+@@ -673,7 +673,7 @@ static void setBcnRxParams (void) {
+     LMIC.rps  = setIh(setNocrc(dndr2rps((dr_t)DR_BCN),1),LEN_BCN);
+ }
+ 
+-#define setRx1Params() /*LMIC.freq/rps remain unchanged*/
++#define setRx1Params(void) /*LMIC.freq/rps remain unchanged*/
+ 
+ static void initJoinLoop (void) {
+     LMIC.txChnl = os_getRndU1() % 6;
+@@ -823,7 +823,7 @@ static void setBcnRxParams (void) {
+     LMIC.rps  = setIh(setNocrc(dndr2rps((dr_t)DR_BCN),1),LEN_BCN);
+ }
+ 
+-#define setRx1Params() {                                                \
++#define setRx1Params(void) {                                                \
+     LMIC.freq = US915_500kHz_DNFBASE + (LMIC.txChnl & 0x7) * US915_500kHz_DNFSTEP; \
+     if( /* TX datarate */LMIC.dndr < DR_SF8C )                          \
+         LMIC.dndr += DR_SF10CR - DR_SF10;                               \
+diff --git a/lmic/lmic.h b/lmic/lmic.h
+index fe55387..86e5714 100644
+--- a/lmic/lmic.h
++++ b/lmic/lmic.h
+@@ -132,7 +132,8 @@ enum _ev_t { EV_SCAN_TIMEOUT=1, EV_BEACON_FOUND,
+              EV_BEACON_MISSED, EV_BEACON_TRACKED, EV_JOINING,
+              EV_JOINED, EV_RFU1, EV_JOIN_FAILED, EV_REJOIN_FAILED,
+              EV_TXCOMPLETE, EV_LOST_TSYNC, EV_RESET,
+-             EV_RXCOMPLETE, EV_LINK_DEAD, EV_LINK_ALIVE };
++             EV_RXCOMPLETE, EV_LINK_DEAD, EV_LINK_ALIVE, EV_SCAN_FOUND,
++             EV_TXSTART };
+ typedef enum _ev_t ev_t;
+ 
+ 
+diff --git a/lmic/oslmic.c b/lmic/oslmic.c
+index 9296432..0f5c3be 100644
+--- a/lmic/oslmic.c
++++ b/lmic/oslmic.c
+@@ -24,7 +24,7 @@ void os_init () {
+     LMIC_init();
+ }
+ 
+-ostime_t os_getTime () {
++ostime_t os_getTime (void) {
+     return hal_ticks();
+ }
+ 
+@@ -83,7 +83,7 @@ void os_setTimedCallback (osjob_t* job, ostime_t time, osjobcb_t cb) {
+ }
+ 
+ // execute jobs from timer and from run queue
+-void os_runloop () {
++void os_runloop (void) {
+     while(1) {
+         osjob_t* j = NULL;
+         hal_disableIRQs();
+diff --git a/lmic/radio.c b/lmic/radio.c
+index cc00f48..351e2d5 100644
+--- a/lmic/radio.c
++++ b/lmic/radio.c
+@@ -297,7 +297,7 @@ static void opmode (u1_t mode) {
+     writeReg(RegOpMode, (readReg(RegOpMode) & ~OPMODE_MASK) | mode);
+ }
+ 
+-static void opmodeLora() {
++static void opmodeLora(void) {
+     u1_t u = OPMODE_LORA;
+ #ifdef CFG_sx1276_radio
+     u |= 0x8;   // TBD: sx1276 high freq
+@@ -305,7 +305,7 @@ static void opmodeLora() {
+     writeReg(RegOpMode, u);
+ }
+ 
+-static void opmodeFSK() {
++static void opmodeFSK(void) {
+     u1_t u = 0;
+ #ifdef CFG_sx1276_radio
+     u |= 0x8;   // TBD: sx1276 high freq
+@@ -314,7 +314,7 @@ static void opmodeFSK() {
+ }
+ 
+ // configure LoRa modem (cfg1, cfg2)
+-static void configLoraModem () {
++static void configLoraModem (void) {
+     sf_t sf = getSf(LMIC.rps);
+ 
+ #ifdef CFG_sx1276_radio
+@@ -386,7 +386,7 @@ static void configLoraModem () {
+ #endif /* CFG_sx1272_radio */
+ }
+ 
+-static void configChannel () {
++static void configChannel (void) {
+     // set frequency: FQ = (FRF * 32 Mhz) / (2 ^ 19)
+     u8_t frf = ((u8_t)LMIC.freq << 19) / 32000000;
+     writeReg(RegFrfMsb, (u1_t)(frf>>16));
+@@ -396,7 +396,7 @@ static void configChannel () {
+ 
+ 
+ 
+-static void configPower () {
++static void configPower (void) {
+ #ifdef CFG_sx1276_radio
+     // no boost used for now
+     s1_t pw = (s1_t)LMIC.txpow;
+@@ -423,7 +423,7 @@ static void configPower () {
+ #endif /* CFG_sx1272_radio */
+ }
+ 
+-static void txfsk () {
++static void txfsk (void) {
+     // select FSK modem (from sleep mode)
+     writeReg(RegOpMode, 0x10); // FSK, BT=0.5
+     ASSERT(readReg(RegOpMode) == 0x10);
+@@ -466,7 +466,7 @@ static void txfsk () {
+     opmode(OPMODE_TX);
+ }
+ 
+-static void txlora () {
++static void txlora (void) {
+     // select LoRa modem (from sleep mode)
+     //writeReg(RegOpMode, OPMODE_LORA);
+     opmodeLora();
+@@ -507,7 +507,7 @@ static void txlora () {
+ }
+ 
+ // start transmitter (buf=LMIC.frame, len=LMIC.dataLen)
+-static void starttx () {
++static void starttx (void) {
+     ASSERT( (readReg(RegOpMode) & OPMODE_MASK) == OPMODE_SLEEP );
+     if(getSf(LMIC.rps) == FSK) { // FSK modem
+         txfsk();
+@@ -636,7 +636,7 @@ static void startrx (u1_t rxmode) {
+ }
+ 
+ // get random seed from wideband noise rssi
+-void radio_init () {
++void radio_init (void) {
+     hal_disableIRQs();
+ 
+     // manually reset radio
+@@ -698,7 +698,7 @@ void radio_init () {
+ 
+ // return next random byte derived from seed buffer
+ // (buf[0] holds index of next byte to be returned)
+-u1_t radio_rand1 () {
++u1_t radio_rand1 (void) {
+     u1_t i = randbuf[0];
+     ASSERT( i != 0 );
+     if( i==16 ) {
+@@ -710,7 +710,7 @@ u1_t radio_rand1 () {
+     return v;
+ }
+ 
+-u1_t radio_rssi () {
++u1_t radio_rssi (void) {
+     hal_disableIRQs();
+     u1_t r = readReg(LORARegRssiValue);
+     hal_enableIRQs();
+-- 
+2.7.4
+
