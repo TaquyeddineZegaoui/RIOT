@@ -26,6 +26,7 @@
  */
 
 #include "lmic.h"
+
 // -----------------------------------------------------------------------------
 // I/O
 
@@ -91,101 +92,75 @@ static struct {
     u4_t ticks;
 } HAL;
 
+
 // -----------------------------------------------------------------------------
 // I/O
 
 static void hal_io_init () {
-    gpio_init_int(dev->dio0_pin, GPIO_IN, GPIO_RISING, sx1276_on_dio0_isr, dev);
-    gpio_init_int(dev->dio1_pin, GPIO_IN, GPIO_RISING, sx1276_on_dio1_isr, dev);
-    gpio_init_int(dev->dio2_pin, GPIO_IN, GPIO_RISING, sx1276_on_dio2_isr, dev);
-}
+    gpio_init_int(SX1276_DIO0, GPIO_IN, GPIO_RISING, sx1276_on_dio0_isr);
+    gpio_init_int(SX1276_DIO1, GPIO_IN, GPIO_RISING, sx1276_on_dio1_isr);
+    gpio_init_int(SX1276_DIO2, GPIO_IN, GPIO_RISING, sx1276_on_dio2_isr);
 
-// val ==1  => tx 1, rx 0 ; val == 0 => tx 0, rx 1
-void hal_pin_rxtx (u1_t val) {
-    ASSERT(val == 1 || val == 0);
-#ifndef CFG_sx1276mb1_board
-    hw_set_pin(GPIOx(RX_PORT), RX_PIN, ~val);
-#endif
-    hw_set_pin(GPIOx(TX_PORT), TX_PIN, val);
-}
+    int res;
+    /* Setup SPI for SX1276 */
+    spi_acquire(SX1276_SPI);
+    res = spi_init_master(SX1276_SPI, SPI_CONF_FIRST_RISING, SPI_SPEED_1MHZ);
+    spi_release(SX1276_SPI);
 
+    if (res < 0) {
+        printf("sx1276: error initializing SPI_%i device (code %i)\n",
+                SX1276_SPI, res);
+        return 0;
+    }
+
+    res = gpio_init(dSX1276_SPI_NSS, GPIO_OUT);
+    if (res < 0) {
+        printf("sx1276: error initializing GPIO_%ld as CS line (code %i)\n",
+               (long)SX1276_SPI_NSS, res);
+        return 0;
+    }
+}
 
 // set radio NSS pin to given value
 void hal_pin_nss (u1_t val) {
-    gpio_write (dev->nss_pin, val);
+    gpio_write (SX1276_SPI_NSS, val);
 }
 
 // set radio RST pin to given value (or keep floating!)
 void hal_pin_rst (u1_t val) {
     if(val == 0 || val == 1) { // drive pin
-        gpio_init(dev->reset_pin, GPIO_OUT);
-        gpio_write (dev->reset_pin, val);
+        gpio_init(SX1276_RESET, GPIO_OUT);
+        gpio_write (SX1276_RESET, val);
     } else { // keep pin floating
-        gpio_init(dev->reset_pin, GPIO_OD);
+        gpio_init(SX1276_RESET, GPIO_OD);
     }
 }
 
 extern void radio_irq_handler(u1_t dio);
 
-// generic EXTI IRQ handler for all channels
-void EXTI_IRQHandler () {
-    // DIO 0
-    if((EXTI->PR & (1<<DIO0_PIN)) != 0) { // pending
-        EXTI->PR = (1<<DIO0_PIN); // clear irq
-        // invoke radio handler (on IRQ!)
+/**
+ * IRQ handlers
+ */
+void sx1276_on_dio0_isr(void *arg)
+{
+ // invoke radio handler (on IRQ!)
+        EXTI->PR = (1<<SX1276_DIO0);
         radio_irq_handler(0);
-    }
-    // DIO 1
-    if((EXTI->PR & (1<<DIO1_PIN)) != 0) { // pending
-        EXTI->PR = (1<<DIO1_PIN); // clear irq
-        // invoke radio handler (on IRQ!)
+}
+
+void sx1276_on_dio1_isr(void *arg)
+{
+  // invoke radio handler (on IRQ!)
+        EXTI->PR = (1<<SX1276_DIO1);
         radio_irq_handler(1);
-    }
-    // DIO 2
-    if((EXTI->PR & (1<<DIO2_PIN)) != 0) { // pending
-        EXTI->PR = (1<<DIO2_PIN); // clear irq
-        // invoke radio handler (on IRQ!)
+}
+
+void sx1276_on_dio2_isr(void *arg)
+{
+ // invoke radio handler (on IRQ!)
+        EXTI->PR = (1<<SX1276_DIO2);
         radio_irq_handler(2);
-    }
-       
-#ifdef CFG_EXTI_IRQ_HANDLER
-    // invoke user-defined interrupt handler
-    {
-        extern void CFG_EXTI_IRQ_HANDLER(void);
-        CFG_EXTI_IRQ_HANDLER();
-    }
-#endif // CFG_EXTI_IRQ_HANDLER
 }
-
-#if CFG_lmic_clib
-void EXTI0_IRQHandler () {
-    EXTI_IRQHandler();
-}
-
-void EXTI1_IRQHandler () {
-    EXTI_IRQHandler();
-}
-
-void EXTI2_IRQHandler () {
-    EXTI_IRQHandler();
-}
-
-void EXTI3_IRQHandler () {
-    EXTI_IRQHandler();
-}
-
-void EXTI4_IRQHandler () {
-    EXTI_IRQHandler();
-}
-
-void EXTI9_5_IRQHandler () {
-    EXTI_IRQHandler();
-}
-
-void EXTI15_10_IRQHandler () {
-    EXTI_IRQHandler();
-}
-#endif // CFG_lmic_clib
 
 // -----------------------------------------------------------------------------
 // SPI
@@ -196,24 +171,24 @@ static void hal_spi_init () {
     int res;
 
     /* Setup SPI for SX1276 */
-    spi_acquire(dev->spi);
-    res = spi_init_master(dev->spi, SPI_CONF_FIRST_RISING, SPI_SPEED_1MHZ);
-    spi_release(dev->spi);
+    spi_acquire(SX1276_SPI);
+    res = spi_init_master(SX1276_SPI, SPI_CONF_FIRST_RISING, SPI_SPEED_1MHZ);
+    spi_release(SX1276_SPI);
 
     if (res < 0) {
         printf("sx1276: error initializing SPI_%i device (code %i)\n",
-                dev->spi, res);
+                SX1276_SPI, res);
         return 0;
     }
 
-    res = gpio_init(dev->nss_pin, GPIO_OUT);
+    res = gpio_init(SX1276_SPI_NSS, GPIO_OUT);
     if (res < 0) {
         printf("sx1276: error initializing GPIO_%ld as CS line (code %i)\n",
-               (long)dev->nss_pin, res);
+               (long)SX1276_SPI_NSS, res);
         return 0;
     }
 
-    gpio_set(dev->nss_pin);
+    gpio_set(SX1276_SPI_NSS);
 }
 
 #ifdef CFG_lmic_clib
@@ -233,12 +208,8 @@ static void hal_time_init () {
     RCC->APB2RSTR  |= RCC_APB2RSTR_TIM9RST;   // reset TIM9 interface
     RCC->APB2RSTR  &= ~RCC_APB2RSTR_TIM9RST;  // reset TIM9 interface
 
-#if CFG_clock_HSE
     TIM9->PSC  = (640 - 1); // HSE_CLOCK_HWTIMER_PSC-1);  XXX: define HSE_CLOCK_HWTIMER_PSC somewhere
-#else
-    TIM9->SMCR = TIM_SMCR_ECE; // external clock enable (source clock mode 2) with no prescaler and no filter
-#endif
-    
+
     NVIC->IP[TIM9_IRQn] = 0x70; // interrupt priority
     NVIC->ISER[TIM9_IRQn>>5] = 1<<(TIM9_IRQn&0x1F);  // set enable IRQ
 
