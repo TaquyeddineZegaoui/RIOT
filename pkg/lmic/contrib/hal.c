@@ -29,6 +29,7 @@
 #include "board.h"
 #include "periph/spi.h"
 #include "periph/gpio.h"
+#include "stm32l1xx.h"
 
 // -----------------------------------------------------------------------------
 // I/O
