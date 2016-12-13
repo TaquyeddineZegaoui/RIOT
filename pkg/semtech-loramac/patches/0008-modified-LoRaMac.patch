@@ -1,28 +1,26 @@
-From acb189ee0f53a824bf28baa8d02632aa3464927c Mon Sep 17 00:00:00 2001
+From 40b4575c6525ba4f59da7cb1020f520b0322b71d Mon Sep 17 00:00:00 2001
 From: Francisco <femolina@uc.cl>
 Date: Wed, 23 Nov 2016 18:16:47 -0300
-Subject: [PATCH] fixed difference bewtween LoRaMAC and cros driver
+Subject: [PATCH 1/2] fixed difference bewtween LoRaMAC and cros driver
 
 ---
- src/mac/LoRaMac.c | 28 ++++++++++++++++------------
- 1 file changed, 16 insertions(+), 12 deletions(-)
+ src/mac/LoRaMac.c | 24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
 
 diff --git a/src/mac/LoRaMac.c b/src/mac/LoRaMac.c
-index 080594e..c2431ff 100644
+index 080594e..32430dc 100644
 --- a/src/mac/LoRaMac.c
 +++ b/src/mac/LoRaMac.c
-@@ -17,7 +17,10 @@ License: Revised BSD License, see LICENSE.TXT file include in the project
+@@ -17,6 +17,9 @@ License: Revised BSD License, see LICENSE.TXT file include in the project
  
  Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jäckle ( STACKFORCE )
  */
--#include "loramac/board_definitions.h"
 +#define ENABLE_DEBUG  (1)
 +#include "debug.h"
 +
-+#include "loramac/board_definitions.h"
+ #include "loramac/board_definitions.h"
  
  #include "LoRaMacCrypto.h"
- #include "LoRaMac.h"
 @@ -868,7 +871,7 @@ static void OnRadioTxDone( void )
      // Update Aggregated last tx done time
      AggregatedLastTxDoneTime = curTime;
@@ -39,15 +37,6 @@ index 080594e..c2431ff 100644
 +
      // Prepare the frame
      status = PrepareFrame( macHdr, &fCtrl, fPort, fBuffer, fBufferSize );
- 
-@@ -2651,7 +2655,7 @@ LoRaMacStatus_t Send( LoRaMacHeader_t *macHdr, uint8_t fPort, void *fBuffer, uin
-     return status;
- }
- 
--static LoRaMacStatus_t ScheduleTx(void)
-+static LoRaMacStatus_t ScheduleTx(void)
- {
-     TimerTime_t dutyCycleTimeOff = 0;
  
 @@ -2997,6 +3001,7 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
                  }
@@ -128,6 +117,307 @@ index 080594e..c2431ff 100644
      // Initialize Radio driver
      RadioEvents.TxDone = OnRadioTxDone;
      RadioEvents.RxDone = OnRadioRxDone;
+-- 
+2.7.4
+
+
+From b01b0a901ba6c835182deaed283cf8c92f78e714 Mon Sep 17 00:00:00 2001
+From: Francisco <femolina@uc.cl>
+Date: Tue, 13 Dec 2016 10:48:24 -0300
+Subject: [PATCH 2/2] fixed new LoRaMACCrypto definitions
+
+---
+ src/mac/LoRaMac.c       | 33 +++++++++++------------
+ src/mac/LoRaMacCrypto.c | 72 ++++++++++++++++++++++++-------------------------
+ 2 files changed, 52 insertions(+), 53 deletions(-)
+
+diff --git a/src/mac/LoRaMac.c b/src/mac/LoRaMac.c
+index 32430dc..6af1d57 100644
+--- a/src/mac/LoRaMac.c
++++ b/src/mac/LoRaMac.c
+@@ -17,10 +17,10 @@ License: Revised BSD License, see LICENSE.TXT file include in the project
+ 
+ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jäckle ( STACKFORCE )
+ */
+-#define ENABLE_DEBUG  (1)
+-#include "debug.h"
+-
+-#include "loramac/board_definitions.h"
++#define ENABLE_DEBUG  (1)
++#include "debug.h"
++
++#include "loramac/board_definitions.h"
+ 
+ #include "LoRaMacCrypto.h"
+ #include "LoRaMac.h"
+@@ -871,7 +871,7 @@ static void OnRadioTxDone( void )
+     // Update Aggregated last tx done time
+     AggregatedLastTxDoneTime = curTime;
+ 
+-    if( IsRxWindowsEnabled == true)
++    if( IsRxWindowsEnabled == true)
+     {
+         TimerSetValue( &RxWindowTimer1, RxWindow1Delay );
+         TimerStart( &RxWindowTimer1 );
+@@ -2635,7 +2635,7 @@ LoRaMacStatus_t Send( LoRaMacHeader_t *macHdr, uint8_t fPort, void *fBuffer, uin
+     fCtrl.Bits.AdrAckReq     = false;
+     fCtrl.Bits.Adr           = AdrCtrlOn;
+ 
+-
++
+     // Prepare the frame
+     status = PrepareFrame( macHdr, &fCtrl, fPort, fBuffer, fBufferSize );
+ 
+@@ -2655,7 +2655,7 @@ LoRaMacStatus_t Send( LoRaMacHeader_t *macHdr, uint8_t fPort, void *fBuffer, uin
+     return status;
+ }
+ 
+-static LoRaMacStatus_t ScheduleTx(void)
++static LoRaMacStatus_t ScheduleTx(void)
+ {
+     TimerTime_t dutyCycleTimeOff = 0;
+ 
+@@ -3001,7 +3001,7 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
+                 }
+                 memcpy1( LoRaMacBuffer + pktHeaderLen, LoRaMacPayload, payloadSize );
+             }
+-
++
+             LoRaMacBufferPktLen = pktHeaderLen + payloadSize;
+ 
+             LoRaMacComputeMic( LoRaMacBuffer, LoRaMacBufferPktLen, LoRaMacNwkSKey, LoRaMacDevAddr, UP_LINK, UpLinkCounter, &mic );
+@@ -3042,39 +3042,38 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
+     McpsConfirm.Datarate = LoRaMacParams.ChannelsDatarate;
+     McpsConfirm.TxPower = txPowerIndex;
+ 
+-    //Radio.SetChannel( channel.Frequency );
+-    Radio.SetChannel( 915000000 );
++    Radio.SetChannel( channel.Frequency );
+ 
+ #if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
+     if( LoRaMacParams.ChannelsDatarate == DR_7 )
+     { // High Speed FSK channel
+         Radio.SetMaxPayloadLength( MODEM_FSK, LoRaMacBufferPktLen );
+-        Radio.SetTxConfig( MODEM_FSK, txPower, 25e3, 7, datarate * 1e3, 1, 5, false, true, 0, 0, false, 3e6 );
++        Radio.SetTxConfig( MODEM_FSK, txPower, 25e3, 7, datarate * 1e3, 1, 5, false, true, 0, 0, false, 3e6 );
+         TxTimeOnAir = Radio.TimeOnAir( MODEM_FSK, LoRaMacBufferPktLen );
+ 
+     }
+     else if( LoRaMacParams.ChannelsDatarate == DR_6 )
+     { // High speed LoRa channel
+         Radio.SetMaxPayloadLength( MODEM_LORA, LoRaMacBufferPktLen );
+-        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 8, datarate, 1, 8, false, true, 0, 0, false, 3e6 );
++        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 8, datarate, 1, 8, false, true, 0, 0, false, 3e6 );
+         TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
+     }
+     else
+     { // Normal LoRa channel
+         Radio.SetMaxPayloadLength( MODEM_LORA, LoRaMacBufferPktLen );
+-        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 7, datarate, 1, 8, false, true, 0, 0, false, 3e6 );
++        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 7, datarate, 1, 8, false, true, 0, 0, false, 3e6 );
+         TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
+     }
+ #elif defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
+     Radio.SetMaxPayloadLength( MODEM_LORA, LoRaMacBufferPktLen );
+     if( LoRaMacParams.ChannelsDatarate >= DR_4 )
+     { // High speed LoRa channel BW500 kHz
+-        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 9, datarate, 1, 8, false, true, 0, 0, false, 3e6 );
++        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 9, datarate, 1, 8, false, true, 0, 0, false, 3e6 );
+         TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
+     }
+     else
+     { // Normal LoRa channel
+-        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 7, SX1276_SF12, 1, 8, false, true, 0, 0, false, 5e6 );
++        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 7, datarate, 1, 8, false, true, 0, 0, false, 5e6 );
+         TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
+     }
+ #else
+@@ -3153,7 +3152,7 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacC
+ 
+     LoRaMacParamsDefaults.Rx2Channel = ( Rx2ChannelParams_t )RX_WND_2_CHANNEL;
+ 
+-// Channel mask
++// Channel mask
+ #if defined( USE_BAND_433 )
+     LoRaMacParamsDefaults.ChannelsMask[0] = LC( 1 ) + LC( 2 ) + LC( 3 );
+ #elif defined( USE_BAND_780 )
+@@ -3168,7 +3167,7 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacC
+     LoRaMacParamsDefaults.ChannelsMask[4] = 0x00FF;
+     LoRaMacParamsDefaults.ChannelsMask[5] = 0x0000;
+ #elif defined( USE_BAND_915_HYBRID )
+-    LoRaMacParamsDefaults.ChannelsMask[0] = 0x00FF;
++    LoRaMacParamsDefaults.ChannelsMask[0] = 0x3c3c;
+     LoRaMacParamsDefaults.ChannelsMask[1] = 0x0000;
+     LoRaMacParamsDefaults.ChannelsMask[2] = 0x0000;
+     LoRaMacParamsDefaults.ChannelsMask[3] = 0x0000;
+diff --git a/src/mac/LoRaMacCrypto.c b/src/mac/LoRaMacCrypto.c
+index 13bf40d..b39773d 100644
+--- a/src/mac/LoRaMacCrypto.c
++++ b/src/mac/LoRaMacCrypto.c
+@@ -19,10 +19,10 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jä
+ */
+ #include <stdlib.h>
+ #include <stdint.h>
+-#include "loramac/utilities.h"
++#include "loramac/utilities.h"
+ 
+-#include "crypto/ciphers.h"
+-#include "hashes/cmac.h"
++#include "crypto/ciphers.h"
++#include "hashes/cmac.h"
+ 
+ #include "LoRaMacCrypto.h"
+ 
+@@ -32,12 +32,12 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jä
+ #define LORAMAC_MIC_BLOCK_B0_SIZE                   16
+ 
+ /*!
+- * Key size
+- */
+-#define KEYSIZE                                     16
+-
+-
+-/*!
++ * Key size
++ */
++#define KEYSIZE                                     16
++
++
++/*!
+  * MIC field computation initial data
+  */
+ static uint8_t MicBlockB0[] = { 0x49, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+@@ -49,7 +49,7 @@ static uint8_t MicBlockB0[] = { 0x49, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  *
+  * \remark Only the 4 first bytes are used
+  */
+-static uint8_t digest[16];
++static uint8_t digest[16];
+ 
+ /*!
+  * Encryption aBlock and sBlock
+@@ -62,16 +62,16 @@ static uint8_t sBlock[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                           };
+ 
+ /*!
+- * CMAC computation context variable
++ * CMAC computation context variable
+  */
+-
+-static cmac_context CmacContext;
++
++static cmac_context_t CmacContext;
+ 
+ /*!
+- * Aes computation context variable
++ * Aes computation context variable
+  */
+-
+-static cipher_t    AesContext;;
++
++static cipher_t    AesContext;;
+ 
+ /*!
+  * \brief Computes the LoRaMAC frame MIC field  
+@@ -100,12 +100,12 @@ void LoRaMacComputeMic( const uint8_t *buffer, uint16_t size, const uint8_t *key
+ 
+     MicBlockB0[15] = size & 0xFF;
+ 
+-    cmac_init(&CmacContext, key, KEYSIZE);
+-    cmac_update(&CmacContext, MicBlockB0, LORAMAC_MIC_BLOCK_B0_SIZE );
+-    cmac_update(&CmacContext, buffer, size);
+-    cmac_final(&CmacContext, digest);
++    cmac_init(&CmacContext, key, KEYSIZE);
++    cmac_update(&CmacContext, MicBlockB0, LORAMAC_MIC_BLOCK_B0_SIZE );
++    cmac_update(&CmacContext, buffer, size);
++    cmac_final(&CmacContext, digest);
+ 
+-    *mic = ( uint32_t )( ( uint32_t )digest[3] << 24 | ( uint32_t )digest[2] << 16 | ( uint32_t )digest[1] << 8 | ( uint32_t )digest[0] );
++    *mic = ( uint32_t )( ( uint32_t )digest[3] << 24 | ( uint32_t )digest[2] << 16 | ( uint32_t )digest[1] << 8 | ( uint32_t )digest[0] );
+ }
+ 
+ void LoRaMacPayloadEncrypt( const uint8_t *buffer, uint16_t size, const uint8_t *key, uint32_t address, uint8_t dir, uint32_t sequenceCounter, uint8_t *encBuffer )
+@@ -114,7 +114,7 @@ void LoRaMacPayloadEncrypt( const uint8_t *buffer, uint16_t size, const uint8_t
+     uint8_t bufferIndex = 0;
+     uint16_t ctr = 1;
+ 
+-    cipher_init(&AesContext, CIPHER_AES_128, key, KEYSIZE);
++    cipher_init(&AesContext, CIPHER_AES_128, key, KEYSIZE);
+ 
+     aBlock[5] = dir;
+ 
+@@ -132,7 +132,7 @@ void LoRaMacPayloadEncrypt( const uint8_t *buffer, uint16_t size, const uint8_t
+     {
+         aBlock[15] = ( ( ctr ) & 0xFF );
+         ctr++;
+-        cipher_encrypt(&AesContext, aBlock, sBlock);
++        cipher_encrypt(&AesContext, aBlock, sBlock);
+         for( i = 0; i < 16; i++ )
+         {
+             encBuffer[bufferIndex + i] = buffer[bufferIndex + i] ^ sBlock[i];
+@@ -144,7 +144,7 @@ void LoRaMacPayloadEncrypt( const uint8_t *buffer, uint16_t size, const uint8_t
+     if( size > 0 )
+     {
+         aBlock[15] = ( ( ctr ) & 0xFF );
+-        cipher_encrypt(&AesContext, aBlock, sBlock);
++        cipher_encrypt(&AesContext, aBlock, sBlock);
+         for( i = 0; i < size; i++ )
+         {
+             encBuffer[bufferIndex + i] = buffer[bufferIndex + i] ^ sBlock[i];
+@@ -159,22 +159,22 @@ void LoRaMacPayloadDecrypt( const uint8_t *buffer, uint16_t size, const uint8_t
+ 
+ void LoRaMacJoinComputeMic( const uint8_t *buffer, uint16_t size, const uint8_t *key, uint32_t *mic )
+ {
+-    cmac_init(&CmacContext, key, KEYSIZE);
+-    cmac_update(&CmacContext, buffer, size);
+-    cmac_final(&CmacContext, digest);
++    cmac_init(&CmacContext, key, KEYSIZE);
++    cmac_update(&CmacContext, buffer, size);
++    cmac_final(&CmacContext, digest);
+ 
+-    *mic = ( uint32_t )( ( uint32_t )digest[3] << 24 | ( uint32_t )digest[2] << 16 | ( uint32_t )digest[1] << 8 | ( uint32_t )digest[0] );
++    *mic = ( uint32_t )( ( uint32_t )digest[3] << 24 | ( uint32_t )digest[2] << 16 | ( uint32_t )digest[1] << 8 | ( uint32_t )digest[0] );
+ }
+ 
+ void LoRaMacJoinDecrypt( const uint8_t *buffer, uint16_t size, const uint8_t *key, uint8_t *decBuffer )
+ {
+-    cipher_init(&AesContext, CIPHER_AES_128, key, KEYSIZE);
+-    cipher_encrypt(&AesContext, buffer, decBuffer);
+-
++    cipher_init(&AesContext, CIPHER_AES_128, key, KEYSIZE);
++    cipher_encrypt(&AesContext, buffer, decBuffer);
++
+     // Check if optional CFList is included
+     if( size >= 16 )
+     {
+-        cipher_encrypt(&AesContext, buffer + 16, decBuffer + 16);
++        cipher_encrypt(&AesContext, buffer + 16, decBuffer + 16);
+     }
+ }
+ 
+@@ -183,18 +183,18 @@ void LoRaMacJoinComputeSKeys( const uint8_t *key, const uint8_t *appNonce, uint1
+     uint8_t nonce[16];
+     uint8_t *pDevNonce = ( uint8_t * )&devNonce;
+     
+-    cipher_init(&AesContext, CIPHER_AES_128, key, KEYSIZE);
++    cipher_init(&AesContext, CIPHER_AES_128, key, KEYSIZE);
+ 
+     memset1( nonce, 0, sizeof( nonce ) );
+     nonce[0] = 0x01;
+     memcpy1( nonce + 1, appNonce, 6 );
+     memcpy1( nonce + 7, pDevNonce, 2 );
+-    cipher_encrypt(&AesContext, nonce, nwkSKey);
++    cipher_encrypt(&AesContext, nonce, nwkSKey);
+ 
+     memset1( nonce, 0, sizeof( nonce ) );
+     nonce[0] = 0x02;
+     memcpy1( nonce + 1, appNonce, 6 );
+     memcpy1( nonce + 7, pDevNonce, 2 );
+-    cipher_encrypt(&AesContext, nonce, appSKey);
+-
++    cipher_encrypt(&AesContext, nonce, appSKey);
++
+ }
 -- 
 2.7.4
 
