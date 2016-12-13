@@ -244,7 +244,8 @@ void hal_disableIRQs (void) {
 }
 
 void hal_enableIRQs (void) {
-    irq_restore(HAL.cpsr);
+    //irq_restore(HAL.cpsr);
+    irq_enable();
 }
 
 void hal_sleep (void) {

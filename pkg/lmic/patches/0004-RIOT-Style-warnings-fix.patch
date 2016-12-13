@@ -1,0 +1,154 @@
+From fdc2c0a2a4e6633b06a812ef974e2c9aba90a656 Mon Sep 17 00:00:00 2001
+From: Francisco <femolina@uc.cl>
+Date: Tue, 13 Dec 2016 10:28:35 -0300
+Subject: [PATCH 1/2] fixed riot style warningsD
+
+---
+ lmic/aes.c    |  1 +
+ lmic/lmic.c   |  1 +
+ lmic/oslmic.c |  5 +++--
+ lmic/radio.c  | 13 ++++++-------
+ 4 files changed, 11 insertions(+), 9 deletions(-)
+
+diff --git a/lmic/aes.c b/lmic/aes.c
+index c80ebdc..b9b39e2 100644
+--- a/lmic/aes.c
++++ b/lmic/aes.c
+@@ -244,6 +244,7 @@ u4_t os_aes (u1_t mode, xref2u1_t buf, u2_t len) {
+             u4_t a0, a1, a2, a3;
+             u4_t t0, t1, t2, t3;
+             u4_t *ki, *ke;
++            a0 = a1 = a2 = a3 = t0 = t1 = t2 = t3 = 0;
+ 
+             // load input block
+             if( (mode & AES_CTR) || ((mode & AES_MIC) && (mode & AES_MICNOAUX)==0) ) { // load CTR block or first MIC block
+diff --git a/lmic/lmic.c b/lmic/lmic.c
+index ee7da35..8373727 100644
+--- a/lmic/lmic.c
++++ b/lmic/lmic.c
+@@ -1406,6 +1406,7 @@ static bit_t processJoinAccept (void) {
+     LMIC.opmode &= ~(OP_JOINING|OP_TRACK|OP_REJOIN|OP_TXRXPEND|OP_PINGINI) | OP_NEXTCHNL;
+     stateJustJoined();
+     reportEvent(EV_JOINED);
++    (void) mic;
+     return 1;
+ }
+ 
+diff --git a/lmic/oslmic.c b/lmic/oslmic.c
+index 0f5c3be..644e37d 100644
+--- a/lmic/oslmic.c
++++ b/lmic/oslmic.c
+@@ -17,7 +17,7 @@ static struct {
+     osjob_t* runnablejobs;
+ } OS;
+ 
+-void os_init () {
++void os_init (void ) {
+     memset(&OS, 0x00, sizeof(OS));
+     hal_init();
+     radio_init();
+@@ -41,7 +41,8 @@ static u1_t unlinkjob (osjob_t** pnext, osjob_t* job) {
+ // clear scheduled job
+ void os_clearCallback (osjob_t* job) {
+     hal_disableIRQs();
+-    unlinkjob(&OS.scheduledjobs, job) || unlinkjob(&OS.runnablejobs, job);
++    u1_t a = unlinkjob(&OS.scheduledjobs, job) || unlinkjob(&OS.runnablejobs, job);
++    (void) a;
+     hal_enableIRQs();
+ }
+ 
+diff --git a/lmic/radio.c b/lmic/radio.c
+index 351e2d5..9699e2e 100644
+--- a/lmic/radio.c
++++ b/lmic/radio.c
+@@ -10,6 +10,8 @@
+  *******************************************************************************/
+ 
+ #include "lmic.h"
++#include <stdio.h>
++#include <string.h>
+ 
+ // ---------------------------------------- 
+ // Registers Mapping
+@@ -460,7 +462,7 @@ static void txfsk (void) {
+     writeBuf(RegFifo, LMIC.frame, LMIC.dataLen);
+ 
+     // enable antenna switch for TX
+-    hal_pin_rxtx(1);
++    //hal_pin_rxtx(1);
+     
+     // now we actually start the transmission
+     opmode(OPMODE_TX);
+@@ -500,7 +502,7 @@ static void txlora (void) {
+     writeBuf(RegFifo, LMIC.frame, LMIC.dataLen);
+ 
+     // enable antenna switch for TX
+-    hal_pin_rxtx(1);
++    //hal_pin_rxtx(1);
+     
+     // now we actually start the transmission
+     opmode(OPMODE_TX);
+@@ -562,7 +564,7 @@ static void rxlora (u1_t rxmode) {
+     writeReg(LORARegIrqFlagsMask, ~rxlorairqmask[rxmode]);
+ 
+     // enable antenna switch for RX
+-    hal_pin_rxtx(0);
++    //hal_pin_rxtx(0);
+ 
+     // now instruct the radio to receive
+     if (rxmode == RXMODE_SINGLE) { // single rx
+@@ -617,7 +619,7 @@ static void rxfsk (u1_t rxmode) {
+     writeReg(RegDioMapping1, MAP_DIO0_FSK_READY|MAP_DIO1_FSK_NOP|MAP_DIO2_FSK_TIMEOUT);
+ 
+     // enable antenna switch for RX
+-    hal_pin_rxtx(0);
++    //hal_pin_rxtx(0);
+     
+     // now instruct the radio to receive
+     hal_waitUntil(LMIC.rxtime); // busy wait until exact rx time
+@@ -671,7 +673,6 @@ void radio_init (void) {
+         }
+     }
+     randbuf[0] = 16; // set initial index
+-  
+ #ifdef CFG_sx1276_radio	//CFG_sx1276mb1_board
+     // chain calibration
+     writeReg(RegPaConfig, 0);
+@@ -690,9 +691,7 @@ void radio_init (void) {
+     writeReg(FSKRegImageCal, (readReg(FSKRegImageCal) & RF_IMAGECAL_IMAGECAL_MASK)|RF_IMAGECAL_IMAGECAL_START);
+     while((readReg(FSKRegImageCal) & RF_IMAGECAL_IMAGECAL_RUNNING) == RF_IMAGECAL_IMAGECAL_RUNNING) { ; }
+ #endif /* CFG_sx1276_radio	//CFG_sx1276mb1_board */
+-
+     opmode(OPMODE_SLEEP);
+-
+     hal_enableIRQs();
+ }
+ 
+-- 
+2.7.4
+
+
+From 0637cfd7398f4a2e44d7b9d4713fa54d1f7aef65 Mon Sep 17 00:00:00 2001
+From: Francisco <femolina@uc.cl>
+Date: Tue, 13 Dec 2016 10:28:42 -0300
+Subject: [PATCH 2/2] fixed riot style warnings
+
+---
+ lmic/lmic.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/lmic/lmic.c b/lmic/lmic.c
+index 8373727..ee7da35 100644
+--- a/lmic/lmic.c
++++ b/lmic/lmic.c
+@@ -1406,7 +1406,6 @@ static bit_t processJoinAccept (void) {
+     LMIC.opmode &= ~(OP_JOINING|OP_TRACK|OP_REJOIN|OP_TXRXPEND|OP_PINGINI) | OP_NEXTCHNL;
+     stateJustJoined();
+     reportEvent(EV_JOINED);
+-    (void) mic;
+     return 1;
+ }
+ 
+-- 
+2.7.4
+

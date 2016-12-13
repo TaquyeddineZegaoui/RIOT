@@ -30,6 +30,7 @@
 #include "debug.h"
 #include <stdio.h>
 #include <string.h>
+#include "board.h"
 
 // LMIC application callbacks not used in his example
 void os_getArtEui (u1_t* buf) {
@@ -62,7 +63,6 @@ static void initfunc (osjob_t* job) {
 // application entry point
 int main (void) {
     osjob_t initjob;
-
     // initialize runtime env
     os_init();
     // initialize debug library
