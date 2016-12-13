@@ -8,6 +8,8 @@ extern "C"
 void radio_init (void);
 void set_lmic_frame(char *buf, size_t size);
 void starttx (void);
+void set_rps(void);
+void set_channel(uint32_t freq);
     
 
 #ifdef __cplusplus

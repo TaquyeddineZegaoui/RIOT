@@ -7,4 +7,7 @@ CFLAGS += -DDEVELHELP
 USEMODULE += sx1276
 USEMODULE += xtimer
 
+
+FEATURES_REQUIRED = periph_spi periph_gpio
+
 include $(RIOTBASE)/Makefile.include

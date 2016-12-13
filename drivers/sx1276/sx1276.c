@@ -15,8 +15,10 @@
 #include <xtimer.h>
 #include <string.h>
 #define ASSERT(x) assert(x)
+#define MAKERPS(sf,bw,cr,ih,nocrc) ((rps_t)((sf) | ((bw)<<3) | ((cr)<<5) | ((nocrc)?(1<<7):0) | ((ih&0xFF)<<8)))
 
 #define CFG_sx1276_radio 1
+#define SX1276_FREQ_STEP 61.03515625
 // ---------------------------------------- 
 // Registers Mapping
 #define RegFifo                                    0x00 // common
@@ -409,11 +411,13 @@ void hal_pin_rst(int rst)
 {
 }
 
+ 
 void set_lmic_frame(char *buf, size_t size)
 {
     memcpy(LMIC.frame, buf, size);
     LMIC.dataLen = size;
 }
+
 
 #ifdef CFG_sx1276_radio
 #define LNA_RX_GAIN (0x20|0x1)
@@ -492,8 +496,17 @@ static void readBuf (u1_t addr, xref2u1_t buf, u1_t len) {
     irq_restore(cpsr);
 }
 
+#define SX1276_REG_FRFMSB                                  0x06
+#define SX1276_REG_FRFMID                                  0x07
+#define SX1276_REG_FRFLSB 0x08
+
 static void opmode (u1_t mode) {
     writeReg(RegOpMode, (readReg(RegOpMode) & ~OPMODE_MASK) | mode);
+}
+
+void set_channel(uint32_t freq)
+{
+    LMIC.freq = freq;
 }
 
 static void opmodeLora(void) {
@@ -843,9 +856,14 @@ void startrx (u1_t rxmode) {
     // or timed out, and the corresponding IRQ will inform us about completion.
 }
 
+void set_rps(void)
+{
+    LMIC.rps = (u1_t)MAKERPS(SF10, BW125, CR_4_5, 0, 0);
+}
 // get random seed from wideband noise rssi
 void radio_init (void) {
     hal_disableIRQs();
+    hal_enableIRQs();
 
     gpio_init(PARAMS_NSS, GPIO_OUT);
     // manually reset radio
@@ -860,18 +878,18 @@ void radio_init (void) {
     xtimer_usleep(1000); // wait >100us
     gpio_init(PARAMS_RESET, GPIO_OD);
     //hal_pin_rst(2); // configure RST pin floating!
-    xtimer_usleep(5000); // wait 5ms
-    //gpio_set(PARAMS_RESET);
+    xtimer_usleep(10000); // wait 5ms
+    gpio_set(PARAMS_RESET);
     //gpio_init_int(dev->params.dio0_pin, GPIO_IN, GPIO_RISING, radio_irq_handler, NULL);
 
      spi_acquire(PARAMS_SPI);
      spi_init_master(PARAMS_SPI, SPI_CONF_FIRST_RISING, SPI_SPEED_1MHZ);
      spi_release(PARAMS_SPI);
+     gpio_set(PARAMS_NSS);
     opmode(OPMODE_SLEEP);
 
     // some sanity checks, e.g., read version number
     u1_t v = readReg(RegVersion);
-    printf("%i\n", (int) v);
 #ifdef CFG_sx1276_radio
     ASSERT(v == 0x12 ); 
 #elif CFG_sx1272_radio
@@ -880,7 +898,6 @@ void radio_init (void) {
 #error Missing CFG_sx1272_radio/CFG_sx1276_radio
 #endif
     // seed 15-byte randomness via noise rssi
-    puts("OK");
     rxlora(RXMODE_RSSI);
     while( (readReg(RegOpMode) & OPMODE_MASK) != OPMODE_RX ); // continuous rx
     for(int i=1; i<16; i++) {
