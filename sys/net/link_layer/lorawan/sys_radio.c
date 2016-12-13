@@ -1,4 +1,5 @@
-#include "loramac/board_definitions.h"
+#include "net/lorawan/board_definitions.h"
+#include "sx1276_internal.h"
 #include "sx1276.h"
 
 /*!
@@ -143,7 +144,8 @@ void SX1276SetStby( void )
 
 void SX1276SetRx( uint32_t timeout )
 {
-    sx1276_set_rx(dev_ptr, timeout);
+    (void) timeout;
+    sx1276_set_rx(dev_ptr);
 }
 
 

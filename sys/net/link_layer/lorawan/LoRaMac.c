@@ -20,11 +20,11 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jä
 #define ENABLE_DEBUG  (1)
 #include "debug.h"
 
-#include "loramac/board_definitions.h"
+#include "net/lorawan/board_definitions.h"
 
-#include "LoRaMacCrypto.h"
-#include "LoRaMac.h"
-#include "LoRaMacTest.h"
+#include "net/lorawan/LoRaMacCrypto.h"
+#include "net/lorawan/LoRaMac.h"
+#include "net/lorawan/LoRaMacTest.h"
 
 /*!
  * Maximum PHY layer payload size

@@ -1,4 +1,4 @@
-MODULE := loramac_mac
+MODULE := lorawan
 
 include $(RIOTBASE)/Makefile.base
 

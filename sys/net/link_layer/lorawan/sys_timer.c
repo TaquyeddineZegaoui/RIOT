@@ -13,7 +13,7 @@ License: Revised BSD License, see LICENSE.TXT file include in the project
 Maintainer: Miguel Luis and Gregory Cristian
 */
 
-#include "loramac/board_definitions.h"
+#include "net/lorawan/board_definitions.h"
 #include "xtimer.h"
 #include "assert.h"
 
@@ -51,19 +51,19 @@ void TimerSetValue( TimerEvent_t *obj, uint32_t value )
 
 TimerTime_t TimerGetCurrentTime( void )
 {
-    uint64_t CurrentTime = xtimer_now64();
+    uint64_t CurrentTime = xtimer_now_usec64();
     return ( ( TimerTime_t )CurrentTime );
 }
  
 TimerTime_t TimerGetElapsedTime( TimerTime_t savedTime )
 {
-    uint64_t CurrentTime = xtimer_now64();
+    uint64_t CurrentTime = xtimer_now_usec64();
     return ( TimerTime_t )( CurrentTime - savedTime );
 }
  
 TimerTime_t TimerGetFutureTime( TimerTime_t eventInFuture )
 {
-    uint64_t CurrentTime = xtimer_now64();
+    uint64_t CurrentTime = xtimer_now_usec64();
     return ( TimerTime_t )( CurrentTime + eventInFuture );
 }
 
