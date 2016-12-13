@@ -681,6 +681,9 @@ void sx1276_send(sx1276_t *dev, uint8_t *buffer, uint8_t size)
         break;
     }
 
+    /* Set sync word */
+    sx1276_reg_write(dev, SX1276_REG_LR_SYNCWORD, 0x34);
+
     /* Enable TXDONE interrupt */
     sx1276_reg_write(dev, REG_LR_IRQFLAGSMASK,
                      RFLR_IRQFLAGS_RXTIMEOUT |
