@@ -1011,7 +1011,6 @@ int main(void)
     }
 
     printf("\n");
-
     #endif
 
     puts("LoRaMAC compiled, Starting Thread");

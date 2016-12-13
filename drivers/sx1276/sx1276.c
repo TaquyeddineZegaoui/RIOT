@@ -626,14 +626,6 @@ uint32_t sx1276_get_time_on_air(sx1276_t *dev, sx1276_radio_modems_t modem,
 
 void sx1276_send(sx1276_t *dev, uint8_t *buffer, uint8_t size)
 {
-
-    printf("Packet: ");
-    for(uint8_t i = 0; i < size; i++)
-    {
-        printf("%02x ", *(buffer+i));
-    }
-    printf("\n");
-
     switch (dev->settings.modem) {
         case SX1276_MODEM_FSK:
             sx1276_write_fifo(dev, &size, 1);
@@ -680,9 +672,6 @@ void sx1276_send(sx1276_t *dev, uint8_t *buffer, uint8_t size)
         }
         break;
     }
-
-    /* Set sync word */
-    sx1276_reg_write(dev, SX1276_REG_LR_SYNCWORD, 0x34);
 
     /* Enable TXDONE interrupt */
     sx1276_reg_write(dev, REG_LR_IRQFLAGSMASK,

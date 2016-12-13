@@ -23,7 +23,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 /*!
  * Indicates if the end-device is to be connected to a private or public network
  */
-#define LORAWAN_PUBLIC_NETWORK                      false
+#define LORAWAN_PUBLIC_NETWORK                      true
 
 /*!
  * IEEE Organizationally Unique Identifier ( OUI ) (big endian)
