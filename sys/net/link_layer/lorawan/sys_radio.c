@@ -1,6 +1,7 @@
 #include "net/lorawan/board_definitions.h"
 #include "sx1276_internal.h"
 #include "sx1276.h"
+#include "net/netdev2.h"
 
 /*!
  * \ Sx1276 driver for use of LoRaMac
@@ -129,7 +130,12 @@ uint32_t SX1276GetTimeOnAir( RadioModems_t modem, uint8_t pktLen )
 
 void SX1276Send( uint8_t *buffer, uint8_t size )
 {
-    sx1276_send(dev_ptr, buffer, size);
+    //sx1276_send(dev_ptr, buffer, size);
+    netdev2_t* nd = (netdev2_t*) dev_ptr;
+    struct iovec vec[1];
+    vec[0].iov_base = buffer;
+    vec[0].iov_len = size;
+    nd->driver->send(nd, (const struct iovec*) &vec, 1);
 }
 
 void SX1276SetSleep( void )
