@@ -73,17 +73,20 @@ void sx1276_on_dio0_isr(void *arg)
 {
  // invoke radio handler (on IRQ!)
         radio_irq_handler(0);
+        EXTI->PR = (1<<(SX1276_DIO0 & 0x0f)); // clear irq
 }
 
 void sx1276_on_dio1_isr(void *arg)
 {
   // invoke radio handler (on IRQ!)
+    EXTI->PR = (1<<(SX1276_DIO1 & 0x0f)); // clear irq
         radio_irq_handler(1);
 }
 
 void sx1276_on_dio2_isr(void *arg)
 {
  // invoke radio handler (on IRQ!)
+    EXTI->PR = (1<<(SX1276_DIO2 & 0x0f)); // clear irq
         radio_irq_handler(2);
 }
 
@@ -259,10 +262,10 @@ void hal_init (void) {
     memset(&HAL, 0x00, sizeof(HAL));
     hal_disableIRQs();
 
-    // configure radio I/O and interrupt handler
-    hal_io_init();
     // configure radio SPI
     hal_spi_init();
+    // configure radio I/O and interrupt handler
+    hal_io_init();
     // configure timer and interrupt handler
     hal_time_init();
 
@@ -273,6 +276,7 @@ void hal_failed (void) {
     // HALT...
     hal_disableIRQs();
     hal_sleep();
+    printf("FAIL\n");
     while(1);
 }
 

@@ -37,4 +37,5 @@ void debug_event (int ev);
 // write label and 32-bit value as hex to USART
 void debug_val (const u1_t* label, u4_t val);
 
+
 int debug_fmt (char* buf, int max, s4_t val, int base, int width, char pad);

@@ -45,50 +45,35 @@ void debug_char (u1_t c) {
 }
 
 void debug_hex (u1_t b) {
-    debug_char("0123456789ABCDEF"[b>>4]);
-    debug_char("0123456789ABCDEF"[b&0xF]);
+    printf("%02x", b);
 }
 
 void debug_buf (const u1_t* buf, u2_t len) {
     while(len--) {
         debug_hex(*buf++);
-        debug_char(' ');
+        printf(" ");
     }
-    debug_char('\r');
-    debug_char('\n');
+    printf("\r\n");
 }
 
 void debug_uint (u4_t v) {
-    for(s1_t n=24; n>=0; n-=8) {
-        debug_hex(v>>n);
-    }
+    printf("%08x", v);
 }
 
 void debug_int (s4_t v) {
-    char buf[10], *p = buf;
-    int n = debug_fmt(buf, sizeof(buf), v, 10, 0, 0);
-    while(n--)
-        debug_char(*p++);
+    printf("%d", v);
 }
 
 void debug_str (const u1_t* str) {
-    while(*str) {
-        debug_char(*str++);
-    }
+    printf((const char *)str);
 }
 
 void debug_val (const u1_t* label, u4_t val) {
-    debug_str(label);
-    debug_uint(val);
-    debug_char('\r');
-    debug_char('\n');
+    printf("%s %08x \r\n", label, val);
 }
 
 void debug_valdec (const u1_t* label, s4_t val) {
-    debug_str(label);
-    debug_int(val);
-    debug_char('\r');
-    debug_char('\n');
+    printf("%s %d \r\n", label, val);
 }
 
 int debug_fmt (char* buf, int max, s4_t val, int base, int width, char pad) {
