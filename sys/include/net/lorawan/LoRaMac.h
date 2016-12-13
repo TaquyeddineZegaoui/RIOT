@@ -47,8 +47,8 @@
 #define __LORAMAC_H__
 
 // Includes board dependent definitions such as channels frequencies
-#include "LoRaMac-definitions.h"
-#include "loramac/timer.h"
+#include "net/lorawan/LoRaMac-definitions.h"
+#include "net/lorawan/timer.h"
 
 /*!
  * Beacon interval in ms
