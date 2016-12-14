@@ -80,7 +80,7 @@ uint32_t count = 0;
 /*!
  * Default datarate
  */
-#define LORAWAN_DEFAULT_DATARATE                    DR_0
+#define LORAWAN_DEFAULT_DATARATE                    DR_1
 
 /*!
  * LoRaWAN confirmed messages
@@ -135,7 +135,7 @@ uint32_t count = 0;
 
 #elif defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
 
-#define LORAWAN_APP_DATA_SIZE                       11
+#define LORAWAN_APP_DATA_SIZE                       53
 
 #endif
 
@@ -297,6 +297,11 @@ static void PrepareTxFrame( uint8_t port )
             AppData[8] = '2';
             AppData[9] = '.';
             AppData[10] = '0';
+            AppData[11] = '0';
+            AppData[12] = '0';
+            AppData[13] = '0';
+            AppData[14] = '0';
+            AppData[15] = '0';
 #endif
         }
 
@@ -320,6 +325,11 @@ static void PrepareTxFrame( uint8_t port )
             AppData[8] = '2';
             AppData[9] = '.';
             AppData[10] = '0';
+            AppData[11] = '0';
+            AppData[12] = '0';
+            AppData[13] = '0';
+            AppData[14] = '0';
+            AppData[15] = '0';
 #endif
         }
         break;
@@ -992,10 +1002,9 @@ static const shell_command_t shell_commands[] = {
 int main(void)
 {
 
+    radio_set_ptr(&sx1276);
     xtimer_init();
     init_radio();
-
-    radio_set_ptr(&sx1276);
 
     DeviceState = DEVICE_STATE_INIT;
 
@@ -1068,7 +1077,7 @@ void *MAC_thread_handler(void *arg)
                 LoRaMacTestSetDutyCycleOn( LORAWAN_DUTYCYCLE_ON );
 
 #if( USE_SEMTECH_DEFAULT_CHANNEL_LINEUP == 1 ) 
-            LoRaMacChannelAdd( 3, ( ChannelParams_t )LC4 );
+               LoRaMacChannelAdd( 3, ( ChannelParams_t )LC4 );
                LoRaMacChannelAdd( 4, ( ChannelParams_t )LC5 );
                LoRaMacChannelAdd( 5, ( ChannelParams_t )LC6 );
                LoRaMacChannelAdd( 6, ( ChannelParams_t )LC7 );
@@ -1088,7 +1097,10 @@ void *MAC_thread_handler(void *arg)
                 puts("OA");
                 MlmeReq_t mlmeReq;
                 // Initialize LoRaMac device unique ID
+
+                #ifdef NZ32_SC151
                 BoardGetUniqueId( DevEui );
+                #endif
 
                 mlmeReq.Type = MLME_JOIN;
 

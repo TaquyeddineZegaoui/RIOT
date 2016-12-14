@@ -73,9 +73,9 @@ void SX1276SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
                          bool iqInverted, bool rxContinuous )
 {
     sx1276_lora_settings_t settings;
-    (void) modem;
+    dev_ptr->settings.modem = modem;
     (void) bandwidthAfc;
-    settings.bandwidth = bandwidth;
+    settings.bandwidth = bandwidth + 7;
     settings.coderate = coderate;
     settings.datarate = datarate;
     settings.crc_on = crcOn;
@@ -88,7 +88,7 @@ void SX1276SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
     settings.power = 14;
     settings.preamble_len = preambleLen;
     settings.rx_continuous = rxContinuous;
-    settings.tx_timeout = 30; // 30 sec
+    settings.tx_timeout = 3 * 1000 * 1000; // base units us
     settings.rx_timeout = symbTimeout;
     sx1276_configure_lora(dev_ptr, &settings);
 }
@@ -101,8 +101,8 @@ void SX1276SetTxConfig( RadioModems_t modem, int8_t power, uint32_t fdev,
 {
     sx1276_lora_settings_t settings;
     (void) fdev;
-    (void) modem;
-    settings.bandwidth = bandwidth;
+    dev_ptr->settings.modem = modem;
+    settings.bandwidth = bandwidth + 7;
     settings.coderate = coderate;
     settings.datarate = datarate;
     settings.crc_on = crcOn;
@@ -115,7 +115,7 @@ void SX1276SetTxConfig( RadioModems_t modem, int8_t power, uint32_t fdev,
     settings.power = power;
     settings.preamble_len = preambleLen;
     settings.rx_continuous = true;
-    settings.tx_timeout = timeout; // 30 sec
+    settings.tx_timeout = timeout * 1000; // base unit us, LoRaMAC ms
     settings.rx_timeout = 10;
     sx1276_configure_lora(dev_ptr, &settings);
 }
@@ -143,7 +143,7 @@ void SX1276SetStby( void )
 
 void SX1276SetRx( uint32_t timeout )
 {
-    sx1276_set_rx(dev_ptr, timeout);
+    sx1276_set_rx(dev_ptr, timeout * 1000); // base unit us, LoRaMAC ms
 }
 
 

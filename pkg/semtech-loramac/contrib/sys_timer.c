@@ -17,6 +17,8 @@ Maintainer: Miguel Luis and Gregory Cristian
 #include "xtimer.h"
 #include "assert.h"
 
+#define TICKS_US 0.48828125 
+
 void TimerInit( TimerEvent_t *obj, void ( *cb )( void ) )
 {
     obj->dev.target = 0;

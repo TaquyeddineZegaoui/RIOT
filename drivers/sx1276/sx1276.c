@@ -190,6 +190,8 @@ sx1276_init_result_t sx1276_init(sx1276_t *dev)
     _init_isrs(dev);
     _init_timers(dev);
 
+    xtimer_usleep(1000);
+
     /* Check presence of SX1276 */
     if (!sx1276_test(dev)) {
         DEBUG("init_radio: test failed");
