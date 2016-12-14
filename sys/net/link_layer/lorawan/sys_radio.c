@@ -9,6 +9,9 @@
 
 static sx1276_t* dev_ptr;
 static RadioEvents_t *RadioEvents; 
+static xtimer_t rx_timeout;
+static xtimer_t tx_timeout;
+kernel_pid_t mac_pid;
 
 /*
  * Radio driver functions implementation wrappers, the netdev2 object
@@ -18,6 +21,10 @@ static RadioEvents_t *RadioEvents;
 sx1276_t* radio_get_ptr(void)
 {
     return dev_ptr;
+}
+void set_pid(kernel_pid_t pid)
+{
+    mac_pid = pid;
 }
 
 void radio_set_ptr(sx1276_t* ptr)
@@ -150,8 +157,9 @@ void SX1276SetStby( void )
 
 void SX1276SetRx( uint32_t timeout )
 {
-    (void) timeout;
+    msg.type = LORAWAN_TIMEOUT_EVENT;
     sx1276_set_rx(dev_ptr);
+    xtimer_set_msg(&rx_timeout, timeout * 1000, &msg, mac_pid);
 }
 
 
