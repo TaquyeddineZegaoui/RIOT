@@ -6,7 +6,7 @@
  */
 
 static sx1276_t* dev_ptr;
-static RadioEvents_t *RadioEvents; 
+static RadioEvents_t* RadioEvents; 
 
 /*
  * Radio driver functions implementation wrappers, the netdev2 object
@@ -154,7 +154,7 @@ void SX1276StartCad( void )
 
 int16_t SX1276ReadRssi( RadioModems_t modem )
 {
-    (void) modem;
+    dev_ptr->settings.modem = modem;
     return sx1276_read_rssi(dev_ptr);
 }
 

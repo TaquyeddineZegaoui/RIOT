@@ -51,8 +51,6 @@
 
 static sx1276_t sx1276;
 
-char stack[THREAD_STACKSIZE_MAIN];
-
 LoRaMacPrimitives_t LoRaMacPrimitives;
 LoRaMacCallback_t LoRaMacCallbacks;
 MibRequestConfirm_t mibReq;
@@ -413,6 +411,7 @@ static bool SendFrame( void )
  */
 static void OnTxNextPacketTimerEvent( void )
 {
+    puts("Next Event");
     MibRequestConfirm_t mibReq;
     LoRaMacStatus_t status;
 
@@ -1008,7 +1007,6 @@ int main(void)
 
     DeviceState = DEVICE_STATE_INIT;
 
-
     #ifdef NZ32_SC151
     BoardGetUniqueId( DevEui );
 
@@ -1022,30 +1020,14 @@ int main(void)
     printf("\n");
     #endif
 
-    puts("LoRaMAC compiled, Starting Thread");
+        /* start the shell */
+    // puts("Initialization successful - starting the shell now");
+    // char line_buf[SHELL_DEFAULT_BUFSIZE];
+    // shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
 
-    kernel_pid_t pid = thread_create(stack, sizeof(stack),
-                                     THREAD_PRIORITY_MAIN,
-                                     THREAD_CREATE_STACKTEST,
-                                     MAC_thread_handler, NULL,
-                                     "thread");
-    (void) pid;
+    // puts("Start Loop");
 
-    /* start the shell */
-    puts("Initialization successful - starting the shell now");
-    char line_buf[SHELL_DEFAULT_BUFSIZE];
-    shell_run(shell_commands, line_buf, SHELL_DEFAULT_BUFSIZE);
-
-
-    return 0;
-}
-
-
-void *MAC_thread_handler(void *arg)
-{
-    (void) arg;
-    /* ... */
-    while(1)
+while(1)
     {
         switch( DeviceState )
         {
@@ -1196,5 +1178,7 @@ void *MAC_thread_handler(void *arg)
         }
     }
 
-    return NULL;
+    return 0;
 }
+
+
