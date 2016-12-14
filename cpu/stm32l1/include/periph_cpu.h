@@ -139,15 +139,6 @@ void gpio_init_af(gpio_t pin, gpio_af_t af);
 void gpio_init_analog(gpio_t pin);
 
 /**
- * @brief   Timer configuration data structure
- */
-typedef struct {
-    TIM_TypeDef *dev;       /**< timer device */
-    uint8_t rcc;            /**< bit in the RCC register */
-    uint8_t irqn;           /**< IRQ vector entry number */
-} timer_conf_t;
-
-/**
  * @brief   I2C configuration data structure
  */
 typedef struct {
