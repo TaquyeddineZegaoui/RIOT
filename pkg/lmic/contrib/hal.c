@@ -1,284 +1,244 @@
-/*
- * Copyright (c) 2014-2016 IBM Corporation.
- * All rights reserved.
+/*******************************************************************************
+ * Copyright (c) 2015 Matthijs Kooijman
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
  *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions are met:
- *  * Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *  * Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *  * Neither the name of the <organization> nor the
- *    names of its contributors may be used to endorse or promote products
- *    derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+ * This the HAL to run LMIC on top of the Arduino environment.
+ *******************************************************************************/
 
 #include "lmic.h"
-#include "board.h"
-#include "periph/spi.h"
-#include "periph/gpio.h"
-#include "stm32l1xx.h"
+#include "hal.h"
 #include <stdio.h>
-#include <string.h>
+#include "xtimer.h"
 
 // -----------------------------------------------------------------------------
 // I/O
 
-#define SX1276_DIO0 GPIO_PIN(PORT_B, 0)
-#define SX1276_DIO1 GPIO_PIN(PORT_B, 1)
-#define SX1276_DIO2 GPIO_PIN(PORT_C, 6)
+static void hal_io_init () {
+    // NSS and DIO0 are required, DIO1 is required for LoRa, DIO2 for FSK
+/*
+    ASSERT(lmic_pins.nss != LMIC_UNUSED_PIN);
+    ASSERT(lmic_pins.dio[0] != LMIC_UNUSED_PIN);
+    ASSERT(lmic_pins.dio[1] != LMIC_UNUSED_PIN || lmic_pins.dio[2] != LMIC_UNUSED_PIN);
 
-#define SX1276_RESET GPIO_PIN(PORT_A, 9)
+    pinMode(lmic_pins.nss, OUTPUT);
+    if (lmic_pins.rxtx != LMIC_UNUSED_PIN)
+        pinMode(lmic_pins.rxtx, OUTPUT);
+    if (lmic_pins.rst != LMIC_UNUSED_PIN)
+        pinMode(lmic_pins.rst, OUTPUT);
 
-/** SX1276 SPI */
-
-#define USE_SPI_0
-
-#ifdef USE_SPI_1
-#define SX1276_SPI SPI_1
-#define SX1276_SPI_NSS GPIO_PIN(PORT_C, 8)
-#define SX1276_SPI_MODE SPI_CONF_FIRST_RISING
-#define SX1276_SPI_SPEED SPI_SPEED_1MHZ
-#endif
-
-#ifdef USE_SPI_0
-#define SX1276_SPI SPI_0
-#define SX1276_SPI_NSS GPIO_PIN(PORT_C, 8)
-#define SX1276_SPI_MODE SPI_CONF_FIRST_RISING
-#define SX1276_SPI_SPEED SPI_SPEED_1MHZ
-#endif
-
-// HAL state
-static struct {
-    unsigned int cpsr;
-    u4_t ticks;
-} HAL;
-
-/**
- * IRQ handlers
- */
-void sx1276_on_dio0_isr(void *arg)
-{
- // invoke radio handler (on IRQ!)
-        radio_irq_handler(0);
-        EXTI->PR = (1<<(SX1276_DIO0 & 0x0f)); // clear irq
+    pinMode(lmic_pins.dio[0], INPUT);
+    if (lmic_pins.dio[1] != LMIC_UNUSED_PIN)
+        pinMode(lmic_pins.dio[1], INPUT);
+    if (lmic_pins.dio[2] != LMIC_UNUSED_PIN)
+        pinMode(lmic_pins.dio[2], INPUT);
+*/
+    
+    gpio_init(lmic_pins.nss, GPIO_OUT);
+    gpio_init(lmic_pins.dio[0], GPIO_IN);
+    gpio_init(lmic_pins.dio[1], GPIO_IN);
+    gpio_init(lmic_pins.rst, GPIO_OUT);
 }
 
-void sx1276_on_dio1_isr(void *arg)
-{
-  // invoke radio handler (on IRQ!)
-    EXTI->PR = (1<<(SX1276_DIO1 & 0x0f)); // clear irq
-        radio_irq_handler(1);
-}
-
-void sx1276_on_dio2_isr(void *arg)
-{
- // invoke radio handler (on IRQ!)
-    EXTI->PR = (1<<(SX1276_DIO2 & 0x0f)); // clear irq
-        radio_irq_handler(2);
-}
-
-
-// -----------------------------------------------------------------------------
-// I/O
-
-static void hal_io_init (void) {
-    gpio_init_int(SX1276_DIO0, GPIO_IN, GPIO_RISING, sx1276_on_dio0_isr, NULL);
-    gpio_init_int(SX1276_DIO1, GPIO_IN, GPIO_RISING, sx1276_on_dio1_isr, NULL);
-    gpio_init_int(SX1276_DIO2, GPIO_IN, GPIO_RISING, sx1276_on_dio2_isr, NULL);
-}
-
-// set radio NSS pin to given value
-void hal_pin_nss (u1_t val) {
-    gpio_write (SX1276_SPI_NSS, val);
+// nothing to do here
+void hal_pin_rxtx (u1_t val) {
 }
 
 // set radio RST pin to given value (or keep floating!)
 void hal_pin_rst (u1_t val) {
     if(val == 0 || val == 1) { // drive pin
-        gpio_init(SX1276_RESET, GPIO_OUT);
-        gpio_write (SX1276_RESET, val);
+        gpio_init(lmic_pins.rst, GPIO_OUT);
+        gpio_write(lmic_pins.rst, val);
     } else { // keep pin floating
-        gpio_init(SX1276_RESET, GPIO_OD);
-        gpio_set(SX1276_RESET);
+        gpio_init(lmic_pins.rst, GPIO_OUT);
+        gpio_set(lmic_pins.rst);
     }
 }
 
-extern void radio_irq_handler(u1_t dio);
+static bool dio_states[NUM_DIO] = {0};
+
+static void hal_io_check() {
+    uint8_t i;
+    for (i = 0; i < NUM_DIO; ++i) {
+        if (dio_states[i] != (gpio_read(lmic_pins.dio[i]) > 0)) {
+            dio_states[i] = !dio_states[i];
+            if (dio_states[i])
+                radio_irq_handler(i);
+        }
+    }
+}
 
 // -----------------------------------------------------------------------------
 // SPI
 
-// for sx1272 and 1276
+static const SPISettings settings(10E6, MSBFIRST, SPI_MODE0);
 
-static void hal_spi_init (void) {
-    int res;
+static void hal_spi_init () {
+    spi_acquire(SPI_1);
+    spi_init_master(SPI_1, SPI_CONF_FIRST_RISING, SPI_SPEED_1MHZ);
+    spi_release(SPI_1);
+}
 
-    /* Setup SPI for SX1276 */
-    spi_acquire(SX1276_SPI);
-    res = spi_init_master(SX1276_SPI, SPI_CONF_FIRST_RISING, SPI_SPEED_1MHZ);
-    spi_release(SX1276_SPI);
-
-    if (res < 0) {
-        printf("sx1276: error initializing SPI_%i device (code %i)\n",
-                SX1276_SPI, res);
-        return;
-    }
-
-    res = gpio_init(SX1276_SPI_NSS, GPIO_OUT);
-    if (res < 0) {
-        printf("sx1276: error initializing GPIO_%ld as CS line (code %i)\n",
-               (long)SX1276_SPI_NSS, res);
-        return;
-    }
-
-    gpio_set(SX1276_SPI_NSS);
+void hal_pin_nss (u1_t val) {
+    digitalWrite(lmic_pins.nss, val);
 }
 
 // perform SPI transaction with radio
 u1_t hal_spi (u1_t out) {
     char in;
-    spi_transfer_byte(SX1276_SPI, (char) out, &in);
-    return (u1_t) in; // in
+    spi_transfer_byte(SPI_1, &out, &in)
+    u1_t res = in;
+    return res;
 }
-
-#ifdef CFG_lmic_clib
 
 // -----------------------------------------------------------------------------
 // TIME
 
-static void hal_time_init (void) {
-#ifndef CFG_clock_HSE
-    PWR->CR |= PWR_CR_DBP; // disable write protect
-    RCC->CSR |= RCC_CSR_LSEON; // switch on low-speed oscillator @32.768kHz
-    while( (RCC->CSR & RCC_CSR_LSERDY) == 0 ); // wait for it...
-#endif
-    
-    RCC->APB2ENR   |= RCC_APB2ENR_TIM9EN;     // enable clock to TIM9 peripheral 
-    RCC->APB2LPENR |= RCC_APB2LPENR_TIM9LPEN; // enable clock to TIM9 peripheral also in low power mode
-    RCC->APB2RSTR  |= RCC_APB2RSTR_TIM9RST;   // reset TIM9 interface
-    RCC->APB2RSTR  &= ~RCC_APB2RSTR_TIM9RST;  // reset TIM9 interface
-
-    TIM9->PSC  = (640 - 1); // HSE_CLOCK_HWTIMER_PSC-1);  XXX: define HSE_CLOCK_HWTIMER_PSC somewhere
-
-    NVIC->IP[TIM9_IRQn] = 0x70; // interrupt priority
-    NVIC->ISER[TIM9_IRQn>>5] = 1<<(TIM9_IRQn&0x1F);  // set enable IRQ
-
-    // enable update (overflow) interrupt
-    TIM9->DIER |= TIM_DIER_UIE;
-    
-    // Enable timer counting
-    TIM9->CR1 = TIM_CR1_CEN;
+static void hal_time_init () {
+    // Nothing to do
 }
 
-u4_t hal_ticks (void) {
-    hal_disableIRQs();
-    u4_t t = HAL.ticks;
-    u2_t cnt = TIM9->CNT;
-    if( (TIM9->SR & TIM_SR_UIF) ) {
-        // Overflow before we read CNT?
-        // Include overflow in evaluation but
-        // leave update of state to ISR once interrupts enabled again
-        cnt = TIM9->CNT;
-        t++;
-    }
-    hal_enableIRQs();
-    return (t<<16)|cnt;
+u4_t hal_ticks () {
+    // Because micros() is scaled down in this function, micros() will
+    // overflow before the tick timer should, causing the tick timer to
+    // miss a significant part of its values if not corrected. To fix
+    // this, the "overflow" serves as an overflow area for the micros()
+    // counter. It consists of three parts:
+    //  - The US_PER_OSTICK upper bits are effectively an extension for
+    //    the micros() counter and are added to the result of this
+    //    function.
+    //  - The next bit overlaps with the most significant bit of
+    //    micros(). This is used to detect micros() overflows.
+    //  - The remaining bits are always zero.
+    //
+    // By comparing the overlapping bit with the corresponding bit in
+    // the micros() return value, overflows can be detected and the
+    // upper bits are incremented. This is done using some clever
+    // bitwise operations, to remove the need for comparisons and a
+    // jumps, which should result in efficient code. By avoiding shifts
+    // other than by multiples of 8 as much as possible, this is also
+    // efficient on AVR (which only has 1-bit shifts).
+    static uint8_t overflow = 0;
+
+    // Scaled down timestamp. The top US_PER_OSTICK_EXPONENT bits are 0,
+    // the others will be the lower bits of our return value.
+    uint32_t scaled = xtimer_now_usec() >> US_PER_OSTICK_EXPONENT;
+    // Most significant byte of scaled
+    uint8_t msb = scaled >> 24;
+    // Mask pointing to the overlapping bit in msb and overflow.
+    const uint8_t mask = (1 << (7 - US_PER_OSTICK_EXPONENT));
+    // Update overflow. If the overlapping bit is different
+    // between overflow and msb, it is added to the stored value,
+    // so the overlapping bit becomes equal again and, if it changed
+    // from 1 to 0, the upper bits are incremented.
+    overflow += (msb ^ overflow) & mask;
+
+    // Return the scaled value with the upper bits of stored added. The
+    // overlapping bit will be equal and the lower bits will be 0, so
+    // bitwise or is a no-op for them.
+    return scaled | ((uint32_t)overflow << 24);
+
+    // 0 leads to correct, but overly complex code (it could just return
+    // micros() unmodified), 8 leaves no room for the overlapping bit.
+    static_assert(US_PER_OSTICK_EXPONENT > 0 && US_PER_OSTICK_EXPONENT < 8, "Invalid US_PER_OSTICK_EXPONENT value");
 }
 
-// return modified delta ticks from now to specified ticktime (0 for past, FFFF for far future)
-static u2_t deltaticks (u4_t time) {
-    u4_t t = hal_ticks();
-    s4_t d = time - t;
-    if( d<=0 ) return 0;    // in the past
-    if( (d>>16)!=0 ) return 0xFFFF; // far ahead
-    return (u2_t)d;
+// Returns the number of ticks until time. Negative values indicate that
+// time has already passed.
+static s4_t delta_time(u4_t time) {
+    return (s4_t)(time - hal_ticks());
 }
 
 void hal_waitUntil (u4_t time) {
-    while( deltaticks(time) != 0 ); // busy wait until timestamp is reached
+    s4_t delta = delta_time(time);
+    // From delayMicroseconds docs: Currently, the largest value that
+    // will produce an accurate delay is 16383.
+    while (delta > (16000 / US_PER_OSTICK)) {
+        delay(16);
+        delta -= (16000 / US_PER_OSTICK);
+    }
+    if (delta > 0)
+        xtimer_usleep(delta * US_PER_OSTICK);
 }
 
 // check and rewind for target time
 u1_t hal_checkTimer (u4_t time) {
-    u2_t dt;
-    TIM9->SR &= ~TIM_SR_CC2IF; // clear any pending interrupts
-    if((dt = deltaticks(time)) < 5) { // event is now (a few ticks ahead)
-        TIM9->DIER &= ~TIM_DIER_CC2IE; // disable IE
-        return 1;
-    } else { // rewind timer (fully or to exact time))
-        TIM9->CCR[2] = TIM9->CNT + dt;   // set comparator
-        TIM9->DIER |= TIM_DIER_CC2IE;  // enable IE
-        TIM9->CCER |= TIM_CCER_CC2E;   // enable capture/compare uint 2
-        return 0;
+    // No need to schedule wakeup, since we're not sleeping
+    return delta_time(time) <= 0;
+}
+
+static uint8_t irqlevel = 0;
+
+void hal_disableIRQs () {
+    //noInterrupts();
+    irqlevel++;
+}
+
+void hal_enableIRQs () {
+    if(--irqlevel == 0) {
+        //interrupts();
+
+        // Instead of using proper interrupts (which are a bit tricky
+        // and/or not available on all pins on AVR), just poll the pin
+        // values. Since os_runloop disables and re-enables interrupts,
+        // putting this here makes sure we check at least once every
+        // loop.
+        //
+        // As an additional bonus, this prevents the can of worms that
+        // we would otherwise get for running SPI transfers inside ISRs
+        hal_io_check();
     }
 }
-  
-void TIM9_IRQHandler (void) {
-    if(TIM9->SR & TIM_SR_UIF) { // overflow
-        HAL.ticks++;
-    }
-    if((TIM9->SR & TIM_SR_CC2IF) && (TIM9->DIER & TIM_DIER_CC2IE)) { // expired
-        // do nothing, only wake up cpu
-    }
-    TIM9->SR = 0; // clear IRQ flags
-}
 
-// -----------------------------------------------------------------------------
-// IRQ
-
-void hal_disableIRQs (void) {
-    HAL.cpsr = irq_disable();
-}
-
-void hal_enableIRQs (void) {
-    //irq_restore(HAL.cpsr);
-    irq_enable();
-}
-
-void hal_sleep (void) {
-    // low power sleep mode
-#ifndef CFG_no_low_power_sleep_mode
-    PWR->CR |= PWR_CR_LPSDSR;
-#endif
-    // suspend execution until IRQ, regardless of the CPSR I-bit
-    __WFI();
+void hal_sleep () {
+    // Not implemented
 }
 
 // -----------------------------------------------------------------------------
 
-void hal_init (void) {
-    memset(&HAL, 0x00, sizeof(HAL));
-    hal_disableIRQs();
+#if defined(LMIC_PRINTF_TO)
+static int uart_putchar (char c, FILE *)
+{
+    LMIC_PRINTF_TO.write(c) ;
+    return 0 ;
+}
 
-    // configure radio SPI
-    hal_spi_init();
+void hal_printf_init() {
+    // create a FILE structure to reference our UART output function
+    static FILE uartout;
+    memset(&uartout, 0, sizeof(uartout));
+
+    // fill in the UART file descriptor with pointer to writer.
+    fdev_setup_stream (&uartout, uart_putchar, NULL, _FDEV_SETUP_WRITE);
+
+    // The uart is the standard output device STDOUT.
+    stdout = &uartout ;
+}
+#endif // defined(LMIC_PRINTF_TO)
+
+void hal_init () {
     // configure radio I/O and interrupt handler
     hal_io_init();
+    // configure radio SPI
+    hal_spi_init();
     // configure timer and interrupt handler
     hal_time_init();
-
-    hal_enableIRQs();
+#if defined(LMIC_PRINTF_TO)
+    // printf support
+    hal_printf_init();
+#endif
 }
 
-void hal_failed (void) {
-    // HALT...
+void hal_failed (const char *file, u2_t line) {
+#if defined(LMIC_FAILURE_TO)
+    LMIC_FAILURE_TO.println("FAILURE ");
+    LMIC_FAILURE_TO.print(file);
+    LMIC_FAILURE_TO.print(':');
+    LMIC_FAILURE_TO.println(line);
+    LMIC_FAILURE_TO.flush();
+#endif
     hal_disableIRQs();
-    hal_sleep();
-    printf("FAIL\n");
     while(1);
 }
-
-#endif // CFG_lmic_clib
