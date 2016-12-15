@@ -1,6 +1,6 @@
 PKG_NAME=lmic
-PKG_URL=https://github.com/mirakonta/lmic.git
-	PKG_VERSION=4bc3478b49229598f8462a9dc630d546da5ce0b4
+PKG_URL=https://github.com/jia200x/LMIC.git
+	PKG_VERSION=ac67aca2bb51454f1eb250659afd57a16862ba87
 	PKG_BUILDDIR ?= $(BINDIRBASE)/pkg/$(BOARD)/$(PKG_NAME)
 
 .PHONY: all
