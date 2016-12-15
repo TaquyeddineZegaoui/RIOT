@@ -16,7 +16,7 @@
 // -----------------------------------------------------------------------------
 // I/O
 
-static void hal_io_init () {
+static void hal_io_init (void) {
     // NSS and DIO0 are required, DIO1 is required for LoRa, DIO2 for FSK
 /*
     ASSERT(lmic_pins.nss != LMIC_UNUSED_PIN);
@@ -59,7 +59,7 @@ void hal_pin_rst (u1_t val) {
 
 static bool dio_states[NUM_DIO] = {0};
 
-static void hal_io_check() {
+static void hal_io_check(void) {
     uint8_t i;
     for (i = 0; i < NUM_DIO; ++i) {
         if (dio_states[i] != (gpio_read(lmic_pins.dio[i]) > 0)) {
@@ -75,7 +75,7 @@ static void hal_io_check() {
 
 static const SPISettings settings(10E6, MSBFIRST, SPI_MODE0);
 
-static void hal_spi_init () {
+static void hal_spi_init (void) {
     spi_acquire(SPI_1);
     spi_init_master(SPI_1, SPI_CONF_FIRST_RISING, SPI_SPEED_1MHZ);
     spi_release(SPI_1);
@@ -96,11 +96,11 @@ u1_t hal_spi (u1_t out) {
 // -----------------------------------------------------------------------------
 // TIME
 
-static void hal_time_init () {
+static void hal_time_init (void) {
     // Nothing to do
 }
 
-u4_t hal_ticks () {
+u4_t hal_ticks (void) {
     // Because micros() is scaled down in this function, micros() will
     // overflow before the tick timer should, causing the tick timer to
     // miss a significant part of its values if not corrected. To fix
@@ -171,12 +171,12 @@ u1_t hal_checkTimer (u4_t time) {
 
 static uint8_t irqlevel = 0;
 
-void hal_disableIRQs () {
+void hal_disableIRQs (void) {
     //noInterrupts();
     irqlevel++;
 }
 
-void hal_enableIRQs () {
+void hal_enableIRQs (void) {
     if(--irqlevel == 0) {
         //interrupts();
 
@@ -192,7 +192,7 @@ void hal_enableIRQs () {
     }
 }
 
-void hal_sleep () {
+void hal_sleep (void) {
     // Not implemented
 }
 
@@ -205,7 +205,7 @@ static int uart_putchar (char c, FILE *)
     return 0 ;
 }
 
-void hal_printf_init() {
+void hal_printf_init(void) {
     // create a FILE structure to reference our UART output function
     static FILE uartout;
     memset(&uartout, 0, sizeof(uartout));
@@ -218,7 +218,7 @@ void hal_printf_init() {
 }
 #endif // defined(LMIC_PRINTF_TO)
 
-void hal_init () {
+void hal_init (void) {
     // configure radio I/O and interrupt handler
     hal_io_init();
     // configure radio SPI
