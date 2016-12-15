@@ -43,9 +43,11 @@ void TimerStop( TimerEvent_t *obj )
  
 void TimerSetValue( TimerEvent_t *obj, uint32_t value )
 {
+    xtimer_ticks32_t ticks = xtimer_ticks_from_usec(value*1000);
+
     if(obj->running)
         xtimer_remove(&(obj->dev));
-    obj->timeout = value*1000;
+    obj->timeout = ticks.ticks32;
 }
 
 TimerTime_t TimerGetCurrentTime( void )
