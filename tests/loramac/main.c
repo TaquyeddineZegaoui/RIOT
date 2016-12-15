@@ -34,6 +34,7 @@
 #include "xtimer.h"
 #include "lpm.h"
 #include "periph/rtc.h"
+#include "random.h"
 
 #include "common.h"
 #include "board.h"
@@ -58,6 +59,11 @@ MibRequestConfirm_t mibReq;
 uint32_t count = 0;
 
 /*!
+*   Node id
+*/
+#define         NODEID                              0x01
+
+/*!
  * Unique Devices IDs register set ( STM32L1xxx )
  */
 #define         ID1                                 ( 0x1FF800D0 )
@@ -67,7 +73,7 @@ uint32_t count = 0;
 /*!
  * Defines the application data transmission duty cycle. 5s, value in [ms].
  */
-#define APP_TX_DUTYCYCLE                            10000
+#define APP_TX_DUTYCYCLE                            60000
 
 /*!
  * Defines a random delay for application data transmission duty cycle. 1s,
@@ -78,7 +84,7 @@ uint32_t count = 0;
 /*!
  * Default datarate
  */
-#define LORAWAN_DEFAULT_DATARATE                    DR_1
+#define LORAWAN_DEFAULT_DATARATE                    DR_0
 
 /*!
  * LoRaWAN confirmed messages
@@ -133,7 +139,7 @@ uint32_t count = 0;
 
 #elif defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
 
-#define LORAWAN_APP_DATA_SIZE                       53
+#define LORAWAN_APP_DATA_SIZE                       11
 
 #endif
 
@@ -266,7 +272,15 @@ void BoardGetUniqueId( uint8_t *id )
 }
 
 uint8_t BoardGetBatteryLevel ( void ){
-    return 50;
+    return (uint8_t) random_uint32_range(0, 100);
+}
+
+uint8_t getDrops ( void ){
+    return (uint8_t) random_uint32_range(0, 100);
+}
+
+uint8_t getMeasuredTime ( void ){
+    return (uint8_t) random_uint32_range(0, 10);
 }
 
 /*!
@@ -284,22 +298,16 @@ static void PrepareTxFrame( uint8_t port )
             AppData[2] = 'S';
             AppData[3] = 'T';
 #elif defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
-            AppData[0] = '\\';
-            AppData[1] = '!';            
-            AppData[2] = '#';
-            AppData[3] = '3';
-            AppData[4] = '#';
-            AppData[5] = 'T';
-            AppData[6] = '/';
-            AppData[7] = '2';
-            AppData[8] = '2';
-            AppData[9] = '.';
-            AppData[10] = '0';
-            AppData[11] = '0';
-            AppData[12] = '0';
-            AppData[13] = '0';
-            AppData[14] = '0';
-            AppData[15] = '0';
+            AppData[0] = NODEID;
+            AppData[1] = '-';            
+            AppData[2] = getDrops();
+            AppData[3] = '-';
+            AppData[4] = getMeasuredTime();
+            AppData[5] = '-';
+            AppData[6] = BoardGetBatteryLevel();
+            AppData[7] = '-';
+            AppData[8] = 0xFF;
+            AppData[9] = '-';
 #endif
         }
 
@@ -311,23 +319,16 @@ static void PrepareTxFrame( uint8_t port )
             AppData[2] = 'S';
             AppData[3] = 'T';
 #elif defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
-            puts("Appsend");
-            AppData[0] = '\\';
-            AppData[1] = '!';            
-            AppData[2] = '#';
-            AppData[3] = '3';
-            AppData[4] = '#';
-            AppData[5] = 'T';
-            AppData[6] = '/';
-            AppData[7] = '2';
-            AppData[8] = '2';
-            AppData[9] = '.';
-            AppData[10] = '0';
-            AppData[11] = '0';
-            AppData[12] = '0';
-            AppData[13] = '0';
-            AppData[14] = '0';
-            AppData[15] = '0';
+            AppData[0] = NODEID;
+            AppData[1] = '-';            
+            AppData[2] = getDrops();
+            AppData[3] = '-';
+            AppData[4] = getMeasuredTime();
+            AppData[5] = '-';
+            AppData[6] = BoardGetBatteryLevel();
+            AppData[7] = '-';
+            AppData[8] = 0xFF;
+            AppData[9] = '-';
 #endif
         }
         break;
