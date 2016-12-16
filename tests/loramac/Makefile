@@ -1,6 +1,6 @@
 APPLICATION = loramac
 
-FEATURES_REQUIRED = periph_spi periph_gpio
+FEATURES_REQUIRED = periph_spi periph_gpio periph_adc
 
 BOARD ?= samr21-xpro
 
