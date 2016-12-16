@@ -16,6 +16,12 @@ Maintainer: Miguel Luis and Gregory Cristian
 #include "loramac/board_definitions.h"
 #include "xtimer.h"
 
+/*!
+ * This flag is used to make sure we have looped through the main several time to avoid race issues
+ */
+volatile uint8_t HasLoopedThroughMain = 0;
+
+
 void TimerInit( TimerEvent_t *obj, void ( *cb )( void ) )
 {
     obj->dev.target = 0;
@@ -68,7 +74,15 @@ TimerTime_t TimerGetFutureTime( TimerTime_t eventInFuture )
     return ( TimerTime_t )( CurrentTime + eventInFuture );
 }
 
-void TimerLowPowerHandler( void )
+void TimerLowPowerHandler(uint32_t time)
 {
-
+    if( HasLoopedThroughMain < 5 )
+        {
+            HasLoopedThroughMain++;
+        }
+        else
+        {
+            HasLoopedThroughMain = 0;
+            xtimer_usleep (time*1000);
+        }   
 }
