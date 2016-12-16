@@ -54,13 +54,12 @@ extern "C" {
  * @{
  */
 #define ADC_CONFIG {            \
-    { GPIO_PIN(PORT_A, 6), 6 },\
-    { GPIO_PIN(PORT_A, 7), 7 },\
-    { GPIO_PIN(PORT_A, 4), 4 },\
-    { GPIO_PIN(PORT_B, 12), 18 }\
+    { GPIO_PIN(PORT_B, 12), 18 },\
+    { GPIO_PIN(PORT_C, 5), 15},\
+    { 0, 17 }\
 }
 
-#define ADC_NUMOF           (6)
+#define ADC_NUMOF           (3)
 /** @} */
 
 /**
@@ -110,7 +109,7 @@ static const timer_conf_t timer_config[] = {
 #define UART_NUMOF          (UART_0_EN + UART_1_EN + UART_2_EN )
 #define UART_0_EN           1
 #define UART_1_EN           0
-#define UART_2_EN           1
+#define UART_2_EN           0
 #define UART_IRQ_PRIO       1
 
 /* UART 0 device configuration */
@@ -138,7 +137,7 @@ static const timer_conf_t timer_config[] = {
 #define UART_1_AF           GPIO_AF7
 /** @} */
 
-/* UART 1 device configuration */
+/* UART 2 device configuration */
 #define UART_2_DEV          USART1       
 #define UART_2_CLKEN()      (RCC->APB2ENR |= RCC_APB2ENR_USART1EN)
 #define UART_2_CLK          (CLOCK_CORECLOCK)
