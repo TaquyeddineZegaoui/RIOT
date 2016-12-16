@@ -1,0 +1,115 @@
+From 599b099f2389f4697b65f348939e714195725486 Mon Sep 17 00:00:00 2001
+From: root <jialamos@uc.cl>
+Date: Thu, 15 Dec 2016 18:11:55 -0300
+Subject: [PATCH] fixed old style definitions
+
+---
+ lmic/radio.c | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/lmic/radio.c b/lmic/radio.c
+index 1ed0cf1..bcdda4a 100644
+--- a/lmic/radio.c
++++ b/lmic/radio.c
+@@ -313,7 +313,7 @@ static void opmode (u1_t mode) {
+     writeReg(RegOpMode, (readReg(RegOpMode) & ~OPMODE_MASK) | mode);
+ }
+ 
+-static void opmodeLora() {
++static void opmodeLora(void) {
+     u1_t u = OPMODE_LORA;
+ #ifdef CFG_sx1276_radio
+     u |= 0x8;   // TBD: sx1276 high freq
+@@ -321,7 +321,7 @@ static void opmodeLora() {
+     writeReg(RegOpMode, u);
+ }
+ 
+-static void opmodeFSK() {
++static void opmodeFSK(void) {
+     u1_t u = 0;
+ #ifdef CFG_sx1276_radio
+     u |= 0x8;   // TBD: sx1276 high freq
+@@ -330,7 +330,7 @@ static void opmodeFSK() {
+ }
+ 
+ // configure LoRa modem (cfg1, cfg2)
+-static void configLoraModem () {
++static void configLoraModem (void) {
+     sf_t sf = getSf(LMIC.rps);
+ 
+ #ifdef CFG_sx1276_radio
+@@ -409,7 +409,7 @@ static void configLoraModem () {
+ #endif /* CFG_sx1272_radio */
+ }
+ 
+-static void configChannel () {
++static void configChannel (void) {
+     // set frequency: FQ = (FRF * 32 Mhz) / (2 ^ 19)
+     u8_t frf = ((u8_t)LMIC.freq << 19) / 32000000;
+     writeReg(RegFrfMsb, (u1_t)(frf>>16));
+@@ -419,7 +419,7 @@ static void configChannel () {
+ 
+ 
+ 
+-static void configPower () {
++static void configPower (void) {
+ #ifdef CFG_sx1276_radio
+     // no boost used for now
+     s1_t pw = (s1_t)LMIC.txpow;
+@@ -446,7 +446,7 @@ static void configPower () {
+ #endif /* CFG_sx1272_radio */
+ }
+ 
+-static void txfsk () {
++static void txfsk (void) {
+     // select FSK modem (from sleep mode)
+     writeReg(RegOpMode, 0x10); // FSK, BT=0.5
+     ASSERT(readReg(RegOpMode) == 0x10);
+@@ -489,7 +489,7 @@ static void txfsk () {
+     opmode(OPMODE_TX);
+ }
+ 
+-static void txlora () {
++static void txlora (void) {
+     // select LoRa modem (from sleep mode)
+     //writeReg(RegOpMode, OPMODE_LORA);
+     opmodeLora();
+@@ -530,7 +530,7 @@ static void txlora () {
+ }
+ 
+ // start transmitter (buf=LMIC.frame, len=LMIC.dataLen)
+-static void starttx () {
++static void starttx (void) {
+     ASSERT( (readReg(RegOpMode) & OPMODE_MASK) == OPMODE_SLEEP );
+     if(getSf(LMIC.rps) == FSK) { // FSK modem
+         txfsk();
+@@ -666,7 +666,7 @@ static void startrx (u1_t rxmode) {
+ }
+ 
+ // get random seed from wideband noise rssi
+-void radio_init () {
++void radio_init (void) {
+     hal_disableIRQs();
+ 
+     // manually reset radio
+@@ -728,7 +728,7 @@ void radio_init () {
+ 
+ // return next random byte derived from seed buffer
+ // (buf[0] holds index of next byte to be returned)
+-u1_t radio_rand1 () {
++u1_t radio_rand1 (void) {
+     u1_t i = randbuf[0];
+     ASSERT( i != 0 );
+     if( i==16 ) {
+@@ -740,7 +740,7 @@ u1_t radio_rand1 () {
+     return v;
+ }
+ 
+-u1_t radio_rssi () {
++u1_t radio_rssi (void) {
+     hal_disableIRQs();
+     u1_t r = readReg(LORARegRssiValue);
+     hal_enableIRQs();
+-- 
+1.9.1
+

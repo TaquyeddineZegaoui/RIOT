@@ -1,0 +1,35 @@
+From ff62e42cd58c9334384f1d5ac804f3208e9f1a37 Mon Sep 17 00:00:00 2001
+From: root <jialamos@uc.cl>
+Date: Thu, 15 Dec 2016 18:02:49 -0300
+Subject: [PATCH] fixed uninitialized variables
+
+---
+ lmic/aes.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/lmic/aes.c b/lmic/aes.c
+index 902be32..69810d9 100644
+--- a/lmic/aes.c
++++ b/lmic/aes.c
+@@ -221,7 +221,7 @@ u4_t AESKEY[11*16/sizeof(u4_t)];
+ 
+ // generate 1+10 roundkeys for encryption with 128-bit key
+ // read 128-bit key from AESKEY in MSBF, generate roundkey words in place
+-static void aesroundkeys () {
++static void aesroundkeys (void) {
+     int i;
+     u4_t b;
+ 
+@@ -261,6 +261,9 @@ u4_t os_aes (u1_t mode, xref2u1_t buf, u2_t len) {
+             u4_t t0, t1, t2, t3;
+             u4_t *ki, *ke;
+ 
++            a0 = a1 = a2 = a3 = 0;
++            t0 = t1 = t2 = t3 = 0;
++
+             // load input block
+             if( (mode & AES_CTR) || ((mode & AES_MIC) && (mode & AES_MICNOAUX)==0) ) { // load CTR block or first MIC block
+                 a0 = AESAUX[0];
+-- 
+1.9.1
+

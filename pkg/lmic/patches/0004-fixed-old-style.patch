@@ -1,0 +1,42 @@
+From 0197ea633bed7cd2cc1d1775629ff2587b0e091f Mon Sep 17 00:00:00 2001
+From: root <jialamos@uc.cl>
+Date: Thu, 15 Dec 2016 18:08:42 -0300
+Subject: [PATCH] fixed old style functions
+
+---
+ lmic/oslmic.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/lmic/oslmic.c b/lmic/oslmic.c
+index 0974569..f9b1914 100644
+--- a/lmic/oslmic.c
++++ b/lmic/oslmic.c
+@@ -33,14 +33,14 @@ static struct {
+     osjob_t* runnablejobs;
+ } OS;
+ 
+-void os_init () {
++void os_init (void) {
+     memset(&OS, 0x00, sizeof(OS));
+     hal_init();
+     radio_init();
+     LMIC_init();
+ }
+ 
+-ostime_t os_getTime () {
++ostime_t os_getTime (void) {
+     return hal_ticks();
+ }
+ 
+@@ -100,7 +100,7 @@ void os_setTimedCallback (osjob_t* job, ostime_t time, osjobcb_t cb) {
+ }
+ 
+ // execute jobs from timer and from run queue
+-void os_runloop () {
++void os_runloop (void) {
+     while(1) {
+         osjob_t* j = NULL;
+         hal_disableIRQs();
+-- 
+1.9.1
+

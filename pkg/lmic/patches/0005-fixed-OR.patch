@@ -1,0 +1,26 @@
+From 6b315cdca031d2fd0d035abf962a52ca2b032ab7 Mon Sep 17 00:00:00 2001
+From: root <jialamos@uc.cl>
+Date: Thu, 15 Dec 2016 18:10:36 -0300
+Subject: [PATCH] fixed computed value not used
+
+---
+ lmic/oslmic.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/lmic/oslmic.c b/lmic/oslmic.c
+index f9b1914..4e68341 100644
+--- a/lmic/oslmic.c
++++ b/lmic/oslmic.c
+@@ -58,7 +58,8 @@ static int unlinkjob (osjob_t** pnext, osjob_t* job) {
+ // clear scheduled job
+ void os_clearCallback (osjob_t* job) {
+     hal_disableIRQs();
+-    unlinkjob(&OS.scheduledjobs, job) || unlinkjob(&OS.runnablejobs, job);
++    unlinkjob(&OS.scheduledjobs, job);
++    unlinkjob(&OS.runnablejobs, job);
+     hal_enableIRQs();
+ }
+ 
+-- 
+1.9.1
+
