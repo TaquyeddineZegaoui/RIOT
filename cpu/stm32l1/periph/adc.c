@@ -71,7 +71,8 @@ int adc_init(adc_t line)
     prep();
 
     /* configure the pin */
-    gpio_init_analog(adc_config[line].pin);
+    if(!(adc_config[line].chan == 16 || adc_config[line].chan == 17))
+        gpio_init_analog(adc_config[line].pin);
     /* set clock prescaler to get the maximal possible ADC clock value */
     for (clk_div = 2; clk_div < 8; clk_div += 2) {
         if ((CLOCK_CORECLOCK / clk_div) <= MAX_ADC_SPEED) {
@@ -81,14 +82,17 @@ int adc_init(adc_t line)
 
     ADC->CCR = ((clk_div / 2) - 1) << 16;
 
-    /* enable the ADC module */
-    ADC1->CR2 = ADC_CR2_ADON;
+    ADC1->SMPR2 =  ADC_SMPR2_SMP15 & ~ADC_SMPR2_SMP15_0 & ~ADC_SMPR2_SMP15_2;
 
-    /* check if this channel is an internal ADC channel, if so
+   /* check if this channel is an internal ADC channel, if so
      * enable the internal temperature and Vref */
     if (adc_config[line].chan == 16 || adc_config[line].chan == 17) {
         ADC->CCR |= ADC_CCR_TSVREFE;
+        ADC1->SMPR2 =  ADC_SMPR2_SMP17 & ~ADC_SMPR2_SMP17_0;
     }
+
+    /* enable the ADC module */
+    ADC1->CR2 = ADC_CR2_ADON;
 
     /* free the device again */
     done();
@@ -111,13 +115,14 @@ int adc_sample(adc_t line, adc_res_t res)
     ADC1->CR1 = res;
     ADC1->SQR5 = adc_config[line].chan;
 
-    /* wait for regulat channel to be ready*/
+    /* wait for regular channel to be ready*/
     while (!(ADC1->SR & ADC_SR_RCNR)) {}
     /* start conversion and wait for results */
     ADC1->CR2 |= ADC_CR2_SWSTART;
     while (!(ADC1->SR & ADC_SR_EOC)) {}
     /* finally read sample and reset the STRT bit in the status register */
     sample = (int)ADC1->DR;
+    ADC1 -> SR &= ~ADC_SR_STRT;
 
     /* power off and unlock device again */
     done();
