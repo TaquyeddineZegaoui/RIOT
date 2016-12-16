@@ -1,32 +1,26 @@
 #include "boards_hw.h"
-#define ENABLE_DEBUG (0)
-#include "debug.h"
-#include "xtimer.h"
 
 uint16_t board_get_power_supply( void )
 {
     int vref = 0;
     int vdiv = 0;
-    float batteryVoltage = 0;
+    int dummy = 0;
+    uint32_t batteryVoltage = 0;
 
-    gpio_clear(BAT_LEVEL);
+    dummy = adc_sample(ADC_LINE(0), ADC_RESOLUTION);
+    vdiv  = adc_sample(ADC_LINE(1), ADC_RESOLUTION);
+    vref  = adc_sample(ADC_LINE(2), ADC_RESOLUTION);
 
-    vref = adc_sample(ADC_VREF, ADC_RESOLUTION);
-    vdiv = adc_sample(ADC_VDIV, ADC_RESOLUTION);
+    (void) dummy;
 
-    printf("Vref: %i ; Vdiv : %i \n", vref, vdiv );
-
-    batteryVoltage = (float) (FACTORY_POWER_SUPPLY * VREFINT_CAL * vdiv ) /  (vref * ADC_MAX_VALUE );
-
-    printf("Numerador: %d ; Denominador : %d \n", (3 * VREFINT_CAL * vdiv ), (vref * ADC_MAX_VALUE ) );
-
-    printf("batteryVoltage: %f \n", batteryVoltage);
-
+    batteryVoltage =  (  FACTORY_POWER_SUPPLY * VREFINT_CAL * vdiv ) *1000 /  (  vref * ADC_MAX_VALUE );
     //                                vDiv
     // Divider bridge  VBAT <-> 1M -<--|-->- 1M <-> GND => vBat = 2 * vDiv
     batteryVoltage = 2 * batteryVoltage;
 
-    return ( uint16_t )( batteryVoltage * 1000 );
+    return ( uint16_t )( batteryVoltage);
+
+    return 0;
 
 }
 
@@ -61,6 +55,8 @@ uint8_t board_get_battery_level( void )
         }
     }
     return batteryLevel;
+
+    return 0;
 
 }
 

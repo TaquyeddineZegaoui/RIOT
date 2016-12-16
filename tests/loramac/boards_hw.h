@@ -9,8 +9,8 @@
 #define BAT_LEVEL           GPIO_PIN(PORT_A, 13)
 #define USB_DETECT          GPIO_PIN(PORT_A, 2)
 #define ADC_RESOLUTION      ADC_RES_10BIT
-#define ADC_VREF			ADC_LINE(5)
-#define ADC_VDIV			ADC_LINE(4)
+#define ADC_VREF			ADC_LINE(2)
+#define ADC_VDIV			ADC_LINE(1)
 
 /*!
  * Factory power supply
@@ -20,7 +20,7 @@
 /*!
  * VREF calibration value
  */
-#define VREFINT_CAL                                 ( *( uint16_t* )0x1FF800F8 ) // /4 to go form 12 to 10 bits
+#define VREFINT_CAL                                 ( *( uint16_t* )0x1FF800F8 ) /4 // /4 to go form 12 to 10 bits
 
 /*!
  * ADC maximum value

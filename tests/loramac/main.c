@@ -50,12 +50,12 @@ static sx1276_t sx1276;
 /*!
  * Join requests trials duty cycle.
  */
-#define OVER_THE_AIR_ACTIVATION_DUTYCYCLE           60*1000 // 10 [s] value in ms
+#define OVER_THE_AIR_ACTIVATION_DUTYCYCLE           1000 // 10 [s] value in ms
 
 /*!
  * Defines the application data transmission duty cycle. 5s, value in [ms].
  */
-#define APP_TX_DUTYCYCLE                            5000
+#define APP_TX_DUTYCYCLE                            60*1000
 
 /*!
  * Defines a random delay for application data transmission duty cycle. 1s,
@@ -209,8 +209,6 @@ static void PrepareTxFrame( uint8_t port )
             AppData[2] = get_measured_time();
             AppData[3] = board_get_battery_level();
             AppData[4] = 0xFF;
-
-            printf("Battery level %d \n", board_get_battery_level());
         }
         break;
     case 224:
@@ -507,10 +505,12 @@ int main( void )
     
     /* initialize all available ADC lines */
     adc_init(ADC_VDIV);
+    adc_init(ADC_LINE(0));
     adc_init(ADC_VREF);
 
     gpio_init(USB_DETECT, GPIO_IN);
     gpio_init(BAT_LEVEL, GPIO_OUT);
+    gpio_clear(BAT_LEVEL);
 
     if(get_board_power_source() == BATTERY_POWER)
         puts("BATTERY_POWER");
