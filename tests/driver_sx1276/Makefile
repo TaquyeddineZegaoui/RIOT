@@ -10,6 +10,9 @@ USEMODULE += lmic_contrib
 
 CFLAGS += -DCFG_us915
 CFLAGS += -DCFG_sx1276_radio
+CFLAGS += -DLMIC_DEBUG_LEVEL=0
+CFLAGS += -DUSE_IDEETRON_AES
+CFLAGS += -DOSTICKS_PER_SEC=62500
 
 include $(RIOTBASE)/Makefile.include
 
