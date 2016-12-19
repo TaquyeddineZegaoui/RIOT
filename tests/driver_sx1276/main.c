@@ -32,6 +32,7 @@
 #include "lmic/hal.h"
 #include "periph/gpio.h"
 
+#define OTAA
 const unsigned TX_INTERVAL = 1;
 
 // sensor functions
@@ -75,7 +76,7 @@ void  LMIC_selectSubBand (u1_t band) {
       LMIC_disableSubBand(b);
   }
 }
-#if 0
+#if 1
 const lmic_pinmap lmic_pins = {
     .nss = GPIO_PIN(PA, 19),
     .rxtx = GPIO_UNDEF,
@@ -158,16 +159,21 @@ int main (void) {
     os_init();
     // Reset the MAC state. Session and pending data transfers will be discarded.
     LMIC_reset();
-    LMIC_setSession (0x1, DEVADDR, NWKSKEY, APPSKEY);
-    
+    (void) DEVADDR;
+    (void) NWKSKEY;
+    (void) APPSKEY;
     LMIC.channelMap[0] = 4;
     LMIC.channelMap[1] = 0;
     LMIC.channelMap[2] = 0;
     LMIC.channelMap[3] = 0;
+#ifndef OTAA
+    LMIC_setSession (0x1, DEVADDR, NWKSKEY, APPSKEY);
+    
     LMIC_setDrTxpow(DR_SF7,2);
     LMIC_setLinkCheckMode(0);
     printf("%i\n", LMIC.dn2Dr);
     //LMIC.dn2Dr = DR_SF12CR;
+#endif
 
     // Start job
     do_send(&sendjob);
