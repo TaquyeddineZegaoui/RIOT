@@ -1,0 +1,25 @@
+From ca1ff116fe2d1c277f37cf335a3397b147952d19 Mon Sep 17 00:00:00 2001
+From: root <jialamos@uc.cl>
+Date: Mon, 19 Dec 2016 10:35:19 -0300
+Subject: [PATCH] fixed PA_BOOST issue
+
+---
+ lmic/radio.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lmic/radio.c b/lmic/radio.c
+index bcdda4a..1dd11f3 100644
+--- a/lmic/radio.c
++++ b/lmic/radio.c
+@@ -429,7 +429,7 @@ static void configPower (void) {
+         pw = 2;
+     }
+     // check board type for BOOST pin
+-    writeReg(RegPaConfig, (u1_t)(0x80|(pw&0xf)));
++    writeReg(RegPaConfig, (u1_t)(0x70|(pw&0xf)));
+     writeReg(RegPaDac, readReg(RegPaDac)|0x4);
+ 
+ #elif CFG_sx1272_radio
+-- 
+1.9.1
+
