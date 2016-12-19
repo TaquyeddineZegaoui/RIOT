@@ -175,19 +175,21 @@ int regs_set(int argc, char **argv)
 
 int config_channel(int argc, char **argv)
 {
-    if(argc < 3)
-        return 0;
-        uint32_t chan;
-    if(strstr(argv[1], "set") != NULL)
-    {
-        chan = atoi(argv[2]);
-        nd->driver->set(nd, NETOPT_CHANNEL, &chan, sizeof(uint32_t));
-        printf("Channel set\n");
-    }
-    else
+    if(argc < 2)
+        return -1;
+    uint32_t chan;
+    if(strstr(argv[1], "get") != NULL)
     {
         nd->driver->get(nd, NETOPT_CHANNEL, &chan, sizeof(uint32_t));
         printf("Channel: %i\n", (int) chan);
+    }
+    else
+    {
+        if(argc < 3)
+            return -1;
+        chan = atoi(argv[2]);
+        nd->driver->set(nd, NETOPT_CHANNEL, &chan, sizeof(uint32_t));
+        printf("Channel set\n");
     }
     return 0;
 }
