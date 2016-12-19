@@ -36,8 +36,9 @@ uint8_t count_drops (uint32_t sample_time)
 	INFRARED_ON;
 
 	/* Deliver precise measured time*/
-    uint64_t start_time =  xtimer_now_usec();
-    uint64_t actual_time = xtimer_now_usec();
+    uint64_t start_time =  xtimer_now_usec64();
+    xtimer_ticks32_t start_ticks =  xtimer_now();
+    uint64_t actual_time = xtimer_now_usec64();
 
     /* Filter variables*/
     uint16_t x_0[NSENSOR] = {0,0,0};
@@ -79,7 +80,8 @@ uint8_t count_drops (uint32_t sample_time)
 			return 0;
 
 		/* Update time*/
-		actual_time = xtimer_now_usec();
+		actual_time = xtimer_now_usec64();
+		xtimer_periodic_wakeup(&start_ticks, SAMPLE_RATE );
 	}
 
 	drops.sampled_time = (actual_time - start_time)*1000;
