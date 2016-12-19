@@ -23,6 +23,7 @@
 #include "cpu.h"
 #include "mutex.h"
 #include "periph/adc.h"
+#include "xtimer.h"
 
 /**
  * @brief   Maximum allowed ADC clock speed
@@ -70,7 +71,7 @@ int adc_init(adc_t line)
     /* lock and power-on the device */
     prep();
 
-    /* configure the pin */
+    /* configure the pin if not internal channel*/
     if(!(adc_config[line].chan == 16 || adc_config[line].chan == 17))
         gpio_init_analog(adc_config[line].pin);
     /* set clock prescaler to get the maximal possible ADC clock value */
@@ -82,17 +83,34 @@ int adc_init(adc_t line)
 
     ADC->CCR = ((clk_div / 2) - 1) << 16;
 
-    ADC1->SMPR2 =  ADC_SMPR2_SMP15 & ~ADC_SMPR2_SMP15_0 & ~ADC_SMPR2_SMP15_2;
-
    /* check if this channel is an internal ADC channel, if so
      * enable the internal temperature and Vref */
     if (adc_config[line].chan == 16 || adc_config[line].chan == 17) {
         ADC->CCR |= ADC_CCR_TSVREFE;
-        ADC1->SMPR2 =  ADC_SMPR2_SMP17 & ~ADC_SMPR2_SMP17_0;
+    }
+
+    /* set to minimum conversion cycles that supports all resolutions (16)*/
+    if(adc_config[line].chan <= 9)
+    {
+        ADC1->SMPR1 |=  ((0x2) << adc_config[line].chan*3);
+    }
+    else if(adc_config[line].chan == 16 || adc_config[line].chan == 17) 
+    {
+        ADC1->SMPR2 |=  ((0x5) << (adc_config[line].chan - 10)*3);
+    }
+    else if((adc_config[line].chan > 9) && (adc_config[line].chan <= 19))
+    {
+        ADC1->SMPR2 |=  ((0x2) << (adc_config[line].chan - 10)*3);
+    }
+    else if((adc_config[line].chan > 19) && (adc_config[line].chan <= 29))
+    {
+        ADC1->SMPR3 |=  ((0x2) << (adc_config[line].chan - 20)*3);
     }
 
     /* enable the ADC module */
     ADC1->CR2 = ADC_CR2_ADON;
+    /* turn off during idle phase*/
+    ADC1->CR1 = ADC_CR1_PDI;
 
     /* free the device again */
     done();
@@ -104,15 +122,16 @@ int adc_sample(adc_t line, adc_res_t res)
     int sample;
 
     /* check if resolution is applicable */
-    if (res < 0xff) {
+    if ((res != ADC_RES_6BIT) && (res != ADC_RES_8BIT && (res != ADC_RES_10BIT) && (res != ADC_RES_12BIT))) {
         return -1;
     }
 
     /* lock and power on the ADC device  */
     prep();
 
-    /* set resolution and conversion channel */
-    ADC1->CR1 = res;
+    /* set resolution, conversion channel and single read */
+    ADC1->CR1 |= res & ADC_CR1_RES;
+    ADC1->SQR1 &= ~ADC_SQR1_L;
     ADC1->SQR5 = adc_config[line].chan;
 
     /* wait for regular channel to be ready*/

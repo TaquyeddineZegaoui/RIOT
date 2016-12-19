@@ -4,14 +4,11 @@ uint16_t board_get_power_supply( void )
 {
     int vref = 0;
     int vdiv = 0;
-    int dummy = 0;
-    uint32_t batteryVoltage = 0;
+    uint64_t batteryVoltage = 0;
 
-    dummy = adc_sample(ADC_LINE(0), ADC_RESOLUTION);
-    vdiv  = adc_sample(ADC_LINE(1), ADC_RESOLUTION);
-    vref  = adc_sample(ADC_LINE(2), ADC_RESOLUTION);
-
-    (void) dummy;
+    adc_sample(ADC_VDIV, ADC_RESOLUTION);    // dummy read
+    vdiv  = adc_sample(ADC_VDIV, ADC_RESOLUTION);
+    vref  = adc_sample(ADC_VREF, ADC_RESOLUTION);
 
     batteryVoltage =  (  FACTORY_POWER_SUPPLY * VREFINT_CAL * vdiv ) *1000 /  (  vref * ADC_MAX_VALUE );
     //                                vDiv
@@ -29,7 +26,7 @@ uint8_t board_get_battery_level( void )
     volatile uint8_t batteryLevel = 0;
     uint16_t batteryVoltage = 0;
 
-    if( gpio_read( USB_DETECT ) == 1 )
+    if( get_board_power_source() == USB_POWER )
     {
         batteryLevel = 0;
     }
@@ -62,7 +59,7 @@ uint8_t board_get_battery_level( void )
 
 uint8_t get_board_power_source( void )
 {
-    if( gpio_read(USB_DETECT) == 1 )
+    if( gpio_read(USB_DETECT) == 0 )
     {
         return BATTERY_POWER;
     }

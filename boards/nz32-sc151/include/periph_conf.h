@@ -54,12 +54,14 @@ extern "C" {
  * @{
  */
 #define ADC_CONFIG {            \
-    { GPIO_PIN(PORT_B, 12), 18 },\
+    { GPIO_PIN(PORT_C, 0), 10 },\
+    { GPIO_PIN(PORT_C, 1), 11 },\
+    { GPIO_PIN(PORT_C, 2), 12 },\
     { GPIO_PIN(PORT_C, 5), 15},\
     { 0, 17 }\
 }
 
-#define ADC_NUMOF           (3)
+#define ADC_NUMOF           (5)
 /** @} */
 
 /**
