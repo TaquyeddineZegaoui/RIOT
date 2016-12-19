@@ -16,6 +16,7 @@
 #include "periph/gpio.h"
 #include "periph/spi.h"
 
+#define PARAMS_SPI SPI_1
 extern const lmic_pinmap lmic_pins;
 static void hal_io_init (void) {
     // NSS and DIO0 are required, DIO1 is required for LoRa, DIO2 for FSK
@@ -75,9 +76,9 @@ static void hal_io_check(void) {
 // SPI
 
 static void hal_spi_init (void) {
-    spi_acquire(SPI_0);
-    spi_init_master(SPI_0, SPI_CONF_FIRST_RISING, SPI_SPEED_1MHZ);
-    spi_release(SPI_0);
+    spi_acquire(PARAMS_SPI);
+    spi_init_master(PARAMS_SPI, SPI_CONF_FIRST_RISING, SPI_SPEED_1MHZ);
+    spi_release(PARAMS_SPI);
 }
 
 void hal_pin_nss (u1_t val) {
@@ -87,7 +88,7 @@ void hal_pin_nss (u1_t val) {
 // perform SPI transaction with radio
 u1_t hal_spi (u1_t out) {
     char in;
-    spi_transfer_byte(SPI_0, out, &in);
+    spi_transfer_byte(PARAMS_SPI, out, &in);
     u1_t res = in;
     return res;
 }
