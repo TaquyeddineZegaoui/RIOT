@@ -26,6 +26,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 #include "common.h"
 #include "board.h"
 #include "boards_hw.h"
+#include "infrared.h"
 
 #include "sx1276_regs_lora.h"
 #include "sx1276_regs_fsk.h"
@@ -41,11 +42,15 @@ Maintainer: Miguel Luis and Gregory Cristian
 uint32_t count = 0;
 static sx1276_t sx1276;
 
-
 /*!
 *   Node id
 */
-#define         NODEID                              0x01
+#define NODEID                                      0x01
+
+/*
+* Drope time
+*/
+#define DROP_TIME                                   100*1000
 
 /*!
  * Join requests trials duty cycle.
@@ -195,20 +200,32 @@ static void PrepareTxFrame( uint8_t port )
     {
     case 1:
         {
+            if(count_drops(DROP_TIME))
+                AppData[5] = 0xFF;
+            else
+                AppData[5] = 0xAA;
+
+            uint16_t time = get_time();
             AppData[0] = NODEID;
             AppData[1] = get_drops();
-            AppData[2] = get_measured_time();
-            AppData[3] = board_get_battery_level();
-            AppData[4] = 0xFF;
+            AppData[2] = (uint8_t) (time & 0xff);
+            AppData[3] = (uint8_t) ((time >> 8) & 0xff);
+            AppData[4] = board_get_battery_level();
         }
 
     case 2:
         {
+            if(count_drops(DROP_TIME))
+                AppData[5] = 0xFF;
+            else
+                AppData[5] = 0xAA;
+
+            uint16_t time = get_time();
             AppData[0] = NODEID;
             AppData[1] = get_drops();
-            AppData[2] = get_measured_time();
-            AppData[3] = board_get_battery_level();
-            AppData[4] = 0xFF;
+            AppData[2] = (uint8_t) (time & 0xff);
+            AppData[3] = (uint8_t) ((time >> 8) & 0xff);
+            AppData[4] = board_get_battery_level();
         }
         break;
     case 224:

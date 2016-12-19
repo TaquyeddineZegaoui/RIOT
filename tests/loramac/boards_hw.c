@@ -85,11 +85,3 @@ void board_get_unique_id( uint8_t *id )
     id[1] = ( ( *( uint32_t* )ID2 ) ) >> 8;
     id[0] = ( ( *( uint32_t* )ID2 ) );
 }
-
-uint8_t get_drops ( void ){
-    return (uint8_t) random_uint32_range(0, 100);
-}
-
-uint8_t get_measured_time ( void ){
-    return (uint8_t) random_uint32_range(0, 10);
-}

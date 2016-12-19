@@ -52,5 +52,3 @@ uint8_t board_get_battery_level( void );
 uint8_t get_board_power_source( void );
 uint32_t board_get_random_seed( void );
 void board_get_unique_id( uint8_t *id );
-uint8_t get_drops ( void );
-uint8_t get_measured_time ( void );
