@@ -27,6 +27,11 @@ sx1276_radio_state_t sx1276_get_status(sx1276_t *dev)
     return dev->settings.state;
 }
 
+uint32_t sx1276_get_channel(sx1276_t *dev)
+{
+    return ((sx1276_reg_read(dev, SX1276_REG_FRFMSB) << 16) | (sx1276_reg_read(dev, SX1276_REG_FRFMID) << 8) | sx1276_reg_read(dev, SX1276_REG_FRFLSB)) * SX1276_FREQ_STEP;
+
+}
 void sx1276_set_channel(sx1276_t *dev, uint32_t freq)
 {
     /* Save current operating mode */

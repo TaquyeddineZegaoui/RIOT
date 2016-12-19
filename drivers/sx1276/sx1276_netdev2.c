@@ -341,6 +341,10 @@ static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
             *((sx1276_lora_coding_rate_t*) val) = sx1276_get_coding_rate((sx1276_t*) netdev);
             return sizeof(sx1276_lora_coding_rate_t);
 
+        case NETOPT_CHANNEL:
+            *((uint32_t*) val) = sx1276_get_channel((sx1276_t*) netdev);
+            return sizeof(uint32_t);
+
         case NETOPT_LORA_SINGLE_RECEIVE:
             *((uint8_t*) val) = sx1276_get_rx_single((sx1276_t*) netdev);
             return sizeof(uint8_t);

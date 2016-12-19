@@ -260,6 +260,13 @@ sx1276_radio_state_t sx1276_get_status(sx1276_t *dev);
 void sx1276_set_modem(sx1276_t *dev, sx1276_radio_modems_t modem);
 
 /**
+ * @brief Gets the channel frequency.
+ *
+ * @param	[IN]	dev		The sx1276 device structure pointer
+ */
+
+uint32_t sx1276_get_channel(sx1276_t *dev);
+/**
  * @brief Sets the channel frequency.
  *
  * @param	[IN]	dev		The sx1276 device structure pointer
