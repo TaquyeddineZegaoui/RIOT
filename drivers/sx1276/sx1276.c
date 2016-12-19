@@ -618,11 +618,7 @@ static void configPower (void) {
         pw = 2;
     }
     // check board type for BOOST pin
-    #ifdef CFG_rfo     
-      writeReg(RegPaConfig, (u1_t)(0x70|(pw&0xf)));
-    #else
-      writeReg(RegPaConfig, (u1_t)(0x80|((pw-2)&0xf)));
-    #endif
+      writeReg(RegPaConfig, (u1_t)(0b0111 | (pw & 0xF)));
     writeReg(RegPaDac, readReg(RegPaDac)|0x4);
 
 #elif CFG_sx1272_radio
