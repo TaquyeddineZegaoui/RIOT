@@ -173,6 +173,25 @@ int regs_set(int argc, char **argv)
 
 }
 
+int config_channel(int argc, char **argv)
+{
+    if(argc < 3)
+        return 0;
+        uint32_t chan;
+    if(strstr(argv[1], "set") != NULL)
+    {
+        chan = atoi(argv[2]);
+        nd->driver->set(nd, NETOPT_CHANNEL, &chan, sizeof(uint32_t));
+        printf("Channel set\n");
+    }
+    else
+    {
+        nd->driver->get(nd, NETOPT_CHANNEL, &chan, sizeof(uint32_t));
+        printf("Channel: %i\n", (int) chan);
+    }
+    return 0;
+}
+
 int rx_test(int argc, char **argv)
 {
     nd->driver->set(nd, NETOPT_LORA_SINGLE_RECEIVE, false, sizeof(uint8_t));
@@ -241,6 +260,7 @@ static const shell_command_t shell_commands[] = {
     { "set", "<num> <value> - sets value of register with specified number", regs_set },
     { "tx_test", "<payload> Send test payload string", tx_test },
     { "rx_test", "Start rx test", rx_test },
+    { "channel", "Set frequency (in Hz)", config_channel },
 	{ "lora_setup", "<BW (125, 250, 512)> <SF (7..12)> <CR 4/(5,6,7,8)> - sets up LoRa modulation settings", lora_setup},
 
     { NULL, NULL, NULL }
