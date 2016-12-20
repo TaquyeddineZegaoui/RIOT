@@ -22,23 +22,27 @@ Maintainer: Miguel Luis and Gregory Cristian
 volatile uint8_t HasLoopedThroughMain = 0;
 
 
-void TimerInit( TimerEvent_t *obj, void ( *cb )( void ) )
+void TimerInit( TimerEvent_t *obj, void ( *cb )( void ), kernel_pid_t target_pid)
 {
     obj->dev.target = 0;
     obj->running = 0;
     obj->dev.callback = (xtimer_callback_t) cb;
+    obj->pid = target_pid;
 }
 
-void TimerReset( TimerEvent_t *obj )
+void TimerReset( TimerEvent_t *obj, uint8_t opt)
 {
     TimerStop(obj);
-    TimerStart(obj);
+    TimerStart(obj, opt);
 }
  
-void TimerStart( TimerEvent_t *obj )
+void TimerStart( TimerEvent_t *obj, uint8_t opt)
 {
     obj->running = 1;
-    xtimer_set(&(obj->dev), obj->timeout);
+    if(opt)
+        xtimer_set(&(obj->dev), obj->timeout);
+    else
+        xtimer_set_msg (&(obj->dev), obj->timeout, &(obj->msg), obj->pid);
 }
  
 void TimerStop( TimerEvent_t *obj )
@@ -47,13 +51,14 @@ void TimerStop( TimerEvent_t *obj )
     xtimer_remove(&(obj->dev));
 }
  
-void TimerSetValue( TimerEvent_t *obj, uint32_t value )
+void TimerSetValue( TimerEvent_t *obj, uint32_t value, uint8_t message_ct)
 {
     xtimer_ticks32_t ticks = xtimer_ticks_from_usec(value*1000);
 
     if(obj->running)
         xtimer_remove(&(obj->dev));
     obj->timeout = ticks.ticks32;
+    obj->msg.content.value = message_ct;
 }
 
 TimerTime_t TimerGetCurrentTime( void )

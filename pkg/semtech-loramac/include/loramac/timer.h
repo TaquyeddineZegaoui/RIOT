@@ -22,6 +22,8 @@ typedef struct TimerEvent_s
     uint32_t timeout;  
     uint8_t running;
     xtimer_t dev;
+    msg_t  msg;
+    kernel_pid_t pid;
 }TimerEvent_t;
 
 /*!
@@ -40,7 +42,7 @@ typedef uint64_t TimerTime_t;
  * \param [IN] obj          Structure containing the timer object parameters
  * \param [IN] callback     Function callback called at the end of the timeout
  */
-void TimerInit( TimerEvent_t *obj, void ( *callback )( void ) );
+void TimerInit( TimerEvent_t *obj, void ( *cb )( void ), kernel_pid_t target_pid);
 
 /*!
  * Timer IRQ event handler
@@ -52,7 +54,7 @@ void TimerIrqHandler( void );
  *
  * \param [IN] obj Structure containing the timer object parameters
  */
-void TimerStart( TimerEvent_t *obj );
+void TimerStart( TimerEvent_t *obj, uint8_t opt);
 
 /*!
  * \brief Stops and removes the timer object from the list of timer events
@@ -66,7 +68,7 @@ void TimerStop( TimerEvent_t *obj );
  *
  * \param [IN] obj Structure containing the timer object parameters
  */
-void TimerReset( TimerEvent_t *obj );
+void TimerReset( TimerEvent_t *obj, uint8_t opt);
 
 /*!
  * \brief Set timer new timeout value
@@ -74,7 +76,7 @@ void TimerReset( TimerEvent_t *obj );
  * \param [IN] obj   Structure containing the timer object parameters
  * \param [IN] value New timer timeout value
  */
-void TimerSetValue( TimerEvent_t *obj, uint32_t value );
+void TimerSetValue( TimerEvent_t *obj, uint32_t value, uint8_t message_ct);
 
 /*!
  * \brief Read the current time

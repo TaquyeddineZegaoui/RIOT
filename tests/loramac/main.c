@@ -580,12 +580,12 @@ int main( void )
 
     // Sends a JoinReq Command every OVER_THE_AIR_ACTIVATION_DUTYCYCLE
     // seconds until the network is joined
-    TimerInit( &JoinReqTimer, OnJoinReqTimerEvent );
-    TimerSetValue( &JoinReqTimer, OVER_THE_AIR_ACTIVATION_DUTYCYCLE );
+    TimerInit( &JoinReqTimer, OnJoinReqTimerEvent, (kernel_pid_t) 0);
+    TimerSetValue( &JoinReqTimer, OVER_THE_AIR_ACTIVATION_DUTYCYCLE, 0);
 #endif
 
     TxNextPacket = true;
-    TimerInit( &TxNextPacketTimer, OnTxNextPacketTimerEvent );
+    TimerInit( &TxNextPacketTimer, OnTxNextPacketTimerEvent, (kernel_pid_t) 0 );
 
     LoRaMacSetAdrOn( LORAWAN_ADR_ON );
     LoRaMacSetPublicNetwork( LORAWAN_PUBLIC_NETWORK );
@@ -622,7 +622,7 @@ int main( void )
                     break;
                 default:
                     // Relaunch timer for next trial
-                    TimerStart( &JoinReqTimer );
+                    TimerStart( &JoinReqTimer, 1);
                     break;
                 }
             }
@@ -634,7 +634,6 @@ int main( void )
         {
             DownlinkStatusUpdate = false;
             // Switch LED 2 ON for each received downlink
-            puts("DOWNLINK");
         }
 
         if( ScheduleNextTx == true )
@@ -650,8 +649,8 @@ int main( void )
                 // Schedule next packet transmission
                 TxDutyCycleTime = APP_TX_DUTYCYCLE + randr( -APP_TX_DUTYCYCLE_RND, APP_TX_DUTYCYCLE_RND );
                 TxNextPacketTimerInit = xtimer_now_usec64();
-                TimerSetValue( &TxNextPacketTimer, TxDutyCycleTime );
-                TimerStart( &TxNextPacketTimer );
+                TimerSetValue( &TxNextPacketTimer, TxDutyCycleTime, 0);
+                TimerStart( &TxNextPacketTimer, 1);
             }
         }
 
