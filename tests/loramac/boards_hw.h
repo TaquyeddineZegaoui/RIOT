@@ -1,6 +1,10 @@
-#include "periph/adc.h"
 #include "periph/gpio.h"
 #include "random.h"
+#include "common.h"
+
+#ifdef NZ32_SC151
+
+#include "periph/adc.h"
 
 /*!
  * Battery level ratio (battery dependent)
@@ -47,8 +51,11 @@ enum BoardPowerSource
     BATTERY_POWER
 };
 
+#endif
+
 uint16_t board_get_power_supply( void );
 uint8_t board_get_battery_level( void );
 uint8_t get_board_power_source( void );
 uint32_t board_get_random_seed( void );
 void board_get_unique_id( uint8_t *id );
+void board_get_node_id( uint8_t *id , uint8_t id_length, uint8_t *node_id );

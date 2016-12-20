@@ -1,4 +1,8 @@
 #include "boards_hw.h"
+#include "embUnit/embUnit.h"
+#include "hashes/md5.h"
+
+#ifdef NZ32_SC151
 
 uint16_t board_get_power_supply( void )
 {
@@ -52,9 +56,6 @@ uint8_t board_get_battery_level( void )
         }
     }
     return batteryLevel;
-
-    return 0;
-
 }
 
 uint8_t get_board_power_source( void )
@@ -85,3 +86,45 @@ void board_get_unique_id( uint8_t *id )
     id[1] = ( ( *( uint32_t* )ID2 ) ) >> 8;
     id[0] = ( ( *( uint32_t* )ID2 ) );
 }
+
+void board_get_node_id( uint8_t *id , uint8_t id_length, uint8_t *node_id )
+{
+    uint8_t hash[MD5_DIGEST_LENGTH];
+
+    /* calculate hash */
+    md5(hash, (const uint8_t *) id, id_length);
+
+    /* truncate hash*/
+    node_id[3] = hash[3];
+    node_id[2] = hash[2];
+    node_id[1] = hash[1];
+    node_id[0] = hash[0];
+}
+
+#else
+
+uint16_t board_get_power_supply( void )
+{
+    return 0;
+}
+uint8_t board_get_battery_level( void )
+{
+    return 0;
+}
+uint8_t get_board_power_source( void )
+{
+    return 0;
+}
+uint32_t board_get_random_seed( void )
+{
+    return 0;
+}
+void board_get_unique_id( uint8_t *id )
+{
+
+}
+void board_get_node_id( uint8_t *id , uint8_t id_length, uint8_t *node_id )
+{
+    
+}
+#endif

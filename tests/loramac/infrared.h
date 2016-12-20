@@ -4,9 +4,12 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "periph/adc.h"
 #include "periph/gpio.h"
+#include "common.h"
 
+#ifdef NZ32_SC151
+
+#include "periph/adc.h"
 
 #define SENSOR_RES          ADC_RES_10BIT
 #define THRESHOLD           50
@@ -20,6 +23,8 @@
 
 #define INFRARED_ON			gpio_set(EMITTER_PIN)
 #define INFRARED_OFF		gpio_clear(EMITTER_PIN)
+
+#endif
 
 /*!
  * Drops Struct to store time and drop amount

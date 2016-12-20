@@ -1,6 +1,7 @@
 #include "infrared.h"
 #include "xtimer.h"
 
+#ifdef NZ32_SC151
 
 /* drops structure and adc lines*/
 static drops_t drops = {0, 0};
@@ -81,7 +82,8 @@ uint8_t count_drops (uint32_t sample_time)
 
 		/* Update time*/
 		actual_time = xtimer_now_usec64();
-		xtimer_periodic_wakeup(&start_ticks, SAMPLE_RATE );
+		if((actual_time - start_time) < sample_time)
+			xtimer_periodic_wakeup(&start_ticks, SAMPLE_RATE );
 	}
 
 	drops.sampled_time = (actual_time - start_time)*1000;
@@ -102,3 +104,20 @@ uint16_t get_time( void )
 {
 	return drops.sampled_time;
 }
+
+#else
+
+uint8_t count_drops ( uint32_t sample_time )
+{
+	return 0;
+}
+uint8_t get_drops( void )
+{
+	return 0;
+}
+uint16_t get_time( void )
+{
+	return 0;
+}
+
+#endif

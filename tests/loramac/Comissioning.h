@@ -61,7 +61,7 @@ Maintainer: Miguel Luis and Gregory Cristian
  *         BoardUniqueId value if LORAWAN_DEVICE_ADDRESS is set to 0
  */
 #ifdef SAMR21_XPRO 
-#define LORAWAN_DEVICE_ADDRESS                      ( uint32_t )0x166fb58e
+#define LORAWAN_DEVICE_ADDRESS                      ( uint32_t )0x1677f14e
 #else
 #define LORAWAN_DEVICE_ADDRESS                      ( uint32_t )0x1677f14e
 #endif

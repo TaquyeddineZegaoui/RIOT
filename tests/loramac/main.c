@@ -45,7 +45,7 @@ static sx1276_t sx1276;
 /*!
 *   Node id
 */
-#define NODEID                                      0x01
+static uint8_t NodeId[] = {0x00, 0x00, 0x00, 0x00};
 
 /*
 * Drope time
@@ -60,7 +60,7 @@ static sx1276_t sx1276;
 /*!
  * Defines the application data transmission duty cycle. 5s, value in [ms].
  */
-#define APP_TX_DUTYCYCLE                            5000
+#define APP_TX_DUTYCYCLE                            5*1000
 
 /*!
  * Defines a random delay for application data transmission duty cycle. 1s,
@@ -102,7 +102,9 @@ static uint8_t AppEui[] = LORAWAN_APPLICATION_EUI;
 static uint8_t AppKey[] = LORAWAN_APPLICATION_KEY;
 
 #else
-
+    #ifdef NZ32_SC151
+    static uint8_t DevEui[] = LORAWAN_DEVICE_EUI;
+    #endif
 static uint8_t NwkSKey[] = LORAWAN_NWKSKEY;
 static uint8_t AppSKey[] = LORAWAN_APPSKEY;
 
@@ -201,31 +203,37 @@ static void PrepareTxFrame( uint8_t port )
     case 1:
         {
             if(count_drops(DROP_TIME))
-                AppData[5] = 0xFF;
+                AppData[8] = 0xFF;
             else
-                AppData[5] = 0xAA;
+                AppData[8] = 0xAA;
 
             uint16_t time = get_time();
-            AppData[0] = NODEID;
-            AppData[1] = get_drops();
-            AppData[2] = (uint8_t) (time & 0xff);
-            AppData[3] = (uint8_t) ((time >> 8) & 0xff);
-            AppData[4] = board_get_battery_level();
+            AppData[0] = NodeId[0];
+            AppData[1] = NodeId[1];
+            AppData[2] = NodeId[2];
+            AppData[3] = NodeId[3];
+            AppData[4] = get_drops();
+            AppData[5] = (uint8_t) (time & 0xff);
+            AppData[6] = (uint8_t) ((time >> 8) & 0xff);
+            AppData[7] = board_get_battery_level();
         }
 
     case 2:
         {
             if(count_drops(DROP_TIME))
-                AppData[5] = 0xFF;
+                AppData[8] = 0xFF;
             else
-                AppData[5] = 0xAA;
+                AppData[8] = 0xAA;
 
             uint16_t time = get_time();
-            AppData[0] = NODEID;
-            AppData[1] = get_drops();
-            AppData[2] = (uint8_t) (time & 0xff);
-            AppData[3] = (uint8_t) ((time >> 8) & 0xff);
-            AppData[4] = board_get_battery_level();
+            AppData[0] = NodeId[0];
+            AppData[1] = NodeId[1];
+            AppData[2] = NodeId[2];
+            AppData[3] = NodeId[3];
+            AppData[4] = get_drops();
+            AppData[5] = (uint8_t) (time & 0xff);
+            AppData[6] = (uint8_t) ((time >> 8) & 0xff);
+            AppData[7] = board_get_battery_level();
         }
         break;
     case 224:
@@ -516,23 +524,31 @@ int main( void )
 #endif
     bool trySendingFrameAgain = false;
 
+    /* set sx1276 pointer, init xtimer, init radio*/
     radio_set_ptr(&sx1276);
     xtimer_init();
     init_radio();
-    
+
+    /* get unique node id*/
+    #ifdef NZ32_SC151
+
     /* initialize all available ADC lines */
     adc_init(ADC_VDIV);
     adc_init(ADC_LINE(0));
     adc_init(ADC_VREF);
-
     gpio_init(USB_DETECT, GPIO_IN);
     gpio_init(BAT_LEVEL, GPIO_OUT);
     gpio_clear(BAT_LEVEL);
 
+    board_get_unique_id( DevEui );
+    board_get_node_id(DevEui, 4, NodeId);
+    
+    /* get power source*/
     if(get_board_power_source() == BATTERY_POWER)
         puts("BATTERY_POWER");
     else
         puts("USB POWER");
+    #endif
 
     LoRaMacCallbacks.MacEvent = OnMacEvent;
     LoRaMacCallbacks.GetBatteryLevel = board_get_battery_level;
@@ -646,8 +662,6 @@ int main( void )
         if( TxNextPacket == true )
         {
             TxNextPacket = false;
-            LED0_TOGGLE;
-
             PrepareTxFrame( AppPort );
 
             trySendingFrameAgain = SendFrame( );
