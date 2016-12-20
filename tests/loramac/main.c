@@ -78,7 +78,7 @@ static uint8_t NodeId[] = {0x00, 0x00, 0x00, 0x00};
  *
  * \remark Please note that when ADR is enabled the end-device should be static
  */
-#define LORAWAN_ADR_ON                              1
+#define LORAWAN_ADR_ON                              0
 
 /*!
  * LoRaWAN application port
