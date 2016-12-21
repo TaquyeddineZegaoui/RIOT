@@ -221,6 +221,7 @@ static int _recv(netdev2_t *netdev, void *buf, size_t len, void *info)
             /* Divide by 4 */
             snr = (snr_value & 0xFF) >> 2;
         }
+        rx_info->lqi = (uint8_t) snr;
 
         int16_t rssi = sx1276_reg_read(dev, SX1276_REG_LR_PKTRSSIVALUE);
         netdev2_sx1276_rx_info_t *rx_info = info;

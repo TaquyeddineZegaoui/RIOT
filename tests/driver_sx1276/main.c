@@ -334,7 +334,7 @@ static void _event_cb(netdev2_t *dev, netdev2_event_t event)
         case NETDEV2_EVENT_RX_COMPLETE:
             len = dev->driver->recv(dev, NULL, 5, &rx_info);
             dev->driver->recv(dev, message, len, NULL);
-            printf("%s\n. {RSSI: %i\n", message, rx_info.rssi);
+            printf("%s\n. {RSSI: %i, SNR: %i}", message, rx_info.rssi, (signed int) rx_info.lqi);
         default:
             break;
     }
