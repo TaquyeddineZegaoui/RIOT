@@ -208,6 +208,7 @@ static int _recv(netdev2_t *netdev, void *buf, size_t len, void *info)
     }
 
     //TODO: Add snr info to rx_info
+    netdev2_sx1276_rx_info_t *rx_info = info;
     if(info)
     {
         int8_t snr = 0;
@@ -224,7 +225,6 @@ static int _recv(netdev2_t *netdev, void *buf, size_t len, void *info)
         rx_info->lqi = (uint8_t) snr;
 
         int16_t rssi = sx1276_reg_read(dev, SX1276_REG_LR_PKTRSSIVALUE);
-        netdev2_sx1276_rx_info_t *rx_info = info;
 
         if (snr < 0) {
             if (dev->settings.channel > SX1276_RF_MID_BAND_THRESH) {
