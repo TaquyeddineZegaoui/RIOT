@@ -11,8 +11,6 @@ CFLAGS += -DDEBUG_ASSERT_VERBOSE
 
 RIOTBASE ?= $(CURDIR)/../..
 
-USEPKG += semtech-loramac
-
 DRIVER ?= sx1276
 
 # include the selected driver
@@ -24,8 +22,7 @@ USEMODULE += shell
 USEMODULE += shell_commands
 USEMODULE += ps
 USEMODULE += xtimer
-USEMODULE += loramac_contrib
-USEMODULE += loramac_mac
+USEMODULE += lorawan
 USEMODULE += random
 
 
