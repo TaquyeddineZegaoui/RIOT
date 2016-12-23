@@ -50,17 +50,17 @@ static uint8_t NodeId[] = {0x00, 0x00, 0x00, 0x00};
 /*
 * Drope time
 */
-#define DROP_TIME                                   100*1000
+#define DROP_TIME                                   (4*SEC_IN_USEC)
 
 /*!
  * Join requests trials duty cycle.
  */
-#define OVER_THE_AIR_ACTIVATION_DUTYCYCLE           1000 // 10 [s] value in ms
+#define OVER_THE_AIR_ACTIVATION_DUTYCYCLE           10000 // 10 [s] value in ms
 
 /*!
  * Defines the application data transmission duty cycle. 5s, value in [ms].
  */
-#define APP_TX_DUTYCYCLE                            5*1000
+#define APP_TX_DUTYCYCLE                            15*1000
 
 /*!
  * Defines a random delay for application data transmission duty cycle. 1s,
@@ -170,7 +170,7 @@ static TimerEvent_t JoinReqTimer;
  * Indicates if a new packet can be sent
  */
 static bool TxNextPacket = true;
-static bool ScheduleNextTx = false;
+static bool ScheduleNextTx = true;
 static bool DownlinkStatusUpdate = false;
 
 static LoRaMacCallbacks_t LoRaMacCallbacks;
@@ -234,6 +234,8 @@ static void PrepareTxFrame( uint8_t port )
             AppData[5] = (uint8_t) (time & 0xff);
             AppData[6] = (uint8_t) ((time >> 8) & 0xff);
             AppData[7] = board_get_battery_level();
+
+            printf("DROPS: %d \n", get_drops());
         }
         break;
     case 224:
@@ -392,6 +394,7 @@ static void OnTxNextPacketTimerEvent( void )
 {
     TimerStop( &TxNextPacketTimer );
     TxNextPacket = true;
+    ScheduleNextTx = true;
 }
 
 /*!
@@ -433,7 +436,7 @@ static void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )
         }
     }
     // Schedule a new transmission
-    ScheduleNextTx = true;
+    // ScheduleNextTx = true;
 }
 
 void event_handler_thread(void *arg, sx1276_event_type_t event_type)
@@ -535,8 +538,11 @@ int main( void )
     /* initialize all available ADC lines */
     adc_init(ADC_VDIV);
     adc_init(ADC_LINE(0));
+    adc_init(ADC_LINE(1));
+    adc_init(ADC_LINE(2));
     adc_init(ADC_VREF);
     gpio_init(USB_DETECT, GPIO_IN);
+    gpio_init(EMITTER_PIN, GPIO_OUT);
     gpio_init(BAT_LEVEL, GPIO_OUT);
     gpio_clear(BAT_LEVEL);
 
@@ -626,7 +632,9 @@ int main( void )
                     break;
                 }
             }
-            //TimerLowPowerHandler(OVER_THE_AIR_ACTIVATION_DUTYCYCLE);
+            // Send to sleep if TxDone
+            if(IsTxConfirmed == true)
+                TimerLowPowerHandler(OVER_THE_AIR_ACTIVATION_DUTYCYCLE);
 #endif
         }
         
@@ -636,7 +644,7 @@ int main( void )
             // Switch LED 2 ON for each received downlink
         }
 
-        if( ScheduleNextTx == true )
+        if( ScheduleNextTx == true)
         {
             ScheduleNextTx = false;
 
@@ -647,7 +655,7 @@ int main( void )
             else
             {
                 // Schedule next packet transmission
-                TxDutyCycleTime = APP_TX_DUTYCYCLE + randr( -APP_TX_DUTYCYCLE_RND, APP_TX_DUTYCYCLE_RND );
+                TxDutyCycleTime = APP_TX_DUTYCYCLE /*+ randr( -APP_TX_DUTYCYCLE_RND, APP_TX_DUTYCYCLE_RND )*/;
                 TxNextPacketTimerInit = xtimer_now_usec64();
                 TimerSetValue( &TxNextPacketTimer, TxDutyCycleTime, 0);
                 TimerStart( &TxNextPacketTimer, 1);
@@ -661,13 +669,17 @@ int main( void )
         if( TxNextPacket == true )
         {
             TxNextPacket = false;
-            PrepareTxFrame( AppPort );
 
+            PrepareTxFrame( AppPort );
             trySendingFrameAgain = SendFrame( );
         }
 
-        TxNextPacketTimerActual = xtimer_now_usec64() - TxNextPacketTimerInit ;
-        //TimerLowPowerHandler( (uint32_t) TxDutyCycleTime);
+        // Send to sleep if TxDone
+        if(IsTxConfirmed == true)
+        {
+            TxNextPacketTimerActual = xtimer_now_usec64() - TxNextPacketTimerInit ;
+            TimerLowPowerHandler( (uint32_t) TxDutyCycleTime);
+        }
     }
 
     return 0;
