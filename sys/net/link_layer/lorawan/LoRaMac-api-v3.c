@@ -17,7 +17,7 @@ License: Revised BSD License, see LICENSE.TXT file include in the project
 
 Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jäckle ( STACKFORCE )
 */
-#include "loramac/board_definitions.h"
+#include "net/lorawan/board_definitions.h"
 
 #include "LoRaMac-api-v3.h"
 #include "LoRaMacTest.h"

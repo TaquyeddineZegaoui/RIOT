@@ -1,4 +1,4 @@
-#include "loramac/board_definitions.h"
+#include "net/lorawan/board_definitions.h"
 #include "sx1276.h"
 
 /*!

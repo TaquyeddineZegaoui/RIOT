@@ -48,7 +48,7 @@
 
 // Includes board dependent definitions such as channels frequencies
 #include "LoRaMac-definitions.h"
-#include "loramac/timer.h"
+#include "net/lorawan/timer.h"
 
 #define MAC_EVENT_HANDLER_STACK_SIZE 2048
 

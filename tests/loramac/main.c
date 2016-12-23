@@ -32,7 +32,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 #include "sx1276_regs_fsk.h"
 
 #include "LoRaMac.h"
-#include "loramac/board_definitions.h" 
+#include "net/lorawan/board_definitions.h" 
 #include "Comissioning.h"
 #include "LoRaMac-api-v3.h"
 

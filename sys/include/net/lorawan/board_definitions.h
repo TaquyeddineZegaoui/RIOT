@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <inttypes.h>
-#include "loramac/timer.h"
-#include "loramac/radio.h"
-#include "loramac/utilities.h"
+#include "net/lorawan/timer.h"
+#include "net/lorawan/radio.h"
+#include "net/lorawan/utilities.h"
 
 //TODO: Remove this line
 #define REG_LR_SYNCWORD 0x39
