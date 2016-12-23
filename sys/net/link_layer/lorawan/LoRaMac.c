@@ -24,7 +24,7 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jä
 #include "LoRaMacTest.h"
 #include "thread.h"
 
-void *mac_polling_thread(void *arg);
+void *lorawan_thread(void *arg);
 char mac_thread_stack[MAC_EVENT_HANDLER_STACK_SIZE];
 
 
@@ -3199,7 +3199,7 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacC
 
     /* Create MAC event lines handler */
     kernel_pid_t mac_pid = thread_create(mac_thread_stack, sizeof(mac_thread_stack), THREAD_PRIORITY_MAIN - 1,
-                                     THREAD_CREATE_STACKTEST, mac_polling_thread, NULL, "Mac Timer's Handler");
+                                     THREAD_CREATE_STACKTEST, lorawan_thread, NULL, "Mac Timer's Handler");
 
     // Initialize timers
     TimerInit( &MacStateCheckTimer, OnMacStateCheckTimerEvent, mac_pid );
@@ -4049,7 +4049,7 @@ void LoRaMacTestSetDutyCycleOn( bool enable )
     DutyCycleOn = enable;
 }
 
-void *mac_polling_thread(void *arg)
+void *lorawan_thread(void *arg)
 {
 
     (void) arg;
