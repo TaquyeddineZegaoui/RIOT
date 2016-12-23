@@ -626,7 +626,7 @@ int main( void )
                     break;
                 }
             }
-            TimerLowPowerHandler(OVER_THE_AIR_ACTIVATION_DUTYCYCLE);
+            //TimerLowPowerHandler(OVER_THE_AIR_ACTIVATION_DUTYCYCLE);
 #endif
         }
         
@@ -667,7 +667,7 @@ int main( void )
         }
 
         TxNextPacketTimerActual = xtimer_now_usec64() - TxNextPacketTimerInit ;
-        TimerLowPowerHandler( (uint32_t) TxDutyCycleTime);
+        //TimerLowPowerHandler( (uint32_t) TxDutyCycleTime);
     }
 
     return 0;
