@@ -165,21 +165,24 @@ void SX1276Write( uint8_t addr, uint8_t data )
     sx1276_set_syncword(dev_ptr, data);
 }
 
+//TODO: Dummy function
 uint8_t SX1276Read( uint8_t addr )
 {
-    return sx1276_reg_read(dev_ptr, addr);
+    //return sx1276_reg_read(dev_ptr, addr);
+    return 0;
 }
 
+//TODO: Dummy function
 void SX1276WriteBuffer( uint8_t addr, uint8_t *buffer, uint8_t size )
 {
-    sx1276_reg_write_burst(dev_ptr, addr, buffer,
-                            size);
+    //sx1276_reg_write_burst(dev_ptr, addr, buffer,
+     //                       size);
 }
 
 void SX1276ReadBuffer( uint8_t addr, uint8_t *buffer, uint8_t size )
 {
-    sx1276_reg_read_burst(dev_ptr, addr, buffer,
-                           size);
+    //sx1276_reg_read_burst(dev_ptr, addr, buffer,
+    //                       size);
 }
 
 void SX1276SetMaxPayloadLength( RadioModems_t modem, uint8_t max )

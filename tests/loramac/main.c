@@ -35,13 +35,19 @@ Maintainer: Miguel Luis and Gregory Cristian
 #include "net/lorawan/board_definitions.h" 
 #include "Comissioning.h"
 #include "LoRaMac-api-v3.h"
+#include "net/gnrc/netdev2.h"
+#include "net/netdev2.h"
+#include "sx1276_params.h"
+#include "sx1276_netdev.h"
 
+#define GNRC_LORA_MSG_QUEUE 16
 /*!
  * Thread Variables and packet count
  */
 uint32_t count = 0;
 static sx1276_t sx1276;
 
+static netdev2_t *nd;
 /*!
 *   Node id
 */
@@ -439,54 +445,108 @@ static void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )
     // ScheduleNextTx = true;
 }
 
-#if 0
-void event_handler_thread(void *arg, sx1276_event_type_t event_type)
+void *_event_loop(void *arg)
 {
-    sx1276_rx_packet_t *packet = (sx1276_rx_packet_t *) &sx1276._internal.last_packet;
-    RadioEvents_t *events = radio_get_event_ptr();
-    switch (event_type) {
+    static msg_t _msg_q[GNRC_LORA_MSG_QUEUE];
+    msg_t msg, reply;
+    netdev2_t *netdev = (netdev2_t*) arg;
+    msg_init_queue(_msg_q, GNRC_LORA_MSG_QUEUE);
 
-        case SX1276_TX_DONE:
-            //puts("sx1276: TX done");
+    gnrc_netapi_opt_t *opt;
+    int res;
+
+    while (1) {
+        msg_receive(&msg);
+        switch (msg.type) {
+            case NETDEV2_MSG_TYPE_EVENT:
+                netdev->driver->isr(netdev);
+                break;
+            case GNRC_NETAPI_MSG_TYPE_SND:
+                //gnrc_pktsnip_t *pkt = msg.content.ptr;
+                //gnrc_netdev2->send(gnrc_netdev2, pkt);
+                break;
+            case GNRC_NETAPI_MSG_TYPE_SET:
+                /* read incoming options */
+                opt = msg.content.ptr;
+                /* set option for device driver */
+                res = netdev->driver->set(netdev, opt->opt, opt->data, opt->data_len);
+                /* send reply to calling thread */
+                reply.type = GNRC_NETAPI_MSG_TYPE_ACK;
+                reply.content.value = (uint32_t)res;
+                msg_reply(&msg, &reply);
+                break;
+            case GNRC_NETAPI_MSG_TYPE_GET:
+                /* read incoming options */
+                opt = msg.content.ptr;
+                /* get option from device driver */
+                res = netdev->driver->get(netdev, opt->opt, opt->data, opt->data_len);
+                /* send reply to calling thread */
+                reply.type = GNRC_NETAPI_MSG_TYPE_ACK;
+                reply.content.value = (uint32_t)res;
+                msg_reply(&msg, &reply);
+                break;
+            default:
+                break;
+        }
+    }
+    return NULL;
+}
+
+static unsigned char message[64];
+static void _event_cb(netdev2_t *dev, netdev2_event_t event)
+{
+    msg_t msg;
+    msg.type = NETDEV2_MSG_TYPE_EVENT;
+    kernel_pid_t *pid = (kernel_pid_t*) dev->context;
+    size_t len;
+    struct netdev2_radio_rx_info rx_info;
+    RadioEvents_t *events = radio_get_event_ptr();
+    switch(event)
+    {
+        case NETDEV2_EVENT_ISR:
+            msg_send(&msg, *pid);
+            break;
+        case NETDEV2_EVENT_TX_COMPLETE:
+            puts("sx1276: TX done");
             printf("TX done, COUNT : %lu \r\n",count);
             count++;
             events->TxDone();
             break;
-
-        case SX1276_TX_TIMEOUT:
+        case NETDEV2_EVENT_TX_TIMEOUT:
             puts("sx1276: TX timeout");
             events->TxTimeout();
             break;
 
-        case SX1276_RX_DONE:
+        case NETDEV2_EVENT_RX_COMPLETE:
+            len = dev->driver->recv(dev, NULL, 5, &rx_info);
+            dev->driver->recv(dev, message, len, NULL);
+            printf("%s\n. {RSSI: %i, SNR: %i}", message, rx_info.rssi, (signed int) rx_info.lqi);
             puts("sx1276: RX Done");
-            events->RxDone(packet->content, packet->size, packet->rssi_value, packet-> snr_value);
+            events->RxDone(message, len, (signed int) rx_info.rssi, (signed int) rx_info.lqi);
             break;
-
-        case SX1276_RX_TIMEOUT:
+        case NETDEV2_EVENT_RX_TIMEOUT:
             puts("sx1276: RX timeout");
             events->RxTimeout();
             break;
 
-        case SX1276_RX_ERROR_CRC:
+        case NETDEV2_EVENT_CRC_ERROR:
             puts("sx1276: RX CRC_ERROR");
             events->RxError();
             break;
-
-        case SX1276_FHSS_CHANGE_CHANNEL:
+        case NETDEV2_EVENT_FHSS_CHANGE_CHANNEL:
             events->FhssChangeChannel(sx1276._internal.last_channel);
             break;
-
-        case SX1276_CAD_DONE:
+        case NETDEV2_EVENT_CAD_DONE:
             events->CadDone(sx1276._internal.is_last_cad_success);
             break;
-
         default:
             break;
     }
 }
-#endif
 
+#define SX1276_MAC_STACKSIZE    (THREAD_STACKSIZE_DEFAULT)
+
+static char stack[SX1276_MAC_STACKSIZE];
 /**
  * Main application entry point.
  */
@@ -498,10 +558,21 @@ int main( void )
 #endif
     bool trySendingFrameAgain = false;
 
-    /* set sx1276 pointer, init xtimer, init radio*/
+    /* set sx1276 pointer, init xtimer */
     radio_set_ptr(&sx1276);
     xtimer_init();
-    init_radio();
+
+    memcpy(&sx1276.params, sx1276_params, sizeof(sx1276_params));
+    netdev2_t *netdev = (netdev2_t*) &sx1276;
+    nd = netdev;
+    netdev->driver = &sx1276_driver;
+    netdev->driver->init(netdev);
+    netdev->event_callback = _event_cb;
+
+    kernel_pid_t pid;
+    pid = thread_create(stack, sizeof(stack), THREAD_PRIORITY_MAIN - 5, THREAD_CREATE_STACKTEST,
+                     _event_loop, (void *) netdev, "asd");
+    netdev->context = &pid;
 
     /* get unique node id*/
     #ifdef NZ32_SC151

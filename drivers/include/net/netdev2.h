@@ -81,6 +81,9 @@ typedef enum {
     NETDEV2_EVENT_LINK_DOWN,        /**< link gone */
     NETDEV2_EVENT_TX_TIMEOUT,
     NETDEV2_EVENT_RX_TIMEOUT,
+    NETDEV2_EVENT_CRC_ERROR,
+    NETDEV2_EVENT_FHSS_CHANGE_CHANNEL,
+    NETDEV2_EVENT_CAD_DONE,
     /* expand this list if needed */
 } netdev2_event_t;
 

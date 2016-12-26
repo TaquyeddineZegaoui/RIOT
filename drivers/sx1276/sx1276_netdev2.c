@@ -280,7 +280,8 @@ static int _set_state(sx1276_t *dev, netopt_state_t state)
             break;
 
         case NETOPT_STATE_IDLE:
-            sx1276_set_rx(dev);
+            //TODO
+            sx1276_set_rx(dev, 0); //set permanent listening
             break;
 
         case NETOPT_STATE_TX:
