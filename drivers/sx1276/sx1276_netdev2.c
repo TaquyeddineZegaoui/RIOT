@@ -181,6 +181,9 @@ static int _send(netdev2_t *netdev, const struct iovec *vector, unsigned count)
                       & SX1276_RF_LORA_DIOMAPPING1_DIO0_MASK)
                      | SX1276_RF_LORA_DIOMAPPING1_DIO0_01);
 
+    /* Start TX timeout timer */
+    xtimer_set(&dev->_internal.tx_timeout_timer, dev->settings.lora.tx_timeout);
+
     /* Put chip into transfer mode */
     sx1276_set_status(dev, SX1276_RF_TX_RUNNING);
     sx1276_set_op_mode(dev, SX1276_RF_OPMODE_TRANSMITTER);
@@ -204,6 +207,7 @@ static int _recv(netdev2_t *netdev, void *buf, size_t len, void *info)
             sx1276_set_status(dev,  SX1276_RF_IDLE);
         }
 
+        xtimer_remove(&dev->_internal.rx_timeout_timer);
         return -EBADMSG;
     }
 
@@ -255,6 +259,7 @@ static int _recv(netdev2_t *netdev, void *buf, size_t len, void *info)
         sx1276_set_status(dev,  SX1276_RF_IDLE);
     }
 
+    xtimer_remove(&dev->_internal.rx_timeout_timer);
     /* Read the last packet from FIFO */
     uint8_t last_rx_addr = sx1276_reg_read(dev, SX1276_REG_LR_FIFORXCURRENTADDR);
     sx1276_reg_write(dev, SX1276_REG_LR_FIFOADDRPTR, last_rx_addr);

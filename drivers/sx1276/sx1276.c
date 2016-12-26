@@ -104,6 +104,29 @@ static inline uint8_t sx1276_get_pa_select(uint32_t channel)
     }
 }
 
+static void _on_tx_timeout(void *arg)
+{
+    sx1276_t *dev = (sx1276_t *) arg;
+
+    netdev->event_callback(netdev, NETDEV2_EVENT_TX_TIMEOUT);
+}
+
+static void _on_rx_timeout(void *arg)
+{
+    sx1276_t *dev = (sx1276_t *) arg;
+
+    netdev->event_callback(netdev, NETDEV2_EVENT_RX_TIMEOUT);
+}
+
+static void _init_timers(sx1276_t *dev)
+{
+    dev->_internal.tx_timeout_timer.arg = dev;
+    dev->_internal.tx_timeout_timer.callback = _on_tx_timeout;
+
+    dev->_internal.rx_timeout_timer.arg = dev;
+    dev->_internal.rx_timeout_timer.callback = _on_rx_timeout;
+}
+
 static int _init_peripherals(sx1276_t *dev)
 {
     int res;
@@ -141,6 +164,7 @@ sx1276_init_result_t sx1276_init(sx1276_t *dev)
     }
 
     _init_isrs(dev);
+    _init_timers(dev);
 
     /* Check presence of SX1276 */
     if (!sx1276_test(dev)) {
@@ -479,6 +503,10 @@ void sx1276_send(sx1276_t *dev, uint8_t *buffer, uint8_t size)
 
 void sx1276_set_sleep(sx1276_t *dev)
 {
+    /* Disable running timers */
+    xtimer_remove(&dev->_internal.tx_timeout_timer);
+    xtimer_remove(&dev->_internal.rx_timeout_timer);
+
     /* Put chip into sleep */
     sx1276_set_op_mode(dev, SX1276_RF_OPMODE_SLEEP);
     sx1276_set_status(dev,  SX1276_RF_IDLE);
@@ -486,11 +514,15 @@ void sx1276_set_sleep(sx1276_t *dev)
 
 void sx1276_set_standby(sx1276_t *dev)
 {
+    /* Disable running timers */
+    xtimer_remove(&dev->_internal.tx_timeout_timer);
+    xtimer_remove(&dev->_internal.rx_timeout_timer);
+
     sx1276_set_op_mode(dev, SX1276_RF_OPMODE_STANDBY);
     sx1276_set_status(dev,  SX1276_RF_IDLE);
 }
 
-void sx1276_set_rx(sx1276_t *dev)
+void sx1276_set_rx(sx1276_t *dev, uint32_t timeout)
 {
     bool rx_continuous = false;
 
@@ -593,6 +625,9 @@ void sx1276_set_rx(sx1276_t *dev)
         sx1276_set_op_mode(dev, SX1276_RF_LORA_OPMODE_RECEIVER);
     }
     else {
+        if (timeout != 0) {
+            xtimer_set(&(dev->_internal.rx_timeout_timer), timeout);
+        }
         sx1276_set_op_mode(dev, SX1276_RF_LORA_OPMODE_RECEIVER_SINGLE);
     }
 }
@@ -762,6 +797,7 @@ void sx1276_on_dio0(void *arg)
             }
             break;
         case SX1276_RF_TX_RUNNING:
+            xtimer_remove(&dev->_internal.tx_timeout_timer);
             sx1276_reg_write(dev, SX1276_REG_LR_IRQFLAGS, SX1276_RF_LORA_IRQFLAGS_TXDONE);   /* Clear IRQ */
             sx1276_set_status(dev,  SX1276_RF_IDLE);
 
@@ -781,8 +817,8 @@ void sx1276_on_dio1(void *arg)
         case SX1276_RF_RX_RUNNING:
             switch (dev->settings.modem) {
                 case SX1276_MODEM_LORA:
+                    xtimer_remove(&dev->_internal.rx_timeout_timer);
                     sx1276_set_status(dev,  SX1276_RF_IDLE);
-
                     break;
                 default:
                     break;
