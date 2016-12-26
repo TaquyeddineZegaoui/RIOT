@@ -485,37 +485,6 @@ void event_handler_thread(void *arg, sx1276_event_type_t event_type)
     }
 }
 
-void init_radio(void)
-{
-    sx1276_lora_settings_t settings_lora;
-    sx1276_settings_t settings;
-
-    sx1276.nss_pin = SX1276_SPI_NSS;
-    sx1276.spi = SX1276_SPI;
-
-    sx1276.dio0_pin = SX1276_DIO0;
-    sx1276.dio1_pin = SX1276_DIO1;
-    sx1276.dio2_pin = SX1276_DIO2;
-    sx1276.dio3_pin = SX1276_DIO3;
-
-    sx1276.dio4_pin = (gpio_t) NULL;
-    sx1276.dio5_pin = (gpio_t) NULL;
-    sx1276.reset_pin = (gpio_t) SX1276_RESET;
-
-    //settings.channel = RF_FREQUENCY;
-    settings.modem = SX1276_MODEM_LORA;
-    settings.state = SX1276_RF_IDLE;
-    settings.lora = settings_lora;
-
-    sx1276.settings = settings;
-    sx1276.sx1276_event_cb = event_handler_thread;
-
-    /* Launch initialization of driver and device */
-    puts("init_radio: initializing driver...");
-
-    puts("init_radio: sx1276 initialization done");
-}
-
 /**
  * Main application entry point.
  */
