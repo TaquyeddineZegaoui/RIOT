@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Cr0s
+ * Copyright (C) 2016 Unwired Devices [info@unwds.com]
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -12,12 +12,13 @@
  * @{
  * @file
  * @brief       Public interface for SX1276 driver
- * @author      Cr0s
+ * @author      Eugene P. [ep@unwds.com]
  */
 
 #include "periph/gpio.h"
 #include "periph/spi.h"
 #include "xtimer.h"
+#include "net/netdev2.h"
 
 #ifndef SX1276_H
 #define SX1276_H
@@ -25,9 +26,30 @@
 #define SX1276_RADIO_WAKEUP_TIME                           1000        /**< [us] */
 #define SX1276_RX_BUFFER_SIZE                              256
 #define SX1276_RF_MID_BAND_THRESH                          525000000
-#define SX1276_CHANNEL_HF                                  915000000
+#define SX1276_CHANNEL_HF                                  868000000
 
 #define SX1276_EVENT_HANDLER_STACK_SIZE 2048
+
+#define SX1276_IRQ_DIO0 (1<<0)
+#define SX1276_IRQ_DIO1 (1<<1)
+#define SX1276_IRQ_DIO2 (1<<2)
+#define SX1276_IRQ_DIO3 (1<<3)
+#define SX1276_IRQ_DIO4 (1<<4)
+#define SX1276_IRQ_DIO5 (1<<5)
+
+/**
+ * @name SX1276 configuration
+ * @{
+ */
+#define RF_FREQUENCY                                915000000   // Hz, 868.9MHz
+
+#define TX_OUTPUT_POWER                             10          // dBm
+
+#define LORA_PREAMBLE_LENGTH                        8           // Same for Tx and Rx
+#define LORA_SYMBOL_TIMEOUT                         10          // Symbols
+
+#define LORA_FIX_LENGTH_PAYLOAD_ON                  false
+#define LORA_IQ_INVERSION                           false
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,7 +59,8 @@ extern "C" {
  * Radio driver supported modems.
  */
 typedef enum {
-    SX1276_MODEM_FSK = 0, SX1276_MODEM_LORA,
+    SX1276_MODEM_FSK = 0, 
+    SX1276_MODEM_LORA,
 } sx1276_radio_modems_t;
 
 /**
@@ -107,7 +130,12 @@ typedef struct {
  * Radio driver internal state machine states definition.
  */
 typedef enum {
-    SX1276_RF_IDLE = 0, SX1276_RF_RX_RUNNING, SX1276_RF_TX_RUNNING, SX1276_RF_CAD,
+    SX1276_RF_IDLE = 0,
+    
+    SX1276_RF_RX_RUNNING,
+    SX1276_RF_TX_RUNNING,
+    
+    SX1276_RF_CAD,
 } sx1276_radio_state_t;
 
 /**
@@ -140,24 +168,14 @@ typedef enum {
  */
 typedef struct {
     /* Data that will be passed to events handler in application */
-    sx1276_rx_packet_t last_packet;         /**< Last packet that was received */
     uint32_t last_channel;                  /**< Last channel in frequency hopping sequence */
     bool is_last_cad_success;               /**< Sign of success of last CAD operation (activity detected) */
-
-    /* DIO lines events handler outside ISR context */
-    kernel_pid_t dio_polling_thread_pid;            /**< SX1276 DIO interrupt lines handler thread PID */
-    /**< SX1276 DIO interrupt lines events handler stack */
-    uint8_t dio_polling_thread_stack[SX1276_EVENT_HANDLER_STACK_SIZE];
-
-    /* Timers */
-    xtimer_t tx_timeout_timer;              /**< TX operation timeout timer */
-    xtimer_t rx_timeout_timer;              /**< RX operation timeout timer */
 } sx1276_internal_t;
 
 /**
  * SX1276 hardware and global parameters.
  */
-typedef struct sx1276_s {
+typedef struct {
     spi_t spi;                                                          /**< SPI */
     gpio_t nss_pin;                                                     /**< SPI NSS pin */
 
@@ -169,10 +187,15 @@ typedef struct sx1276_s {
     gpio_t dio4_pin;                                                    /**< Interrupt line DIO4 (not used) */
     gpio_t dio5_pin;                                                    /**< Interrupt line DIO5 (not used) */
 
-    sx1276_settings_t settings;                                         /**< Transceiver settings */
+} sx1276_params_t;
 
-    void (*sx1276_event_cb)(void *dev, sx1276_event_type_t event_type); /**< Event callback */
-    void *callback_arg;                                                 /**< User-defined callback argument */
+typedef uint8_t sx1276_flags_t;
+
+typedef struct sx1276_s {
+    netdev2_t netdev;
+    sx1276_settings_t settings;                                         /**< Transceiver settings */
+    sx1276_params_t params;
+    sx1276_flags_t irq;
 
     sx1276_internal_t _internal;                                        /**< Internal sx1276 data used within the driver */
 } sx1276_t;
@@ -237,6 +260,13 @@ sx1276_radio_state_t sx1276_get_status(sx1276_t *dev);
 void sx1276_set_modem(sx1276_t *dev, sx1276_radio_modems_t modem);
 
 /**
+ * @brief Gets the channel frequency.
+ *
+ * @param	[IN]	dev		The sx1276 device structure pointer
+ */
+
+uint32_t sx1276_get_channel(sx1276_t *dev);
+/**
  * @brief Sets the channel frequency.
  *
  * @param	[IN]	dev		The sx1276 device structure pointer
@@ -253,18 +283,6 @@ void sx1276_set_channel(sx1276_t *dev, uint32_t freq);
  * @return channel is free or not [true: channel is free, false: channel is not free]
  */
 bool sx1276_is_channel_free(sx1276_t *dev, uint32_t freq, int16_t rssi_thresh);
-
-/**
- * @brief generates 32 bits random value based on the RSSI readings
- * This function sets the radio in LoRa mode and disables all interrupts from it.
- * After calling this function either sx1276_set_rx_config or sx1276_set_tx_config
- * functions must be called.
- *
- * @param	[IN]	dev		The sx1276 device structure pointer
- *
- * @return random 32 bits value
- */
-uint32_t sx1276_random(sx1276_t *dev);
 
 /**
  * @brief Sets up the LoRa modem configuration.
@@ -345,7 +363,7 @@ void sx1276_set_standby(sx1276_t *dev);
  *
  * @param	[IN]	timeout	reception timeout [us] [0: continuous, others: timeout]
  */
-void sx1276_set_rx(sx1276_t *dev, uint32_t timeout);
+void sx1276_set_rx(sx1276_t *dev);
 
 /**
  * @brief Sets the radio in transmission mode for given amount of time.
@@ -374,56 +392,6 @@ void sx1276_start_cad(sx1276_t *dev);
 int16_t sx1276_read_rssi(sx1276_t *dev);
 
 /**
- * @brief Writes the radio register at specified address.
- *
- * @param	[IN]	dev		The sx1276 device structure pointer
- *
- * @param	[IN]	addr Register address
- *
- * @param	[IN]	data New register value
- */
-void sx1276_reg_write(sx1276_t *dev, uint8_t addr, uint8_t data);
-
-/**
- * @brief Reads the radio register at specified address.
- *
- * @param	[IN]	dev		The sx1276 device structure pointer
- *
- * @param	[IN]	addr	Register address
- *
- * @return	Register value
- */
-uint8_t sx1276_reg_read(sx1276_t *dev, uint8_t addr);
-
-/**
- * @brief Writes multiple radio registers starting at address (burst-mode).
- *
- * @param	[IN]	dev		The sx1276 device structure pointer
- *
- * @param	[IN]	addr	First radio register address
- *
- * @param	[IN]	buffer	buffer containing the new register's values
- *
- * @param	[IN]	size	Number of registers to be written
- */
-void sx1276_reg_write_burst(sx1276_t *dev, uint8_t addr, uint8_t *buffer,
-                            uint8_t size);
-
-/**
- * @brief Reads multiple radio registers starting at address.
- *
- * @param	[IN]	dev		The sx1276 device structure pointer
- *
- * @param	[IN]	addr	First radio register address
- *
- * @param	[OUT]	bufer	Buffer where to copy registers data
- *
- * @param	[IN]	size	Number of registers to be read
- */
-void sx1276_reg_read_burst(sx1276_t *dev, uint8_t addr, uint8_t *buffer,
-                           uint8_t size);
-
-/**
  * @brief Sets the maximum payload length.
  *
  * @param	[IN]	dev		The sx1276 device structure pointer
@@ -441,6 +409,44 @@ void sx1276_set_max_payload_len(sx1276_t *dev, sx1276_radio_modems_t modem, uint
  */
 void *dio_polling_thread(void *arg);
 
+void sx1276_on_dio0(void *arg);
+void sx1276_on_dio1(void *arg);
+void sx1276_on_dio2(void *arg);
+void sx1276_on_dio3(void *arg);
+void sx1276_on_dio4(void *arg);
+void sx1276_on_dio5(void *arg);
+void sx1276_on_dio6(void *arg);
+
+void sx1276_set_status(sx1276_t *dev, sx1276_radio_state_t state);
+
+/**
+ * @brief Sets the SX1276 operating mode
+ *
+ * @param [IN] op_mode New operating mode
+ */
+void sx1276_set_op_mode(sx1276_t *dev, uint8_t op_mode);
+
+/**
+ * @brief Gets the SX1276 operating mode
+ */
+uint8_t sx1276_get_op_mode(sx1276_t *dev);
+
+
+/**
+ * @brief Resets the SX1276
+ */
+void sx1276_reset(sx1276_t *dev);
+
+void init_configs(sx1276_t *dev);
+
+sx1276_lora_bandwidth_t sx1276_get_bandwidth(sx1276_t *dev);
+
+sx1276_lora_spreading_factor_t sx1276_get_spreading_factor(sx1276_t *dev);
+
+sx1276_lora_coding_rate_t sx1276_get_coding_rate(sx1276_t *dev);
+
+void sx1276_set_rx_single(sx1276_t *dev, uint8_t single);
+uint8_t sx1276_get_rx_single(sx1276_t *dev);
 #ifdef __cplusplus
 }
 #endif

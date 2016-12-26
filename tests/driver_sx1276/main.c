@@ -33,109 +33,19 @@
 
 #include "board.h"
 
-#include "sx1276_regs_lora.h"
-#include "sx1276_regs_fsk.h"
+#include "sx1276_internal.h"
+#include "sx1276_params.h"
+#include "sx1276_netdev.h"
+#include "net/gnrc/netdev2.h"
+#include "net/netdev2.h"
 
-void init_configs(void)
-{
-    sx1276_lora_settings_t settings;
+#define GNRC_LORA_MSG_QUEUE 16
 
-    settings.bandwidth = SX1276_BW_125_KHZ;
-    settings.coderate = SX1276_CR_4_5;
-    settings.datarate = SX1276_SF12;
-    settings.crc_on = true;
-    settings.freq_hop_on = false;
-    settings.hop_period = 0;
-    settings.implicit_header = false;
-    settings.iq_inverted = false;
-    settings.low_datarate_optimize = false;
-    settings.payload_len = 0;
-    settings.power = 14;
-    settings.preamble_len = LORA_PREAMBLE_LENGTH;
-    settings.rx_continuous = true;
-    settings.tx_timeout = 1000 * 1000 * 30; // 30 sec
-    settings.rx_timeout = LORA_SYMBOL_TIMEOUT;
-
-    sx1276_configure_lora(&sx1276, &settings);
-
-    sx1276_set_channel(&sx1276, 915000000);
-}
-
-void event_handler_thread(void *arg, sx1276_event_type_t event_type)
-{
-	sx1276_rx_packet_t *packet = (sx1276_rx_packet_t *) &sx1276._internal.last_packet;
-
-	switch (event_type) {
-		case SX1276_RX_DONE:
-			printf("RX: %u bytes: '%s' | RSSI: %d\n",
-				   packet->size,
-				   packet->content,
-				   packet->rssi_value);
-
-			break;
-
-		case SX1276_RX_ERROR_CRC:
-			puts("sx1276: RX CRC failed");
-			break;
-
-		case SX1276_TX_DONE:
-			puts("sx1276: transmission done.");
-			break;
-
-		case SX1276_RX_TIMEOUT:
-			puts("sx1276: RX timeout");
-			break;
-
-		case SX1276_TX_TIMEOUT:
-			puts("sx1276: TX timeout");
-			break;
-
-		default:
-			printf("sx1276: received event #%d\n", (int) event_type);
-			break;
-	}
-}
-
-void init_radio(void)
-{
-    sx1276.nss_pin = SX1276_SPI_NSS;
-    sx1276.spi = SX1276_SPI;
-
-    sx1276.dio0_pin = SX1276_DIO0;
-    sx1276.dio1_pin = SX1276_DIO1;
-    sx1276.dio2_pin = SX1276_DIO2;
-    sx1276.dio3_pin = SX1276_DIO3;
-
-    sx1276.dio4_pin = (gpio_t) NULL;
-    sx1276.dio5_pin = (gpio_t) NULL;
-    sx1276.reset_pin = (gpio_t) SX1276_RESET;
-
-    sx1276_settings_t settings;
-    settings.channel = RF_FREQUENCY;
-    settings.modem = SX1276_MODEM_LORA;
-    settings.state = SX1276_RF_IDLE;
-
-    sx1276.settings = settings;
-
-    sx1276.sx1276_event_cb = event_handler_thread;
-
-    /* Launch initialization of driver and device */
-    puts("init_radio: initializing driver...");
-    sx1276_init(&sx1276);
-
-    /* Configure the device */
-    init_configs();
-
-    /* Put chip into sleep */
-    sx1276_set_sleep(&sx1276);
-
-    puts("init_radio: sx1276 initialization done");
-}
-
+static netdev2_t *nd;
 int random(int argc, char **argv)
 {
-    printf("random: number from sx1276: %u\n", (unsigned int) sx1276_random(&sx1276));
-    init_configs();
+    printf("random: number from sx1276: %u\n", (unsigned int) sx1276_random((sx1276_t*) nd));
+    init_configs((sx1276_t*) nd);
 
     return 0;
 }
@@ -219,25 +129,15 @@ int tx_test(int argc, char **argv)
 
     printf("tx_test: sending \"%s\" payload (%d bytes)\n", argv[1], strlen(argv[1]) + 1);
 
-    sx1276_send(&sx1276, (uint8_t *) argv[1], strlen(argv[1]) + 1);
-
+     
+    struct iovec vec[1];
+    vec[0].iov_base = argv[1];
+    vec[0].iov_len = strlen(argv[1]) + 1;
+    nd->driver->send(nd, vec, 1); 
+    
     xtimer_usleep(10000); /* wait for the chip */
 
     puts("tx_test: sended");
-
-    return 0;
-}
-
-int channel(int argc, char **argv)
-{
-    if (argc <= 1) {
-        puts("tx_test: payload is not specified");
-        return -1;
-    }
-
-    sx1276_set_channel(&sx1276, atol(argv[1]));
-
-    printf("Frequency set: %lu \n", atol(argv[1]));
 
     return 0;
 }
@@ -273,9 +173,31 @@ int regs_set(int argc, char **argv)
 
 }
 
+int config_channel(int argc, char **argv)
+{
+    if(argc < 2)
+        return -1;
+    uint32_t chan;
+    if(strstr(argv[1], "get") != NULL)
+    {
+        nd->driver->get(nd, NETOPT_CHANNEL, &chan, sizeof(uint32_t));
+        printf("Channel: %i\n", (int) chan);
+    }
+    else
+    {
+        if(argc < 3)
+            return -1;
+        chan = atoi(argv[2]);
+        nd->driver->set(nd, NETOPT_CHANNEL, &chan, sizeof(uint32_t));
+        printf("Channel set\n");
+    }
+    return 0;
+}
+
 int rx_test(int argc, char **argv)
 {
-    sx1276_set_rx(&sx1276, 1000 * 1000 * 5); // 5 sec timeout
+    nd->driver->set(nd, NETOPT_LORA_SINGLE_RECEIVE, false, sizeof(uint8_t));
+    sx1276_set_rx(&sx1276);
 
     return 0;
 }
@@ -340,20 +262,103 @@ static const shell_command_t shell_commands[] = {
     { "set", "<num> <value> - sets value of register with specified number", regs_set },
     { "tx_test", "<payload> Send test payload string", tx_test },
     { "rx_test", "Start rx test", rx_test },
+    { "channel", "Set frequency (in Hz)", config_channel },
 	{ "lora_setup", "<BW (125, 250, 512)> <SF (7..12)> <CR 4/(5,6,7,8)> - sets up LoRa modulation settings", lora_setup},
-    { "channel", "Set Frequency", channel},
 
     { NULL, NULL, NULL }
 };
 
-void sx1276_reset(sx1276_t *sx1276);
-void sx1276_set_op_mode(sx1276_t *sx1276, int opmode);
+void *_event_loop(void *arg)
+{
+    static msg_t _msg_q[GNRC_LORA_MSG_QUEUE];
+    msg_t msg, reply;
+    netdev2_t *netdev = (netdev2_t*) arg;
+    msg_init_queue(_msg_q, GNRC_LORA_MSG_QUEUE);
+
+    gnrc_netapi_opt_t *opt;
+    int res;
+
+    while (1) {
+        msg_receive(&msg);
+        switch (msg.type) {
+            case NETDEV2_MSG_TYPE_EVENT:
+                netdev->driver->isr(netdev);
+                break;
+            case GNRC_NETAPI_MSG_TYPE_SND:
+                //gnrc_pktsnip_t *pkt = msg.content.ptr;
+                //gnrc_netdev2->send(gnrc_netdev2, pkt);
+                break;
+            case GNRC_NETAPI_MSG_TYPE_SET:
+                /* read incoming options */
+                opt = msg.content.ptr;
+                /* set option for device driver */
+                res = netdev->driver->set(netdev, opt->opt, opt->data, opt->data_len);
+                /* send reply to calling thread */
+                reply.type = GNRC_NETAPI_MSG_TYPE_ACK;
+                reply.content.value = (uint32_t)res;
+                msg_reply(&msg, &reply);
+                break;
+            case GNRC_NETAPI_MSG_TYPE_GET:
+                /* read incoming options */
+                opt = msg.content.ptr;
+                /* get option from device driver */
+                res = netdev->driver->get(netdev, opt->opt, opt->data, opt->data_len);
+                /* send reply to calling thread */
+                reply.type = GNRC_NETAPI_MSG_TYPE_ACK;
+                reply.content.value = (uint32_t)res;
+                msg_reply(&msg, &reply);
+                break;
+            default:
+                break;
+        }
+    }
+    return NULL;
+}
+
+static char message[32];
+static void _event_cb(netdev2_t *dev, netdev2_event_t event)
+{
+    msg_t msg;
+    msg.type = NETDEV2_MSG_TYPE_EVENT;
+    kernel_pid_t *pid = (kernel_pid_t*) dev->context;
+    size_t len;
+    struct netdev2_radio_rx_info rx_info;
+    switch(event)
+    {
+        case NETDEV2_EVENT_ISR:
+            msg_send(&msg, *pid);
+            break;
+        case NETDEV2_EVENT_TX_COMPLETE:
+            printf("TX DONE\n");
+            break;
+        case NETDEV2_EVENT_RX_COMPLETE:
+            len = dev->driver->recv(dev, NULL, 5, &rx_info);
+            dev->driver->recv(dev, message, len, NULL);
+            printf("%s\n. {RSSI: %i, SNR: %i}", message, rx_info.rssi, (signed int) rx_info.lqi);
+        default:
+            break;
+    }
+}
+
+#define SX1276_MAC_STACKSIZE    (THREAD_STACKSIZE_DEFAULT)
+
+static char stack[SX1276_MAC_STACKSIZE];
 
 int main(void)
 {
     xtimer_init();
-    init_radio();
 
+    memcpy(&sx1276.params, sx1276_params, sizeof(sx1276_params));
+    netdev2_t *netdev = (netdev2_t*) &sx1276;
+    nd = netdev;
+    netdev->driver = &sx1276_driver;
+    netdev->driver->init(netdev);
+    netdev->event_callback = _event_cb;
+
+    kernel_pid_t pid;
+    pid = thread_create(stack, sizeof(stack), THREAD_PRIORITY_MAIN - 5, THREAD_CREATE_STACKTEST,
+                     _event_loop, (void *) netdev, "asd");
+    netdev->context = &pid;
     /* start the shell */
     puts("Initialization successful - starting the shell now");
     char line_buf[SHELL_DEFAULT_BUFSIZE];

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) Cr0s
+ * Copyright (C) Unwired Devices [info@unwds.com]
  *
  * This file is subject to the terms and conditions of the GNU Lesser
  * General Public License v2.1. See the file LICENSE in the top level
@@ -13,7 +13,7 @@
  * @file
  * @brief   Common header for sx1276 tests
  *
- * @author  Cr0s
+ * @author  Eugene P. [ep@unwds.com]
  */
 #ifndef COMMON_H_
 #define COMMON_H_
@@ -26,44 +26,6 @@
 extern "C" {
 #endif
 
-/**
- * @name SX1276 configuration
- * @{
- */
-#define RF_FREQUENCY                                915000000   // Hz, 915MHz
-
-#define TX_OUTPUT_POWER                             10          // dBm
-
-#define LORA_PREAMBLE_LENGTH                        8           // Same for Tx and Rx
-#define LORA_SYMBOL_TIMEOUT                         10          // Symbols
-
-#define LORA_FIX_LENGTH_PAYLOAD_ON                  false
-#define LORA_IQ_INVERSION                           false
-
-#define SX1276_DIO0 GPIO_PIN(PA, 13)
-#define SX1276_DIO1 GPIO_PIN(PA, 7)
-#define SX1276_DIO2 GPIO_PIN(PA, 6)
-#define SX1276_DIO3 GPIO_PIN(PA, 18)
-
-#define SX1276_RESET GPIO_PIN(PA, 28)
-
-/** SX1276 SPI */
-
-#define USE_SPI_1
-
-#ifdef USE_SPI_1
-#define SX1276_SPI SPI_1
-#define SX1276_SPI_NSS GPIO_PIN(PA, 19)
-#define SX1276_SPI_MODE SPI_CONF_FIRST_RISING
-#define SX1276_SPI_SPEED SPI_SPEED_1MHZ
-#endif
-
-#ifdef USE_SPI_0
-#define SX1276_SPI SPI_0
-#define SX1276_SPI_NSS GPIO_PIN(PA, 4)
-#define SX1276_SPI_MODE SPI_CONF_FIRST_RISING
-#define SX1276_SPI_SPEED SPI_SPEED_1MHZ
-#endif
 
 sx1276_t sx1276;
 
@@ -72,7 +34,6 @@ void init_radio(void);
 /**
  * @brief   Application-internal functions and variables for sx1276 tests
  * @internal
-
  * @{
  */
 

@@ -247,6 +247,11 @@ typedef enum {
      *
      * @note    Interfaces are not meant to respond to that.
      */
+    NETOPT_LORA_BANDWIDTH,   /**< bandwidth of LoRa */
+    NETOPT_LORA_SPREADING_FACTOR, /**< spreading factor of LoRa */
+    NETOPT_LORA_CODING_RATE,  /**< coding rate of LoRa */
+    NETOPT_LORA_SINGLE_RECEIVE, /**< when enabled, RX is turned of upon reception of a packet */
+    NETOPT_LORA_RX_TIMEOUT, /**< Reception timeout of LoRa packet */
     NETOPT_NUMOF,
 } netopt_t;
 
@@ -277,6 +282,8 @@ typedef enum {
                                  *   transmitting a packet */
     NETOPT_STATE_RESET,         /**< triggers a hardware reset. The resulting
                                  *   state of the network device is @ref NETOPT_STATE_IDLE */
+    NETOPT_STATE_STANDBY,         /**< standby mode. The devices is awake but
+                                 *   not listening to packets. */
     /* add other states if needed */
 } netopt_state_t;
 
