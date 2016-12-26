@@ -106,16 +106,16 @@ static inline uint8_t sx1276_get_pa_select(uint32_t channel)
 
 static void _on_tx_timeout(void *arg)
 {
-    sx1276_t *dev = (sx1276_t *) arg;
+    netdev2_t *dev = (netdev2_t *) arg;
 
-    netdev->event_callback(netdev, NETDEV2_EVENT_TX_TIMEOUT);
+    dev->event_callback(dev, NETDEV2_EVENT_TX_TIMEOUT);
 }
 
 static void _on_rx_timeout(void *arg)
 {
-    sx1276_t *dev = (sx1276_t *) arg;
+    netdev2_t *dev = (netdev2_t *) arg;
 
-    netdev->event_callback(netdev, NETDEV2_EVENT_RX_TIMEOUT);
+    dev->event_callback(dev, NETDEV2_EVENT_RX_TIMEOUT);
 }
 
 static void _init_timers(sx1276_t *dev)
