@@ -350,6 +350,10 @@ static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
             *((uint8_t*) val) = sx1276_get_rx_single((sx1276_t*) netdev);
             return sizeof(uint8_t);
 
+        case NETOPT_LORA_SYNCWORD:
+            *((uint8_t*) val) = sx1276_get_syncword((sx1276_t*) netdev);
+            return sizeof(uint8_t);
+
         default:
             break;
     }
@@ -380,6 +384,10 @@ static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len)
         case NETOPT_CHANNEL:
             sx1276_set_channel((sx1276_t*) netdev, *((uint32_t*) val));
             return sizeof(uint32_t);
+
+        case NETOPT_LORA_SYNCWORD:
+            sx1276_set_syncword((sx1276_t*) netdev, *((uint8_t*) val));
+            return sizeof(uint8_t);
 
         default:
             break;
