@@ -265,6 +265,9 @@ void sx1276_set_modem(sx1276_t *dev, sx1276_radio_modems_t modem);
  * @param	[IN]	dev		The sx1276 device structure pointer
  */
 
+uint8_t sx1276_get_syncword(sx1276_t *dev);
+
+void sx1276_set_syncword(sx1276_t *dev, uint8_t syncword);
 uint32_t sx1276_get_channel(sx1276_t *dev);
 /**
  * @brief Sets the channel frequency.

@@ -32,6 +32,17 @@ uint32_t sx1276_get_channel(sx1276_t *dev)
     return ((sx1276_reg_read(dev, SX1276_REG_FRFMSB) << 16) | (sx1276_reg_read(dev, SX1276_REG_FRFMID) << 8) | sx1276_reg_read(dev, SX1276_REG_FRFLSB)) * SX1276_FREQ_STEP;
 
 }
+
+uint8_t sx1276_get_syncword(sx1276_t *dev)
+{
+    sx1276_reg_read(SX1276_REG_LR_SYNCWORD);
+}
+
+void sx1276_set_syncword(sx1276_t *dev, uint8_t syncword)
+{
+    sx1276_reg_write(SX1276_REG_LR_SYNCWORD, syncword);
+}
+
 void sx1276_set_channel(sx1276_t *dev, uint32_t freq)
 {
     /* Save current operating mode */
