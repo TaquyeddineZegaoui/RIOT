@@ -439,6 +439,7 @@ static void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )
     // ScheduleNextTx = true;
 }
 
+#if 0
 void event_handler_thread(void *arg, sx1276_event_type_t event_type)
 {
     sx1276_rx_packet_t *packet = (sx1276_rx_packet_t *) &sx1276._internal.last_packet;
@@ -484,6 +485,7 @@ void event_handler_thread(void *arg, sx1276_event_type_t event_type)
             break;
     }
 }
+#endif
 
 /**
  * Main application entry point.
