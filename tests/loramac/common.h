@@ -37,7 +37,7 @@ extern "C" {
  * @name SX1276 configuration
  * @{
  */
-#define RF_FREQUENCY                                902900000   // Hz, 915MHz
+//#define RF_FREQUENCY                                902900000   // Hz, 915MHz
 
 #define TX_OUTPUT_POWER                             10          // dBm
 
