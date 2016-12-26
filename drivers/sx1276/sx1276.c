@@ -812,6 +812,7 @@ void sx1276_on_dio1(void *arg)
 {
     /* Get interrupt context */
     sx1276_t *dev = (sx1276_t *) arg;
+    netdev2_t *netdev = &dev->netdev;
 
     switch (dev->settings.state) {
         case SX1276_RF_RX_RUNNING:
@@ -819,6 +820,7 @@ void sx1276_on_dio1(void *arg)
                 case SX1276_MODEM_LORA:
                     xtimer_remove(&dev->_internal.rx_timeout_timer);
                     sx1276_set_status(dev,  SX1276_RF_IDLE);
+                    netdev->event_callback(netdev, NETDEV2_EVENT_RX_TIMEOUT);
                     break;
                 default:
                     break;
