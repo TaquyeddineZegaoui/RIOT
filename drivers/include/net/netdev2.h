@@ -62,6 +62,7 @@ enum {
     NETDEV2_TYPE_ETHERNET,
     NETDEV2_TYPE_IEEE802154,
     NETDEV2_TYPE_CC110X,
+    NETDEV2_TYPE_LORA,
 };
 
 /**
@@ -78,6 +79,8 @@ typedef enum {
     NETDEV2_EVENT_TX_MEDIUM_BUSY,   /**< couldn't transfer packet */
     NETDEV2_EVENT_LINK_UP,          /**< link established */
     NETDEV2_EVENT_LINK_DOWN,        /**< link gone */
+    NETDEV2_EVENT_TX_TIMEOUT,
+    NETDEV2_EVENT_RX_TIMEOUT,
     /* expand this list if needed */
 } netdev2_event_t;
 
@@ -89,6 +92,7 @@ typedef enum {
 struct netdev2_radio_rx_info {
     uint8_t rssi;       /**< RSSI of a received packet */
     uint8_t lqi;        /**< LQI of a received packet */
+    uint8_t snr;
 };
 
 /**
