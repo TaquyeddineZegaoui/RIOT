@@ -35,7 +35,7 @@ uint32_t sx1276_get_channel(sx1276_t *dev)
 
 uint8_t sx1276_get_syncword(sx1276_t *dev)
 {
-    sx1276_reg_read(dev, SX1276_REG_LR_SYNCWORD);
+    return sx1276_reg_read(dev, SX1276_REG_LR_SYNCWORD);
 }
 
 void sx1276_set_syncword(sx1276_t *dev, uint8_t syncword)
