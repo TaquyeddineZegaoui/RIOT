@@ -436,6 +436,7 @@ uint8_t sx1276_get_op_mode(sx1276_t *dev);
  * @brief Resets the SX1276
  */
 void sx1276_reset(sx1276_t *dev);
+uint32_t sx1276_random(sx1276_t *dev);
 
 void init_configs(sx1276_t *dev);
 
