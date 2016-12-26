@@ -208,6 +208,7 @@ static int _recv(netdev2_t *netdev, void *buf, size_t len, void *info)
         }
 
         xtimer_remove(&dev->_internal.rx_timeout_timer);
+        dev->event_callback(dev, NETDEV2_EVENT_CRC_ERROR);
         return -EBADMSG;
     }
 
