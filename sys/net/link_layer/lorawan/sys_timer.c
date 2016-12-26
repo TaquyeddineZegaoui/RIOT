@@ -58,7 +58,7 @@ void TimerSetValue( TimerEvent_t *obj, uint32_t value, uint8_t message_ct)
     if(obj->running)
         xtimer_remove(&(obj->dev));
     obj->timeout = ticks.ticks32;
-    obj->msg.content.value = message_ct;
+    obj->msg.type = message_ct;
 }
 
 TimerTime_t TimerGetCurrentTime( void )

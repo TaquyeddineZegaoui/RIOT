@@ -24,9 +24,6 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jä
 #include "LoRaMacTest.h"
 #include "thread.h"
 
-void *lorawan_thread(void *arg);
-char mac_thread_stack[MAC_EVENT_HANDLER_STACK_SIZE];
-
 
 /*!
  * Maximum PHY layer payload size
@@ -580,32 +577,6 @@ static void OnRadioRxError( void );
  * \brief Function executed on Radio Rx Timeout event
  */
 static void OnRadioRxTimeout( void );
-
-/*!
- * \brief Function executed on Resend Frame timer event.
- */
-static void OnMacStateCheckTimerEvent( void );
-
-/*!
- * \brief Function executed on duty cycle delayed Tx  timer event
- */
-static void OnTxDelayedTimerEvent( void );
-
-/*!
- * \brief Function executed on first Rx window timer event
- */
-static void OnRxWindow1TimerEvent( void );
-
-/*!
- * \brief Function executed on second Rx window timer event
- */
-static void OnRxWindow2TimerEvent( void );
-
-/*!
- * \brief Function executed on AckTimeout timer event
- */
-static void OnAckTimeoutTimerEvent( void );
-
 /*!
  * \brief Searches and set the next random available channel
  *
@@ -875,17 +846,17 @@ static void OnRadioTxDone( void )
 
     if( IsRxWindowsEnabled == true )
     {
-        TimerSetValue( &RxWindowTimer1, RxWindow1Delay, TIMER_RX_WINDOW1);
+        TimerSetValue( &RxWindowTimer1, RxWindow1Delay, LORAWAN_TIMER_RX_WINDOW1);
         TimerStart( &RxWindowTimer1, 0 );
         if( LoRaMacDeviceClass != CLASS_C )
         {
-            TimerSetValue( &RxWindowTimer2, RxWindow2Delay, TIMER_RX_WINDOW2);
+            TimerSetValue( &RxWindowTimer2, RxWindow2Delay, LORAWAN_TIMER_RX_WINDOW2);
             TimerStart( &RxWindowTimer2, 0);
         }
         if( ( LoRaMacDeviceClass == CLASS_C ) || ( NodeAckRequested == true ) )
         {
             TimerSetValue( &AckTimeoutTimer, RxWindow2Delay + ACK_TIMEOUT +
-                                             randr( -ACK_TIMEOUT_RND, ACK_TIMEOUT_RND ), TIMER_ACK_TIMEOUT);
+                                             randr( -ACK_TIMEOUT_RND, ACK_TIMEOUT_RND ), LORAWAN_TIMER_ACK_TIMEOUT);
             TimerStart( &AckTimeoutTimer, 0);
         }
     }
@@ -926,7 +897,7 @@ static void PrepareRxDoneAbort( void )
     LoRaMacFlags.Bits.MacDone = 1;
 
     // Trig OnMacCheckTimerEvent call as soon as possible
-    TimerSetValue( &MacStateCheckTimer, 1 , TIMER_MAC_STATE);
+    TimerSetValue( &MacStateCheckTimer, 1 , LORAWAN_TIMER_MAC_STATE);
     TimerStart( &MacStateCheckTimer, 0);
 }
 
@@ -1322,7 +1293,7 @@ static void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t
     LoRaMacFlags.Bits.MacDone = 1;
 
     // Trig OnMacCheckTimerEvent call as soon as possible
-    TimerSetValue( &MacStateCheckTimer, 1, TIMER_MAC_STATE);
+    TimerSetValue( &MacStateCheckTimer, 1, LORAWAN_TIMER_MAC_STATE);
     TimerStart( &MacStateCheckTimer, 0);
 }
 
@@ -1386,7 +1357,7 @@ static void OnRadioRxTimeout( void )
     }
 }
 
-static void OnMacStateCheckTimerEvent( void )
+void OnMacStateCheckTimerEvent( void )
 {
     TimerStop( &MacStateCheckTimer );
     bool txTimeout = false;
@@ -1539,7 +1510,7 @@ static void OnMacStateCheckTimerEvent( void )
     else
     {
         // Operation not finished restart timer
-        TimerSetValue( &MacStateCheckTimer, MAC_STATE_CHECK_TIMEOUT, TIMER_MAC_STATE);
+        TimerSetValue( &MacStateCheckTimer, MAC_STATE_CHECK_TIMEOUT, LORAWAN_TIMER_MAC_STATE);
         TimerStart( &MacStateCheckTimer, 0);
     }
 
@@ -1550,7 +1521,7 @@ static void OnMacStateCheckTimerEvent( void )
     }
 }
 
-static void OnTxDelayedTimerEvent( void )
+void OnTxDelayedTimerEvent( void )
 {
     LoRaMacHeader_t macHdr;
     LoRaMacFrameCtrl_t fCtrl;
@@ -1575,7 +1546,7 @@ static void OnTxDelayedTimerEvent( void )
     ScheduleTx( );
 }
 
-static void OnRxWindow1TimerEvent( void )
+void OnRxWindow1TimerEvent( void )
 {
     uint16_t symbTimeout = 5; // DR_2, DR_1, DR_0
     int8_t datarate = 0;
@@ -1658,7 +1629,7 @@ static void OnRxWindow1TimerEvent( void )
 #endif
 }
 
-static void OnRxWindow2TimerEvent( void )
+void OnRxWindow2TimerEvent( void )
 {
     uint16_t symbTimeout = 5; // DR_2, DR_1, DR_0
     uint32_t bandwidth = 0; // LoRa 125 kHz
@@ -1730,7 +1701,7 @@ static void OnRxWindow2TimerEvent( void )
     }
 }
 
-static void OnAckTimeoutTimerEvent( void )
+void OnAckTimeoutTimerEvent( void )
 {
     TimerStop( &AckTimeoutTimer );
 
@@ -2694,7 +2665,7 @@ static LoRaMacStatus_t ScheduleTx(void)
     {
         // Send later - prepare timer
         LoRaMacState |= MAC_TX_DELAYED;
-        TimerSetValue( &TxDelayedTimer, dutyCycleTimeOff, TIMER_TX_DELAYED);
+        TimerSetValue( &TxDelayedTimer, dutyCycleTimeOff, LORAWAN_TIMER_TX_DELAYED);
         TimerStart( &TxDelayedTimer, 0);
 
         return LORAMAC_STATUS_OK;
@@ -3085,7 +3056,7 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     MlmeConfirm.TxTimeOnAir = TxTimeOnAir;
 
     // Starts the MAC layer status check timer
-    TimerSetValue( &MacStateCheckTimer, MAC_STATE_CHECK_TIMEOUT, TIMER_MAC_STATE);
+    TimerSetValue( &MacStateCheckTimer, MAC_STATE_CHECK_TIMEOUT, LORAWAN_TIMER_MAC_STATE);
     TimerStart( &MacStateCheckTimer, 0);
 
     // Send now
@@ -3096,7 +3067,7 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     return LORAMAC_STATUS_OK;
 }
 
-LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacCallback_t *callbacks )
+LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacCallback_t *callbacks, kernel_pid_t mac_pid)
 {
     if( primitives == NULL )
     {
@@ -3197,13 +3168,9 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacC
 
     ResetMacParameters( );
 
-    /* Create MAC event lines handler */
-    kernel_pid_t mac_pid = thread_create(mac_thread_stack, sizeof(mac_thread_stack), THREAD_PRIORITY_MAIN - 1,
-                                     THREAD_CREATE_STACKTEST, lorawan_thread, NULL, "Mac Timer's Handler");
-
     // Initialize timers
     TimerInit( &MacStateCheckTimer, OnMacStateCheckTimerEvent, mac_pid );
-    TimerSetValue( &MacStateCheckTimer, MAC_STATE_CHECK_TIMEOUT, TIMER_MAC_STATE);
+    TimerSetValue( &MacStateCheckTimer, MAC_STATE_CHECK_TIMEOUT, LORAWAN_TIMER_MAC_STATE);
 
     TimerInit( &TxDelayedTimer, OnTxDelayedTimerEvent, mac_pid );
     TimerInit( &RxWindowTimer1, OnRxWindow1TimerEvent, mac_pid );
@@ -4065,23 +4032,23 @@ void *lorawan_thread(void *arg)
 
         switch (message_type) 
         {
-            case TIMER_MAC_STATE:
+            case LORAWAN_TIMER_MAC_STATE:
                 OnMacStateCheckTimerEvent();
                 break;
 
-            case TIMER_RX_WINDOW1:
+            case LORAWAN_TIMER_RX_WINDOW1:
                 OnRxWindow1TimerEvent();
                 break;
 
-            case TIMER_RX_WINDOW2:
+            case LORAWAN_TIMER_RX_WINDOW2:
                 OnRxWindow2TimerEvent();
                 break;
 
-            case TIMER_ACK_TIMEOUT:
+            case LORAWAN_TIMER_ACK_TIMEOUT:
                 OnAckTimeoutTimerEvent();
                 break;
 
-            case TIMER_TX_DELAYED:
+            case LORAWAN_TIMER_TX_DELAYED:
                 OnTxDelayedTimerEvent();
                 break;
 

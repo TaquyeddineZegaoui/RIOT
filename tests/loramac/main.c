@@ -41,6 +41,12 @@ Maintainer: Miguel Luis and Gregory Cristian
 #include "sx1276_netdev.h"
 
 #define GNRC_LORA_MSG_QUEUE 16
+
+#define LORAWAN_TX_TIMEOUT_EVENT 10
+#define LORAWAN_RX_TIMEOUT_EVENT 11
+#define LORAWAN_CRC_ERROR 12
+#define LORAWAN_FHSS_CHANGE_CHANNEL 13
+#define LORAWAN_CAD_DONE 14
 /*!
  * Thread Variables and packet count
  */
@@ -453,6 +459,7 @@ void *_event_loop(void *arg)
     msg_init_queue(_msg_q, GNRC_LORA_MSG_QUEUE);
 
     gnrc_netapi_opt_t *opt;
+    RadioEvents_t *events;
     int res;
 
     while (1) {
@@ -485,6 +492,44 @@ void *_event_loop(void *arg)
                 reply.content.value = (uint32_t)res;
                 msg_reply(&msg, &reply);
                 break;
+            case LORAWAN_TX_TIMEOUT_EVENT:
+                puts("sx1276: TX timeout");
+                events = radio_get_event_ptr();
+                events->TxTimeout();
+                break;
+            case LORAWAN_RX_TIMEOUT_EVENT:
+                puts("sx1276: RX timeout");
+                events = radio_get_event_ptr();
+                events->RxTimeout();
+                break;
+            case LORAWAN_CRC_ERROR:
+                puts("sx1276: RX CRC_ERROR");
+                events = radio_get_event_ptr();
+                events->RxError();
+                break;
+            case LORAWAN_FHSS_CHANGE_CHANNEL:
+                events = radio_get_event_ptr();
+                events->FhssChangeChannel(sx1276._internal.last_channel);
+                break;
+            case LORAWAN_CAD_DONE:
+                events = radio_get_event_ptr();
+                events->CadDone(sx1276._internal.is_last_cad_success);
+                break;
+            case LORAWAN_TIMER_MAC_STATE:
+                OnMacStateCheckTimerEvent();
+                break;
+            case LORAWAN_TIMER_RX_WINDOW1:
+                OnRxWindow1TimerEvent();
+                break;
+            case LORAWAN_TIMER_RX_WINDOW2:
+                OnRxWindow2TimerEvent();
+                break;
+            case LORAWAN_TIMER_ACK_TIMEOUT:
+                OnAckTimeoutTimerEvent();
+                break;
+            case LORAWAN_TIMER_TX_DELAYED:
+                OnTxDelayedTimerEvent();
+                break;
             default:
                 break;
         }
@@ -513,10 +558,9 @@ static void _event_cb(netdev2_t *dev, netdev2_event_t event)
             events->TxDone();
             break;
         case NETDEV2_EVENT_TX_TIMEOUT:
-            puts("sx1276: TX timeout");
-            events->TxTimeout();
+            msg.type = LORAWAN_TX_TIMEOUT_EVENT;
+            msg_send(&msg, *pid);
             break;
-
         case NETDEV2_EVENT_RX_COMPLETE:
             len = dev->driver->recv(dev, NULL, 5, &rx_info);
             dev->driver->recv(dev, message, len, NULL);
@@ -525,19 +569,20 @@ static void _event_cb(netdev2_t *dev, netdev2_event_t event)
             events->RxDone(message, len, (signed int) rx_info.rssi, (signed int) rx_info.lqi);
             break;
         case NETDEV2_EVENT_RX_TIMEOUT:
-            puts("sx1276: RX timeout");
-            events->RxTimeout();
+            msg.type = LORAWAN_RX_TIMEOUT_EVENT;
+            msg_send(&msg, *pid);
             break;
-
         case NETDEV2_EVENT_CRC_ERROR:
-            puts("sx1276: RX CRC_ERROR");
-            events->RxError();
+            msg.type = LORAWAN_CRC_ERROR;
+            msg_send(&msg, *pid);
             break;
         case NETDEV2_EVENT_FHSS_CHANGE_CHANNEL:
-            events->FhssChangeChannel(sx1276._internal.last_channel);
+            msg.type = LORAWAN_FHSS_CHANGE_CHANNEL;
+            msg_send(&msg, *pid);
             break;
         case NETDEV2_EVENT_CAD_DONE:
-            events->CadDone(sx1276._internal.is_last_cad_success);
+            msg.type = LORAWAN_CAD_DONE;
+            msg_send(&msg, *pid);
             break;
         default:
             break;
@@ -600,7 +645,7 @@ int main( void )
 
     LoRaMacCallbacks.MacEvent = OnMacEvent;
     LoRaMacCallbacks.GetBatteryLevel = board_get_battery_level;
-    LoRaMacInit( &LoRaMacCallbacks );
+    LoRaMacInit( &LoRaMacCallbacks, pid );
 
     IsNetworkJoined = false;
 

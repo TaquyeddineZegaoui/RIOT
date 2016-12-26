@@ -21,6 +21,7 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jä
 
 #include "LoRaMac-api-v3.h"
 #include "LoRaMacTest.h"
+#include "thread.h"
 
 /*!
  *  Extern function declarations.
@@ -134,7 +135,7 @@ static void MlmeConfirm( MlmeConfirm_t *mlmeConfirm )
     }
 }
 
-void LoRaMacInit( LoRaMacCallbacks_t *callbacks )
+void LoRaMacInit( LoRaMacCallbacks_t *callbacks, kernel_pid_t mac_pid)
 {
     LoRaMacPrimitives.MacMcpsConfirm = McpsConfirm;
     LoRaMacPrimitives.MacMcpsIndication = McpsIndication;
@@ -144,7 +145,7 @@ void LoRaMacInit( LoRaMacCallbacks_t *callbacks )
     LoRaMacCallbacks.GetBatteryLevel = callbacks->GetBatteryLevel;
     LoRaMacCallback.GetBatteryLevel = callbacks->GetBatteryLevel;
 
-    LoRaMacInitialization( &LoRaMacPrimitives, &LoRaMacCallback );
+    LoRaMacInitialization( &LoRaMacPrimitives, &LoRaMacCallback, mac_pid);
 }
 
 void LoRaMacSetAdrOn( bool enable )

@@ -49,6 +49,7 @@
 // Includes board dependent definitions such as channels frequencies
 #include "LoRaMac-definitions.h"
 #include "net/lorawan/timer.h"
+#include "thread.h"
 
 #define MAC_EVENT_HANDLER_STACK_SIZE 2048
 
@@ -156,13 +157,11 @@
 /*!
  * Timer message types
  */
-typedef enum {
-    TIMER_MAC_STATE = 0,
-    TIMER_RX_WINDOW1,
-    TIMER_RX_WINDOW2,
-    TIMER_ACK_TIMEOUT,
-    TIMER_TX_DELAYED,
-} timer_msg_type_t;
+#define LORAWAN_TIMER_MAC_STATE 100
+#define LORAWAN_TIMER_RX_WINDOW1 101
+#define LORAWAN_TIMER_RX_WINDOW2 102
+#define LORAWAN_TIMER_ACK_TIMEOUT 103
+#define LORAWAN_TIMER_TX_DELAYED 104
 
 /*!
  * LoRaWAN devices classes definition
@@ -1533,7 +1532,7 @@ typedef struct sLoRaMacCallback
  *          \ref LORAMAC_STATUS_OK,
  *          \ref LORAMAC_STATUS_PARAMETER_INVALID.
  */
-LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacCallback_t *callbacks );
+LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacCallback_t *callbacks , kernel_pid_t mac_pid);
 
 /*!
  * \brief   Queries the LoRaMAC if it is possible to send the next frame with
@@ -1762,6 +1761,32 @@ LoRaMacStatus_t LoRaMacMlmeRequest( MlmeReq_t *mlmeRequest );
  *          \ref LORAMAC_STATUS_DEVICE_OFF.
  */
 LoRaMacStatus_t LoRaMacMcpsRequest( McpsReq_t *mcpsRequest );
+
+
+/*!
+ * \brief Function executed on Resend Frame timer event.
+ */
+void OnMacStateCheckTimerEvent( void );
+
+/*!
+ * \brief Function executed on duty cycle delayed Tx  timer event
+ */
+void OnTxDelayedTimerEvent( void );
+
+/*!
+ * \brief Function executed on first Rx window timer event
+ */
+void OnRxWindow1TimerEvent( void );
+
+/*!
+ * \brief Function executed on second Rx window timer event
+ */
+void OnRxWindow2TimerEvent( void );
+
+/*!
+ * \brief Function executed on AckTimeout timer event
+ */
+void OnAckTimeoutTimerEvent( void );
 
 /*! \} defgroup LORAMAC */
 

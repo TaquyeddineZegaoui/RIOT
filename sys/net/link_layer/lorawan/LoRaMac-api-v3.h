@@ -33,6 +33,7 @@
 
 // Includes board dependent definitions such as channels frequencies
 #include "LoRaMac.h"
+#include "thread.h"
 
 /*!
  * Beacon interval in ms
@@ -198,7 +199,7 @@ typedef struct sLoRaMacCallbacks
  * \param [IN] callbacks     Pointer to a structure defining the LoRaMAC
  *                           callback functions.
  */
-void LoRaMacInit( LoRaMacCallbacks_t *callbacks );
+void LoRaMacInit( LoRaMacCallbacks_t *callbacks, kernel_pid_t mac_pid );
 
 /*!
  * Enables/Disables the ADR (Adaptive Data Rate)
