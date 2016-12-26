@@ -835,6 +835,7 @@ void sx1276_on_dio2(void *arg)
 {
     /* Get interrupt context */
     sx1276_t *dev = (sx1276_t *) arg;
+    netdev2_t *netdev = (netdev2_t*) dev;
 
     switch (dev->settings.state) {
         case SX1276_RF_RX_RUNNING:
@@ -845,8 +846,7 @@ void sx1276_on_dio2(void *arg)
                         sx1276_reg_write(dev, SX1276_REG_LR_IRQFLAGS, SX1276_RF_LORA_IRQFLAGS_FHSSCHANGEDCHANNEL);
 
                         dev->_internal.last_channel = sx1276_reg_read(dev, SX1276_REG_LR_HOPCHANNEL) & SX1276_RF_LORA_HOPCHANNEL_CHANNEL_MASK;
-                        /* TODO: Implement channel change */
-                        //send_event(dev, SX1276_FHSS_CHANGE_CHANNEL);
+                        netdev->event_callback(netdev, NETDEV2_EVENT_FHSS_CHANGE_CHANNEL);
                     }
 
                     break;
@@ -864,8 +864,7 @@ void sx1276_on_dio2(void *arg)
                         sx1276_reg_write(dev, SX1276_REG_LR_IRQFLAGS, SX1276_RF_LORA_IRQFLAGS_FHSSCHANGEDCHANNEL);
 
                         dev->_internal.last_channel = sx1276_reg_read(dev, SX1276_REG_LR_HOPCHANNEL) & SX1276_RF_LORA_HOPCHANNEL_CHANNEL_MASK;
-                        /* TODO: Implement channel change */
-                        //send_event(dev, SX1276_FHSS_CHANGE_CHANNEL);
+                        netdev->event_callback(netdev, NETDEV2_EVENT_FHSS_CHANGE_CHANNEL);
                     }
                     break;
                 default:
@@ -881,6 +880,7 @@ void sx1276_on_dio3(void *arg)
 {
     /* Get interrupt context */
     sx1276_t *dev = (sx1276_t *) arg;
+    netdev2_t *netdev = (netdev2_t *) dev;
 
     switch (dev->settings.modem) {
         case SX1276_MODEM_FSK:
@@ -891,8 +891,7 @@ void sx1276_on_dio3(void *arg)
 
             /* Send event message */
             dev->_internal.is_last_cad_success = (sx1276_reg_read(dev, SX1276_REG_LR_IRQFLAGS) & SX1276_RF_LORA_IRQFLAGS_CADDETECTED) == SX1276_RF_LORA_IRQFLAGS_CADDETECTED;
-            /* TODO: Implement CAD done */
-            //send_event(dev, SX1276_CAD_DONE);
+            netdev->event_callback(netdev, NETDEV2_EVENT_CAD_DONE);
             break;
         default:
             break;
