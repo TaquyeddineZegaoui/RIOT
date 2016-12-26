@@ -36,7 +36,8 @@ void radio_set_event_ptr(RadioEvents_t *events )
 void SX1276Init( RadioEvents_t *events )
 {
     RadioEvents = events;
-    sx1276_init(dev_ptr);
+    //TODO: The final code is not using this function for driver init
+    //sx1276_init(dev_ptr);
 }
 
 RadioState_t SX1276GetStatus( void )
