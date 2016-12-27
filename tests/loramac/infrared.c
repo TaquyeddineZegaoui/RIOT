@@ -102,7 +102,7 @@ uint8_t count_drops (uint32_t sample_time)
             x_0[i] = adc_sample(sensors[i], SENSOR_RES);
         }
 
-        printf("%d %d %d \n", x_0[2], x_0[1], x_0[0]);
+        //printf("%d %d %d \n", x_0[2], x_0[1], x_0[0]);
 		
 		/* Reset agregated dropś*/
         drop_agreg  = 0;
