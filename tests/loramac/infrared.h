@@ -12,7 +12,7 @@
 #include "periph/adc.h"
 
 #define SENSOR_RES          ADC_RES_10BIT
-#define THRESHOLD           50
+#define THRESHOLD           80
 #define NSENSOR           	3
 #define SAMPLE_RATE         (1U* MS_IN_USEC) /* 1 ms */
 
