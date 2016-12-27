@@ -248,6 +248,7 @@ static void PrepareTxFrame( uint8_t port )
             AppData[7] = board_get_battery_level();
 
             printf("DROPS: %d \n", get_drops());
+            printf("BAT: %d \n", (100*board_get_battery_level())/255);
         }
         break;
     case 224:
