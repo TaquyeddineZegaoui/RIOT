@@ -13,7 +13,7 @@ static bool drop_detect(uint8_t *drop_bits, uint8_t last_accum_drop)
 	/* shift's left drop bits and sums last bit accum_drop*/
 	*drop_bits = ((*drop_bits) << 1) | (last_accum_drop & 1);
 	/* see's if sequence is 0x01*/
-	return (*drop_bits & 7) == 1;
+	return (*drop_bits & 7) == 0x07;
 }
 
 static uint8_t atd(uint16_t value)
@@ -91,7 +91,7 @@ uint8_t count_drops (uint32_t sample_time)
     start_ticks =  xtimer_now();
     actual_time = xtimer_now_usec64();
 
-    //puts("start");
+    puts("start");
 
     while( (actual_time - start_time) < sample_time )
     {
@@ -102,7 +102,7 @@ uint8_t count_drops (uint32_t sample_time)
             x_0[i] = adc_sample(sensors[i], SENSOR_RES);
         }
 
-        printf("%d %d %d \n", x_0[2], x_0[1], x_0[0]);
+        //printf("%d %d %d \n", x_0[2], x_0[1], x_0[0]);
 		
 		/* Reset agregated dropś*/
         drop_agreg  = 0;
@@ -115,13 +115,15 @@ uint8_t count_drops (uint32_t sample_time)
 			drop_agreg |= drop_bool;
 		}
 
+		//printf("%d %d %d \n", y[2], y[1], y[0]);
+
 		debouncer = ((debouncer << 1) | drop_detect(&drop_bits, drop_agreg)) & 0x1F;
 
 		/* Filter output drops */
 		if(debouncer == 0x01)
 		{
 			drop_counts++;
-			//printf("Drop: %d \n",drop_counts);
+			printf("Drop: %d \n",drop_counts);
 		}
 		
 		if(drop_counts > 255)
@@ -136,7 +138,7 @@ uint8_t count_drops (uint32_t sample_time)
 	drops.sampled_time = (actual_time - start_time)*1000;
 	drops.number = drop_counts;
 
-	//puts("stop");
+	puts("stop");
 
     INFRARED_OFF;
 
