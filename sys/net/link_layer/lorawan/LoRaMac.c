@@ -852,8 +852,10 @@ static void OnRadioTxDone( void )
         //TimerStart( &RxWindowTimer1, 0 );
         if( LoRaMacDeviceClass != CLASS_C )
         {
-            TimerSetValue( &RxWindowTimer2, RxWindow2Delay, LORAWAN_TIMER_RX_WINDOW2);
-            TimerStart( &RxWindowTimer2, 0);
+            RxWindowTimer2.msg.type = LORAWAN_TIMER_RX_WINDOW2;
+        xtimer_set_msg(&(RxWindowTimer2.dev), xtimer_ticks_from_usec(RxWindow2Delay*1000).ticks32, &(RxWindowTimer2.msg), RxWindowTimer2.pid);
+            //TimerSetValue( &RxWindowTimer2, RxWindow2Delay, LORAWAN_TIMER_RX_WINDOW2);
+            //TimerStart( &RxWindowTimer2, 0);
         }
         if( ( LoRaMacDeviceClass == CLASS_C ) || ( NodeAckRequested == true ) )
         {
