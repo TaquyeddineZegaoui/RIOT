@@ -429,17 +429,17 @@ typedef enum
 /*!
  * Minimal Tx output power that can be used by the node
  */
-#define LORAMAC_MIN_TX_POWER                        TX_POWER_10_DBM
+#define LORAMAC_MIN_TX_POWER                        TX_POWER_14_DBM
 
 /*!
  * Maximal Tx output power that can be used by the node
  */
-#define LORAMAC_MAX_TX_POWER                        TX_POWER_30_DBM
+#define LORAMAC_MAX_TX_POWER                        TX_POWER_14_DBM
 
 /*!
  * Default Tx output power used by the node
  */
-#define LORAMAC_DEFAULT_TX_POWER                    TX_POWER_20_DBM
+#define LORAMAC_DEFAULT_TX_POWER                    TX_POWER_14_DBM
 
 /*!
  * LoRaMac TxPower definition
