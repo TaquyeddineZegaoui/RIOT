@@ -1743,7 +1743,7 @@ static bool SetNextChannel( TimerTime_t* time )
 #endif
 
     // Update Aggregated duty cycle
-    if( AggregatedTimeOff <= TimerGetElapsedTime( AggregatedLastTxDoneTime ) )
+    if( AggregatedTimeOff <= (xtimer_now_usec64()-AggregatedLastTxDoneTime ) )
     {
         AggregatedTimeOff = 0;
 
@@ -1752,14 +1752,14 @@ static bool SetNextChannel( TimerTime_t* time )
         {
             if( DutyCycleOn == true )
             {
-                if( Bands[i].TimeOff <= TimerGetElapsedTime( Bands[i].LastTxDoneTime ) )
+                if( Bands[i].TimeOff <= (xtimer_now_usec64() - Bands[i].LastTxDoneTime ) )
                 {
                     Bands[i].TimeOff = 0;
                 }
                 if( Bands[i].TimeOff != 0 )
                 {
                     nextTxDelay = MIN( Bands[i].TimeOff -
-                                       TimerGetElapsedTime( Bands[i].LastTxDoneTime ),
+                                       (xtimer_now_usec64()- Bands[i].LastTxDoneTime ),
                                        nextTxDelay );
                 }
             }
@@ -1812,7 +1812,7 @@ static bool SetNextChannel( TimerTime_t* time )
     else
     {
         delayTx++;
-        nextTxDelay = AggregatedTimeOff - TimerGetElapsedTime( AggregatedLastTxDoneTime );
+        nextTxDelay = AggregatedTimeOff - (xtimer_now_usec64() - AggregatedLastTxDoneTime );
     }
 
     if( nbEnabledChannels > 0 )
@@ -2677,7 +2677,7 @@ static uint16_t RetransmissionDutyCylce( void )
     uint16_t dutyCycle = 0;
 
 #if defined( USE_BAND_868 ) || defined( USE_BAND_433 ) || defined( USE_BAND_780 )
-    TimerTime_t timeElapsed = TimerGetElapsedTime( 0 );
+    TimerTime_t timeElapsed = xtimer_now_usec64();
 
     if( timeElapsed < 3600000 )
     {

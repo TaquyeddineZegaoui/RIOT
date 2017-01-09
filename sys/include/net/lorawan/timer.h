@@ -99,7 +99,7 @@ TimerTime_t TimerGetElapsedTime( TimerTime_t savedTime );
  * \param [IN] eventInFuture    fix moment in the future
  * \retval time             returns difference between now and future event
  */
-TimerTime_t TimerGetFutureTime( TimerTime_t eventInFuture );
+//TimerTime_t TimerGetFutureTime( TimerTime_t eventInFuture );
 
 /*!
  * \brief Manages the entry into ARM cortex deep-sleep mode

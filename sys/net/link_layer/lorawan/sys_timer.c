@@ -67,11 +67,11 @@ TimerTime_t TimerGetCurrentTime( void )
     return ( ( TimerTime_t )CurrentTime );
 }
  
-TimerTime_t TimerGetElapsedTime( TimerTime_t savedTime )
+/*TimerTime_t TimerGetElapsedTime( TimerTime_t savedTime )
 {
     uint64_t CurrentTime = xtimer_now_usec64();
     return ( TimerTime_t )( CurrentTime - savedTime );
-}
+}*/
  
 TimerTime_t TimerGetFutureTime( TimerTime_t eventInFuture )
 {
