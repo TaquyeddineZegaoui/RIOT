@@ -859,9 +859,11 @@ static void OnRadioTxDone( void )
         }
         if( ( LoRaMacDeviceClass == CLASS_C ) || ( NodeAckRequested == true ) )
         {
-            TimerSetValue( &AckTimeoutTimer, RxWindow2Delay + ACK_TIMEOUT +
-                                             randr( -ACK_TIMEOUT_RND, ACK_TIMEOUT_RND ), LORAWAN_TIMER_ACK_TIMEOUT);
-            TimerStart( &AckTimeoutTimer, 0);
+            AckTimeoutTimer.msg.type = LORAWAN_TIMER_ACK_TIMEOUT;
+            xtimer_set_msg(&(AckTimeoutTimer.dev), xtimer_ticks_from_usec(RxWindow2Delay + ACK_TIMEOUT +           randr( -ACK_TIMEOUT_RND, ACK_TIMEOUT_RND )*1000).ticks32, &(AckTimeoutTimer.msg), AckTimeoutTimer.pid);
+            //TimerSetValue( &AckTimeoutTimer, RxWindow2Delay + ACK_TIMEOUT +
+             //                                randr( -ACK_TIMEOUT_RND, ACK_TIMEOUT_RND ), LORAWAN_TIMER_ACK_TIMEOUT);
+            //TimerStart( &AckTimeoutTimer, 0);
         }
     }
     else
