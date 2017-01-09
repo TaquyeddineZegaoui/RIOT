@@ -30,11 +30,11 @@ void TimerInit( TimerEvent_t *obj, void ( *cb )( void ), kernel_pid_t target_pid
     obj->pid = target_pid;
 }
 
-void TimerReset( TimerEvent_t *obj, uint8_t opt)
+/*void TimerReset( TimerEvent_t *obj, uint8_t opt)
 {
     TimerStop(obj);
     TimerStart(obj, opt);
-}
+}*/
  
 void TimerStart( TimerEvent_t *obj, uint8_t opt)
 {

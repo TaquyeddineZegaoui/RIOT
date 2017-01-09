@@ -68,7 +68,7 @@ void TimerStop( TimerEvent_t *obj );
  *
  * \param [IN] obj Structure containing the timer object parameters
  */
-void TimerReset( TimerEvent_t *obj, uint8_t opt);
+//void TimerReset( TimerEvent_t *obj, uint8_t opt);
 
 /*!
  * \brief Set timer new timeout value
