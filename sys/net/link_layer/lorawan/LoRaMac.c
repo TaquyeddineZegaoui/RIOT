@@ -1900,7 +1900,7 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
         //Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous );
         /* Hack Begin*/
         (void) timeout;
-        Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 8, 64, false, 0, false, 0, 0, true, rxContinuous );
+        Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 8, 128, false, 0, false, 0, 0, true, rxContinuous );
         /* Hack End*/
 
 #endif
