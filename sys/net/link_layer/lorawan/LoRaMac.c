@@ -827,7 +827,7 @@ static void ResetMacParameters( void );
 
 static void OnRadioTxDone( void )
 {
-    TimerTime_t curTime = TimerGetCurrentTime( );
+    TimerTime_t curTime = xtimer_now_usec64();
     if( LoRaMacDeviceClass != CLASS_C )
     {
         Radio.Sleep( );
@@ -846,8 +846,10 @@ static void OnRadioTxDone( void )
 
     if( IsRxWindowsEnabled == true )
     {
-        TimerSetValue( &RxWindowTimer1, RxWindow1Delay, LORAWAN_TIMER_RX_WINDOW1);
-        TimerStart( &RxWindowTimer1, 0 );
+        RxWindowTimer1.msg.type = LORAWAN_TIMER_RX_WINDOW1;
+        xtimer_set_msg(&(RxWindowTimer1.dev), xtimer_ticks_from_usec(RxWindow1Delay*1000).ticks32, &(RxWindowTimer1.msg), RxWindowTimer1.pid);
+        //TimerSetValue( &RxWindowTimer1, RxWindow1Delay, LORAWAN_TIMER_RX_WINDOW1);
+        //TimerStart( &RxWindowTimer1, 0 );
         if( LoRaMacDeviceClass != CLASS_C )
         {
             TimerSetValue( &RxWindowTimer2, RxWindow2Delay, LORAWAN_TIMER_RX_WINDOW2);

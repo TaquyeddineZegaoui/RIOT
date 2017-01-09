@@ -83,7 +83,7 @@ void TimerSetValue( TimerEvent_t *obj, uint32_t value, uint8_t message_ct);
  *
  * \retval time returns current time
  */
-TimerTime_t TimerGetCurrentTime( void );
+//TimerTime_t TimerGetCurrentTime( void );
 
 /*!
  * \brief Return the Time elapsed since a fix moment in Time
@@ -91,7 +91,7 @@ TimerTime_t TimerGetCurrentTime( void );
  * \param [IN] savedTime    fix moment in Time
  * \retval time             returns elapsed time
  */
-TimerTime_t TimerGetElapsedTime( TimerTime_t savedTime );
+//TimerTime_t TimerGetElapsedTime( TimerTime_t savedTime );
 
 /*!
  * \brief Return the Time elapsed since a fix moment in Time

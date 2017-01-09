@@ -61,11 +61,11 @@ void TimerSetValue( TimerEvent_t *obj, uint32_t value, uint8_t message_ct)
     obj->msg.type = message_ct;
 }
 
-TimerTime_t TimerGetCurrentTime( void )
+/*TimerTime_t TimerGetCurrentTime( void )
 {
     uint64_t CurrentTime = xtimer_now_usec64();
     return ( ( TimerTime_t )CurrentTime );
-}
+}*/
  
 /*TimerTime_t TimerGetElapsedTime( TimerTime_t savedTime )
 {
