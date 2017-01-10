@@ -3186,7 +3186,7 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacC
 
     // Initialize timers
     TimerInit( &MacStateCheckTimer, OnMacStateCheckTimerEvent, mac_pid );
-    TimerSetValue( &MacStateCheckTimer, MAC_STATE_CHECK_TIMEOUT, LORAWAN_TIMER_MAC_STATE);
+    //TimerSetValue( &MacStateCheckTimer, MAC_STATE_CHECK_TIMEOUT, LORAWAN_TIMER_MAC_STATE);
 
     TimerInit( &TxDelayedTimer, OnTxDelayedTimerEvent, mac_pid );
     TimerInit( &RxWindowTimer1, OnRxWindow1TimerEvent, mac_pid );
