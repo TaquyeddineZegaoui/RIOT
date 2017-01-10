@@ -36,7 +36,7 @@ void TimerInit( TimerEvent_t *obj, void ( *cb )( void ), kernel_pid_t target_pid
     TimerStart(obj, opt);
 }*/
  
-void TimerStart( TimerEvent_t *obj, uint8_t opt)
+/*void TimerStart( TimerEvent_t *obj, uint8_t opt)
 {
     obj->running = 1;
     if(opt)
@@ -44,6 +44,7 @@ void TimerStart( TimerEvent_t *obj, uint8_t opt)
     else
         xtimer_set_msg (&(obj->dev), obj->timeout, &(obj->msg), obj->pid);
 }
+*/
  
 void TimerStop( TimerEvent_t *obj )
 {
@@ -51,6 +52,7 @@ void TimerStop( TimerEvent_t *obj )
     xtimer_remove(&(obj->dev));
 }
  
+/*
 void TimerSetValue( TimerEvent_t *obj, uint32_t value, uint8_t message_ct)
 {
     xtimer_ticks32_t ticks = xtimer_ticks_from_usec(value*1000);
@@ -60,6 +62,7 @@ void TimerSetValue( TimerEvent_t *obj, uint32_t value, uint8_t message_ct)
     obj->timeout = ticks.ticks32;
     obj->msg.type = message_ct;
 }
+*/
 
 /*TimerTime_t TimerGetCurrentTime( void )
 {

@@ -54,7 +54,7 @@ void TimerIrqHandler( void );
  *
  * \param [IN] obj Structure containing the timer object parameters
  */
-void TimerStart( TimerEvent_t *obj, uint8_t opt);
+//void TimerStart( TimerEvent_t *obj, uint8_t opt);
 
 /*!
  * \brief Stops and removes the timer object from the list of timer events
@@ -76,7 +76,7 @@ void TimerStop( TimerEvent_t *obj );
  * \param [IN] obj   Structure containing the timer object parameters
  * \param [IN] value New timer timeout value
  */
-void TimerSetValue( TimerEvent_t *obj, uint32_t value, uint8_t message_ct);
+//void TimerSetValue( TimerEvent_t *obj, uint32_t value, uint8_t message_ct);
 
 /*!
  * \brief Read the current time
