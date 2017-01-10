@@ -13,7 +13,7 @@ static bool drop_detect(uint8_t *drop_bits, uint8_t last_accum_drop)
 	/* shift's left drop bits and sums last bit accum_drop*/
 	*drop_bits = ((*drop_bits) << 1) | (last_accum_drop & 1);
 	/* see's if sequence is 0x01*/
-	return (*drop_bits & 7) == 1;
+	return (*drop_bits & 7) == 0x07;
 }
 
 static uint8_t atd(uint16_t value)
