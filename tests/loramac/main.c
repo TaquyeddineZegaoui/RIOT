@@ -50,7 +50,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 /*!
  * Thread Variables and packet count
  */
-uint32_t count = 0;
+uint32_t count = 1;
 static sx1276_t sx1276;
 
 static netdev2_t *nd;
@@ -735,6 +735,10 @@ int main( void )
             // Send to sleep if TxDone
             if(IsTxConfirmed == true)
                 TimerLowPowerHandler(OVER_THE_AIR_ACTIVATION_DUTYCYCLE);
+
+            // Reset counters
+            if(IsNetworkJoined == true)
+                count = 1;
 #endif
         }
         
