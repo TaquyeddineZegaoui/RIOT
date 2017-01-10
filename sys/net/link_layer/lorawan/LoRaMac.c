@@ -1418,6 +1418,7 @@ void OnMacStateCheckTimerEvent( void )
                 else
                 {
                     LoRaMacFlags.Bits.MacDone = 0;
+                    #ifdef HACK_OTA
                     /* Hack so retransmited package is re-built*/
                     if(IsLoRaMacNetworkJoined == false)
                     {
@@ -1436,6 +1437,7 @@ void OnMacStateCheckTimerEvent( void )
                         PrepareFrame( &macHdr, &fCtrl, 0, NULL, 0 );
                         /* End of*/
                     }
+                    #endif
                     ScheduleTx( );
                 }
             }
@@ -1906,6 +1908,7 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
 #elif defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
         modem = MODEM_LORA;
 
+        #ifdef HACK_OTA
         /* Hack Begin*/
         if(IsLoRaMacNetworkJoined == false)
         {
@@ -1915,6 +1918,9 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
         else
             Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous );
         /* Hack End*/
+        #else
+            Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous );
+        #endif
 
 #endif
 
