@@ -104,6 +104,6 @@ TimerTime_t TimerGetFutureTime( TimerTime_t eventInFuture );
 /*!
  * \brief Manages the entry into ARM cortex deep-sleep mode
  */
-void TimerLowPowerHandler( uint32_t time );
+uint8_t TimerLowPowerHandler( uint32_t time );
 
 #endif  // __TIMER_H__

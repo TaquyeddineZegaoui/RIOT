@@ -79,15 +79,17 @@ TimerTime_t TimerGetFutureTime( TimerTime_t eventInFuture )
     return ( TimerTime_t )( CurrentTime + eventInFuture );
 }
 
-void TimerLowPowerHandler(uint32_t time)
+uint8_t TimerLowPowerHandler(uint32_t time)
 {
     if( HasLoopedThroughMain < 5 )
         {
             HasLoopedThroughMain++;
+            return 0;
         }
         else
         {
             HasLoopedThroughMain = 0;
             xtimer_usleep (time*1000);
+            return 1;
         }   
 }
