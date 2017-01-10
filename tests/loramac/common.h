@@ -37,15 +37,6 @@ extern "C" {
  * @name SX1276 configuration
  * @{
  */
-//#define RF_FREQUENCY                                902900000   // Hz, 915MHz
-
-#define TX_OUTPUT_POWER                             10          // dBm
-
-#define LORA_PREAMBLE_LENGTH                        8           // Same for Tx and Rx
-#define LORA_SYMBOL_TIMEOUT                         10          // Symbols
-
-#define LORA_FIX_LENGTH_PAYLOAD_ON                  false
-#define LORA_IQ_INVERSION                           false
 
 #ifdef NZ32_SC151
 

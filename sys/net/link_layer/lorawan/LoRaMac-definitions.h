@@ -78,7 +78,9 @@ Maintainer: Miguel Luis and Gregory Cristian
 /*!
  * Default Tx output power used by the node
  */
+#ifndef LORAMAC_DEFAULT_TX_POWER
 #define LORAMAC_DEFAULT_TX_POWER                    TX_POWER_10_DBM
+#endif
 
 /*!
  * LoRaMac TxPower definition
@@ -193,7 +195,9 @@ Maintainer: Miguel Luis and Gregory Cristian
 /*!
  * Default Tx output power used by the node
  */
+#ifndef LORAMAC_DEFAULT_TX_POWER
 #define LORAMAC_DEFAULT_TX_POWER                    TX_POWER_10_DBM
+#endif
 
 /*!
  * LoRaMac TxPower definition
@@ -308,7 +312,9 @@ Maintainer: Miguel Luis and Gregory Cristian
 /*!
  * Default Tx output power used by the node
  */
+#ifndef LORAMAC_DEFAULT_TX_POWER
 #define LORAMAC_DEFAULT_TX_POWER                    TX_POWER_14_DBM
+#endif
 
 /*!
  * LoRaMac TxPower definition
@@ -429,17 +435,19 @@ typedef enum
 /*!
  * Minimal Tx output power that can be used by the node
  */
-#define LORAMAC_MIN_TX_POWER                        TX_POWER_14_DBM
+#define LORAMAC_MIN_TX_POWER                        TX_POWER_10_DBM
 
 /*!
  * Maximal Tx output power that can be used by the node
  */
-#define LORAMAC_MAX_TX_POWER                        TX_POWER_14_DBM
+#define LORAMAC_MAX_TX_POWER                        TX_POWER_20_DBM
 
 /*!
  * Default Tx output power used by the node
  */
+#ifndef LORAMAC_DEFAULT_TX_POWER
 #define LORAMAC_DEFAULT_TX_POWER                    TX_POWER_14_DBM
+#endif
 
 /*!
  * LoRaMac TxPower definition
