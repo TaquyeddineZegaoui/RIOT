@@ -675,7 +675,7 @@ int main( void )
     // Sends a JoinReq Command every OVER_THE_AIR_ACTIVATION_DUTYCYCLE
     // seconds until the network is joined
     TimerInit( &JoinReqTimer, OnJoinReqTimerEvent, (kernel_pid_t) 0);
-    TimerSetValue( &JoinReqTimer, OVER_THE_AIR_ACTIVATION_DUTYCYCLE, 0);
+    //TimerSetValue( &JoinReqTimer, OVER_THE_AIR_ACTIVATION_DUTYCYCLE, 0);
 #endif
 
     TxNextPacket = true;
@@ -716,7 +716,8 @@ int main( void )
                     break;
                 default:
                     // Relaunch timer for next trial
-                    TimerStart( &JoinReqTimer, 1);
+                    xtimer_set(&(JoinReqTimer.dev), xtimer_ticks_from_usec(OVER_THE_AIR_ACTIVATION_DUTYCYCLE*1000).ticks32); 
+                    //TimerStart( &JoinReqTimer, 1);
                     break;
                 }
             }
