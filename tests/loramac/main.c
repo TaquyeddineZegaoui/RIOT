@@ -50,7 +50,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 /*!
  * Thread Variables and packet count
  */
-uint32_t count = 1;
+uint32_t count = 0;
 static sx1276_t sx1276;
 
 static netdev2_t *nd;
@@ -198,6 +198,11 @@ static bool ScheduleNextTx = true;
 static bool DownlinkStatusUpdate = false;
 
 static LoRaMacCallbacks_t LoRaMacCallbacks;
+
+/*
+* Variable to avoid repeated sleep
+*/
+uint8_t cycle_sleep = 0;
 
 /*!
  * LoRaWAN compliance tests support data
@@ -420,6 +425,7 @@ static void OnTxNextPacketTimerEvent( void )
     TimerStop( &TxNextPacketTimer );
     TxNextPacket = true;
     ScheduleNextTx = true;
+    cycle_sleep = 0;
 }
 
 /*!
@@ -738,7 +744,7 @@ int main( void )
 
             // Reset counters
             if(IsNetworkJoined == true)
-                count = 1;
+                count = 0;
 #endif
         }
         
@@ -779,10 +785,10 @@ int main( void )
         }
 
         // Send to sleep if TxDone
-        if(IsTxConfirmed == true)
+        if(IsTxConfirmed == true && !cycle_sleep)
         {
-            TxNextPacketTimerActual = xtimer_now_usec64() - TxNextPacketTimerInit ;
-            TimerLowPowerHandler( (uint32_t) TxDutyCycleTime);
+            TxNextPacketTimerActual = xtimer_now_usec64() - TxNextPacketTimerInit;
+            cycle_sleep = TimerLowPowerHandler( (uint32_t) (TxDutyCycleTime - TxNextPacketTimerActual));
         }
     }
 

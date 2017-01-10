@@ -3055,8 +3055,6 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
 
     Radio.SetChannel( channel.Frequency );
 
-    printf("Channel %lu \n", (unsigned long) channel.Frequency);
-
 #if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
     if( LoRaMacParams.ChannelsDatarate == DR_7 )
     { // High Speed FSK channel
