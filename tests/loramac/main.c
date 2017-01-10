@@ -746,8 +746,10 @@ int main( void )
                 // Schedule next packet transmission
                 TxDutyCycleTime = APP_TX_DUTYCYCLE /*+ randr( -APP_TX_DUTYCYCLE_RND, APP_TX_DUTYCYCLE_RND )*/;
                 TxNextPacketTimerInit = xtimer_now_usec64();
-                TimerSetValue( &TxNextPacketTimer, TxDutyCycleTime, 0);
-                TimerStart( &TxNextPacketTimer, 1);
+
+                xtimer_set(&(TxNextPacketTimer.dev), xtimer_ticks_from_usec(TxDutyCycleTime*1000).ticks32); 
+                //TimerSetValue( &TxNextPacketTimer, TxDutyCycleTime, 0);
+                //TimerStart( &TxNextPacketTimer, 1);
             }
         }
 
