@@ -903,8 +903,10 @@ static void PrepareRxDoneAbort( void )
     LoRaMacFlags.Bits.MacDone = 1;
 
     // Trig OnMacCheckTimerEvent call as soon as possible
-    TimerSetValue( &MacStateCheckTimer, 1 , LORAWAN_TIMER_MAC_STATE);
-    TimerStart( &MacStateCheckTimer, 0);
+    MacStateCheckTimer.msg.type = LORAWAN_TIMER_MAC_STATE;
+    xtimer_set_msg(&(MacStateCheckTimer.dev), xtimer_ticks_from_usec(1000).ticks32, &(MacStateCheckTimer.msg), MacStateCheckTimer.pid);
+    //TimerSetValue( &MacStateCheckTimer, 1 , LORAWAN_TIMER_MAC_STATE);
+    //TimerStart( &MacStateCheckTimer, 0);
 }
 
 static void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
@@ -1299,8 +1301,10 @@ static void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t
     LoRaMacFlags.Bits.MacDone = 1;
 
     // Trig OnMacCheckTimerEvent call as soon as possible
-    TimerSetValue( &MacStateCheckTimer, 1, LORAWAN_TIMER_MAC_STATE);
-    TimerStart( &MacStateCheckTimer, 0);
+    MacStateCheckTimer.msg.type = LORAWAN_TIMER_MAC_STATE;
+    xtimer_set_msg(&(MacStateCheckTimer.dev), xtimer_ticks_from_usec(1000).ticks32, &(MacStateCheckTimer.msg), MacStateCheckTimer.pid);
+    //TimerSetValue( &MacStateCheckTimer, 1, LORAWAN_TIMER_MAC_STATE);
+    //TimerStart( &MacStateCheckTimer, 0);
 }
 
 static void OnRadioTxTimeout( void )
@@ -1516,8 +1520,10 @@ void OnMacStateCheckTimerEvent( void )
     else
     {
         // Operation not finished restart timer
-        TimerSetValue( &MacStateCheckTimer, MAC_STATE_CHECK_TIMEOUT, LORAWAN_TIMER_MAC_STATE);
-        TimerStart( &MacStateCheckTimer, 0);
+        MacStateCheckTimer.msg.type = LORAWAN_TIMER_MAC_STATE;
+        xtimer_set_msg(&(MacStateCheckTimer.dev), xtimer_ticks_from_usec(MAC_STATE_CHECK_TIMEOUT*1000).ticks32, &(MacStateCheckTimer.msg), MacStateCheckTimer.pid);
+        //TimerSetValue( &MacStateCheckTimer, MAC_STATE_CHECK_TIMEOUT, LORAWAN_TIMER_MAC_STATE);
+        //TimerStart( &MacStateCheckTimer, 0);
     }
 
     if( LoRaMacFlags.Bits.McpsInd == 1 )
