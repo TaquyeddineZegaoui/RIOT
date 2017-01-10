@@ -1418,7 +1418,6 @@ void OnMacStateCheckTimerEvent( void )
                 else
                 {
                     LoRaMacFlags.Bits.MacDone = 0;
-
                     ScheduleTx( );
                 }
             }
@@ -1471,6 +1470,12 @@ void OnMacStateCheckTimerEvent( void )
 #elif defined( USE_BAND_915_HYBRID )
                 // Re-enable default channels
                 ReenableChannels( LoRaMacParams.ChannelsMask[4], LoRaMacParams.ChannelsMask );
+                LoRaMacParams.ChannelsMask[0] = 0x3C3C;
+                LoRaMacParams.ChannelsMask[1] = 0x0000;
+                LoRaMacParams.ChannelsMask[2] = 0x0000;
+                LoRaMacParams.ChannelsMask[3] = 0x0000;
+                LoRaMacParams.ChannelsMask[4] = 0x0001;
+                LoRaMacParams.ChannelsMask[5] = 0x0000;
 #else
     #error "Please define a frequency band in the compiler options."
 #endif
@@ -1882,7 +1887,9 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
         }
 #elif defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
         modem = MODEM_LORA;
+
         Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous );
+
 #endif
 
         if( RepeaterSupport == true )
@@ -2147,6 +2154,12 @@ static bool AdrNextDr( bool adrEnabled, bool updateChannelMask, int8_t* datarate
 #else // defined( USE_BAND_915_HYBRID )
                             // Re-enable default channels
                             ReenableChannels( LoRaMacParams.ChannelsMask[4], LoRaMacParams.ChannelsMask );
+                            LoRaMacParams.ChannelsMask[0] = 0x3C3C;
+                            LoRaMacParams.ChannelsMask[1] = 0x0000;
+                            LoRaMacParams.ChannelsMask[2] = 0x0000;
+                            LoRaMacParams.ChannelsMask[3] = 0x0000;
+                            LoRaMacParams.ChannelsMask[4] = 0x0001;
+                            LoRaMacParams.ChannelsMask[5] = 0x0000;
 #endif
                         }
                     }
@@ -2742,7 +2755,8 @@ static int8_t AlternateDatarate( uint16_t nbTrials )
     LoRaMacParams.ChannelsMask[4] = 0x00FF;
 #else // defined( USE_BAND_915_HYBRID )
     // Re-enable 500 kHz default channels
-    ReenableChannels( LoRaMacParams.ChannelsMask[4], LoRaMacParams.ChannelsMask );
+    //ReenableChannels( LoRaMacParams.ChannelsMask[4], LoRaMacParams.ChannelsMask );
+    LoRaMacParams.ChannelsMask[4] = 0x0001;
 #endif
 
     if( ( nbTrials & 0x01 ) == 0x01 )
@@ -3139,7 +3153,8 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacC
     LoRaMacParamsDefaults.ChannelsMask[4] = 0x00FF;
     LoRaMacParamsDefaults.ChannelsMask[5] = 0x0000;
 #elif defined( USE_BAND_915_HYBRID )
-    LoRaMacParamsDefaults.ChannelsMask[0] = 0x3c3c;
+    //ReenableChannels( LoRaMacParams.ChannelsMask[4], LoRaMacParams.ChannelsMask );
+    LoRaMacParamsDefaults.ChannelsMask[0] = 0x3C3C;
     LoRaMacParamsDefaults.ChannelsMask[1] = 0x0000;
     LoRaMacParamsDefaults.ChannelsMask[2] = 0x0000;
     LoRaMacParamsDefaults.ChannelsMask[3] = 0x0000;
