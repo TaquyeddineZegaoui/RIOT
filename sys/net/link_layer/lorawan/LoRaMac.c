@@ -3070,8 +3070,10 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     MlmeConfirm.TxTimeOnAir = TxTimeOnAir;
 
     // Starts the MAC layer status check timer
-    TimerSetValue( &MacStateCheckTimer, MAC_STATE_CHECK_TIMEOUT, LORAWAN_TIMER_MAC_STATE);
-    TimerStart( &MacStateCheckTimer, 0);
+    MacStateCheckTimer.msg.type = LORAWAN_TIMER_MAC_STATE;
+    xtimer_set_msg(&(MacStateCheckTimer.dev), xtimer_ticks_from_usec(MAC_STATE_CHECK_TIMEOUT*1000).ticks32, &(MacStateCheckTimer.msg), MacStateCheckTimer.pid);
+    //TimerSetValue( &MacStateCheckTimer, MAC_STATE_CHECK_TIMEOUT, LORAWAN_TIMER_MAC_STATE);
+    //TimerStart( &MacStateCheckTimer, 0);
 
     // Send now
     Radio.Send( LoRaMacBuffer, LoRaMacBufferPktLen );
