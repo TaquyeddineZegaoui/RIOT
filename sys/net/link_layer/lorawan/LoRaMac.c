@@ -2677,8 +2677,10 @@ static LoRaMacStatus_t ScheduleTx(void)
     {
         // Send later - prepare timer
         LoRaMacState |= MAC_TX_DELAYED;
-        TimerSetValue( &TxDelayedTimer, dutyCycleTimeOff, LORAWAN_TIMER_TX_DELAYED);
-        TimerStart( &TxDelayedTimer, 0);
+        TxDelayedTimer.msg.type = LORAWAN_TIMER_TX_DELAYED;
+        xtimer_set_msg(&(TxDelayedTimer.dev), xtimer_ticks_from_usec(dutyCycleTimeOff*1000).ticks32, &(TxDelayedTimer.msg), TxDelayedTimer.pid);
+        //TimerSetValue( &TxDelayedTimer, dutyCycleTimeOff, LORAWAN_TIMER_TX_DELAYED);
+        //TimerStart( &TxDelayedTimer, 0);
 
         return LORAMAC_STATUS_OK;
     }
