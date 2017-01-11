@@ -351,6 +351,8 @@ enum lpm_mode lpm_arch_set(enum lpm_mode target)
             PWR->CR |= PWR_CR_LPSDSR;
             /* Enable Ultra Low Power mode */
             PWR->CR |= PWR_CR_ULP;
+            /* Enable stop mode */
+            PWR->CR &= ~PWR_CR_PDDS;
             /* Set SLEEPDEEP bit of Cortex System Control Register */
             SCB->SCR |= (uint32_t)SCB_SCR_SLEEPDEEP;
 
