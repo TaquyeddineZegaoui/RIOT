@@ -201,7 +201,7 @@ static void _timer_callback(void)
 	reference = rtctimers_now();
 
     /* check if next timers are close to expiring */
-    while (timer_list_head && (timer_list_head->target - reference <= 0/* RTCTIMERS_ISR_BACKOFF*/)) {
+    while (timer_list_head && ((int) (timer_list_head->target - reference) <= 0/* RTCTIMERS_ISR_BACKOFF*/)) {
         /* pick first timer in list */
         rtctimer_t *timer = timer_list_head;
 
