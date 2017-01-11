@@ -20,6 +20,7 @@
  */
 
 #include <stdio.h>
+#include "rtctimers.h"
 
 int main(void)
 {
@@ -27,6 +28,13 @@ int main(void)
 
     printf("You are running RIOT on a(n) %s board.\n", RIOT_BOARD);
     printf("This board features a(n) %s MCU.\n", RIOT_MCU);
+    //volatile uint64_t i;
+	//for (i=0; i<10000000; i++) {}
+    uint32_t sleep_sec = 2;
+	rtctimers_sleep(sleep_sec);
+	
+    printf("HELLO! %s\n", "Paula");
+    puts("Wake"); 
 
     return 0;
 }
