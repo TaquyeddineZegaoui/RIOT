@@ -36,8 +36,6 @@ static uint16_t high_filter(uint16_t adc, uint16_t adc_1, uint16_t yn_1)
 uint8_t count_drops (uint32_t sample_time)
 {
 
-	INFRARED_ON;
-
 	/* Deliver precise measured time*/
     uint64_t start_time =  xtimer_now_usec64();
     xtimer_ticks32_t start_ticks =  xtimer_now();
@@ -59,12 +57,16 @@ uint8_t count_drops (uint32_t sample_time)
 	/* Sample Each Sensor initial values, 10 ms*/
      while( (actual_time - start_time) < 10*1000 )
     {
+    	INFRARED_ON;
+
 	    /* Sample Each Sensor */
         for (uint8_t i = 0; i < NSENSOR; i++) 
         {
 			x_1[i] = x_0[i];
             x_0[i] = adc_sample(sensors[i], SENSOR_RES);
         }
+
+        INFRARED_OFF;
 
 		/* Reset agregated dropś*/
         drop_agreg  = 0;
@@ -91,16 +93,20 @@ uint8_t count_drops (uint32_t sample_time)
     start_ticks =  xtimer_now();
     actual_time = xtimer_now_usec64();
 
-    //puts("start");
+    puts("start");
 
     while( (actual_time - start_time) < sample_time )
     {
+    	INFRARED_ON;
+
 	    /* Sample Each Sensor */
         for (uint8_t i = 0; i < NSENSOR; i++) 
         {
 			x_1[i] = x_0[i];
             x_0[i] = adc_sample(sensors[i], SENSOR_RES);
         }
+
+        INFRARED_OFF;
 
         //printf("%d %d %d \n", x_0[2], x_0[1], x_0[0]);
 		
@@ -115,13 +121,15 @@ uint8_t count_drops (uint32_t sample_time)
 			drop_agreg |= drop_bool;
 		}
 
+		//printf("%d %d %d \n", y[2], y[1], y[0]);
+
 		debouncer = ((debouncer << 1) | drop_detect(&drop_bits, drop_agreg)) & 0x1F;
 
 		/* Filter output drops */
 		if(debouncer == 0x01)
 		{
 			drop_counts++;
-			//printf("Drop: %d \n",drop_counts);
+			printf("Drop: %d \n",drop_counts);
 		}
 		
 		if(drop_counts > 255)
@@ -136,7 +144,7 @@ uint8_t count_drops (uint32_t sample_time)
 	drops.sampled_time = (actual_time - start_time)*1000;
 	drops.number = drop_counts;
 
-	//puts("stop");
+	puts("stop");
 
     INFRARED_OFF;
 
