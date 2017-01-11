@@ -1418,6 +1418,7 @@ void OnMacStateCheckTimerEvent( void )
                 else
                 {
                     LoRaMacFlags.Bits.MacDone = 0;
+
                     #if defined HACK_OTA
                         /* Hack so retransmited package is re-built*/
                         if(IsLoRaMacNetworkJoined == false)
