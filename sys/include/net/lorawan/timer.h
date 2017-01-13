@@ -40,7 +40,7 @@ typedef uint64_t TimerTime_t;
  * \param [IN] obj          Structure containing the timer object parameters
  * \param [IN] callback     Function callback called at the end of the timeout
  */
-void TimerInit( TimerEvent_t *obj, void ( *cb )( void ), kernel_pid_t target_pid);
+//void TimerInit( TimerEvent_t *obj, void ( *cb )( void ), kernel_pid_t target_pid);
 
 /*!
  * Timer IRQ event handler

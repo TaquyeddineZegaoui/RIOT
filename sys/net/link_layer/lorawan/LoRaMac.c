@@ -3193,13 +3193,31 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacC
     ResetMacParameters( );
 
     // Initialize timers
-    TimerInit( &MacStateCheckTimer, OnMacStateCheckTimerEvent, mac_pid );
+    //TimerInit( &MacStateCheckTimer, OnMacStateCheckTimerEvent, mac_pid );
+    MacStateCheckTimer.dev.target = 0;
+    MacStateCheckTimer.dev.callback =  (void*) OnMacStateCheckTimerEvent;
+    MacStateCheckTimer.pid = mac_pid;
     //TimerSetValue( &MacStateCheckTimer, MAC_STATE_CHECK_TIMEOUT, LORAWAN_TIMER_MAC_STATE);
 
-    TimerInit( &TxDelayedTimer, OnTxDelayedTimerEvent, mac_pid );
-    TimerInit( &RxWindowTimer1, OnRxWindow1TimerEvent, mac_pid );
-    TimerInit( &RxWindowTimer2, OnRxWindow2TimerEvent, mac_pid );
-    TimerInit( &AckTimeoutTimer, OnAckTimeoutTimerEvent, mac_pid );
+    //TimerInit( &TxDelayedTimer, OnTxDelayedTimerEvent, mac_pid );
+    TxDelayedTimer.dev.target = 0;
+    TxDelayedTimer.dev.callback =  (void*) OnTxDelayedTimerEvent;
+    TxDelayedTimer.pid =  mac_pid;
+
+    //TimerInit( &RxWindowTimer1, OnRxWindow1TimerEvent, mac_pid );
+    RxWindowTimer1.dev.target = 0;
+    RxWindowTimer1.dev.callback =  (void*) OnRxWindow1TimerEvent;
+    RxWindowTimer1.pid = mac_pid;
+
+    //TimerInit( &RxWindowTimer2, OnRxWindow2TimerEvent, mac_pid );
+    RxWindowTimer2.dev.target = 0;
+    RxWindowTimer2.dev.callback =  (void*) OnRxWindow2TimerEvent;
+    RxWindowTimer2.pid = mac_pid;
+
+    //TimerInit( &AckTimeoutTimer, OnAckTimeoutTimerEvent, mac_pid );
+    AckTimeoutTimer.dev.target = 0;
+    AckTimeoutTimer.dev.callback =  (void*) OnAckTimeoutTimerEvent;
+    AckTimeoutTimer.pid = mac_pid;
 
     // Initialize Radio driver
     RadioEvents.TxDone = OnRadioTxDone;

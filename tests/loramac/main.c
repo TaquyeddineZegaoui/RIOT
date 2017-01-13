@@ -690,12 +690,18 @@ int main( void )
 
     // Sends a JoinReq Command every OVER_THE_AIR_ACTIVATION_DUTYCYCLE
     // seconds until the network is joined
-    TimerInit( &JoinReqTimer, OnJoinReqTimerEvent, (kernel_pid_t) 0);
+    //TimerInit( &JoinReqTimer, OnJoinReqTimerEvent, (kernel_pid_t) 0);
+    JoinReqTimer.dev.target = 0;
+    JoinReqTimer.dev.callback =  (void*) OnJoinReqTimerEvent;
+    JoinReqTimer.pid =  (kernel_pid_t) 0;
     //TimerSetValue( &JoinReqTimer, OVER_THE_AIR_ACTIVATION_DUTYCYCLE, 0);
 #endif
 
     TxNextPacket = true;
-    TimerInit( &TxNextPacketTimer, OnTxNextPacketTimerEvent, (kernel_pid_t) 0 );
+    //TimerInit( &TxNextPacketTimer, OnTxNextPacketTimerEvent, (kernel_pid_t) 0 );
+    TxNextPacketTimer.dev.target = 0;
+    TxNextPacketTimer.dev.callback =  (void*) OnTxNextPacketTimerEvent;
+    TxNextPacketTimer.pid = (kernel_pid_t) 0;
 
     LoRaMacSetAdrOn( LORAWAN_ADR_ON );
     LoRaMacSetPublicNetwork( LORAWAN_PUBLIC_NETWORK );
