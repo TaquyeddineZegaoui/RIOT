@@ -30,9 +30,7 @@ int main(void)
     printf("This board features a(n) %s MCU.\n", RIOT_MCU);
     //volatile uint64_t i;
 	//for (i=0; i<10000000; i++) {}
-    uint32_t sleep_sec = 2;
-	rtctimers_sleep(sleep_sec);
-	
+
     printf("HELLO! %s\n", "Paula");
     puts("Wake"); 
 
