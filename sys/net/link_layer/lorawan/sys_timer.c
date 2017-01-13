@@ -46,12 +46,12 @@ void TimerInit( TimerEvent_t *obj, void ( *cb )( void ), kernel_pid_t target_pid
 }
 */
  
-void TimerStop( TimerEvent_t *obj )
+/*void TimerStop( TimerEvent_t *obj )
 {
     //obj->running = 0;
     xtimer_remove(&(obj->dev));
 }
- 
+ */
 /*
 void TimerSetValue( TimerEvent_t *obj, uint32_t value, uint8_t message_ct)
 {

@@ -954,7 +954,8 @@ static void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t
     {
         Radio.Sleep( );
     }
-    TimerStop( &RxWindowTimer2 );
+    //TimerStop( &RxWindowTimer2 );
+    xtimer_remove(&RxWindowTimer2.dev);
 
     macHdr.Value = payload[pktHeaderLen++];
 
@@ -1188,7 +1189,8 @@ static void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t
 
                         // Stop the AckTimeout timer as no more retransmissions
                         // are needed.
-                        TimerStop( &AckTimeoutTimer );
+                        //TimerStop( &AckTimeoutTimer );
+                        xtimer_remove(&AckTimeoutTimer.dev);
                     }
                     else
                     {
@@ -1198,7 +1200,8 @@ static void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t
                         {
                             // Stop the AckTimeout timer as no more retransmissions
                             // are needed.
-                            TimerStop( &AckTimeoutTimer );
+                            //TimerStop( &AckTimeoutTimer );
+                            xtimer_remove(&AckTimeoutTimer.dev);
                         }
                     }
 
@@ -1369,7 +1372,8 @@ static void OnRadioRxTimeout( void )
 
 void OnMacStateCheckTimerEvent( void )
 {
-    TimerStop( &MacStateCheckTimer );
+    //TimerStop( &MacStateCheckTimer );
+    xtimer_remove(&MacStateCheckTimer.dev);
     bool txTimeout = false;
 
     if( LoRaMacFlags.Bits.MacDone == 1 )
@@ -1538,7 +1542,8 @@ void OnTxDelayedTimerEvent( void )
     LoRaMacHeader_t macHdr;
     LoRaMacFrameCtrl_t fCtrl;
 
-    TimerStop( &TxDelayedTimer );
+    //TimerStop( &TxDelayedTimer );
+    xtimer_remove(&TxDelayedTimer.dev);
     LoRaMacState &= ~MAC_TX_DELAYED;
 
     if( ( LoRaMacFlags.Bits.MlmeReq == 1 ) && ( MlmeConfirm.MlmeRequest == MLME_JOIN ) )
@@ -1564,7 +1569,8 @@ void OnRxWindow1TimerEvent( void )
     int8_t datarate = 0;
     uint32_t bandwidth = 0; // LoRa 125 kHz
 
-    TimerStop( &RxWindowTimer1 );
+    //TimerStop( &RxWindowTimer1 );
+    xtimer_remove(&RxWindowTimer1.dev);
     RxSlot = 0;
 
     if( LoRaMacDeviceClass == CLASS_C )
@@ -1646,7 +1652,8 @@ void OnRxWindow2TimerEvent( void )
     uint16_t symbTimeout = 5; // DR_2, DR_1, DR_0
     uint32_t bandwidth = 0; // LoRa 125 kHz
 
-    TimerStop( &RxWindowTimer2 );
+    //TimerStop( &RxWindowTimer2 );
+    xtimer_remove(&RxWindowTimer2.dev);
     RxSlot = 1;
 
 #if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
@@ -1715,7 +1722,8 @@ void OnRxWindow2TimerEvent( void )
 
 void OnAckTimeoutTimerEvent( void )
 {
-    TimerStop( &AckTimeoutTimer );
+    //TimerStop( &AckTimeoutTimer );
+    xtimer_remove(&AckTimeoutTimer.dev);
 
     if( NodeAckRequested == true )
     {

@@ -394,7 +394,8 @@ static bool SendFrame( void )
  */
 static void OnJoinReqTimerEvent( void )
 {
-    TimerStop( &JoinReqTimer );
+    //TimerStop( &JoinReqTimer );
+    xtimer_remove(&JoinReqTimer.dev);
     TxNextPacket = true;
 }
 
@@ -405,7 +406,8 @@ static void OnJoinReqTimerEvent( void )
  */
 static void OnTxNextPacketTimerEvent( void )
 {
-    TimerStop( &TxNextPacketTimer );
+    //TimerStop( &TxNextPacketTimer );
+    xtimer_remove(&TxNextPacketTimer.dev);
     TxNextPacket = true;
     ScheduleNextTx = true;
 }
@@ -418,7 +420,8 @@ static void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )
     if( flags->Bits.JoinAccept == 1 )
     {
     #if( OVER_THE_AIR_ACTIVATION != 0 )
-            TimerStop( &JoinReqTimer );
+            //TimerStop( &JoinReqTimer );
+    xtimer_remove(&JoinReqTimer.dev);
     #endif
         IsNetworkJoined = true;
     }

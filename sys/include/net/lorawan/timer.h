@@ -59,7 +59,7 @@ void TimerIrqHandler( void );
  *
  * \param [IN] obj Structure containing the timer object parameters
  */
-void TimerStop( TimerEvent_t *obj );
+//void TimerStop( TimerEvent_t *obj );
 
 /*!
  * \brief Resets the timer object
