@@ -25,7 +25,7 @@ volatile uint8_t HasLoopedThroughMain = 0;
 void TimerInit( TimerEvent_t *obj, void ( *cb )( void ), kernel_pid_t target_pid)
 {
     obj->dev.target = 0;
-    obj->running = 0;
+    //obj->running = 0;
     obj->dev.callback = (xtimer_callback_t) cb;
     obj->pid = target_pid;
 }
@@ -48,7 +48,7 @@ void TimerInit( TimerEvent_t *obj, void ( *cb )( void ), kernel_pid_t target_pid
  
 void TimerStop( TimerEvent_t *obj )
 {
-    obj->running = 0;
+    //obj->running = 0;
     xtimer_remove(&(obj->dev));
 }
  

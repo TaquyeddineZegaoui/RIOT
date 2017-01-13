@@ -19,7 +19,6 @@ Maintainer: Miguel Luis and Gregory Cristian
  */
 typedef struct TimerEvent_s
 {
-    uint8_t running;
     xtimer_t dev;
     msg_t  msg;
     kernel_pid_t pid;
