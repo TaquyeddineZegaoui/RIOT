@@ -19,7 +19,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 /*!
  * This flag is used to make sure we have looped through the main several time to avoid race issues
  */
-volatile uint8_t HasLoopedThroughMain = 0;
+//volatile uint8_t HasLoopedThroughMain = 0;
 
 
 void TimerInit( TimerEvent_t *obj, void ( *cb )( void ), kernel_pid_t target_pid)
@@ -82,7 +82,7 @@ void TimerSetValue( TimerEvent_t *obj, uint32_t value, uint8_t message_ct)
     return ( TimerTime_t )( CurrentTime + eventInFuture );
 }*/
 
-void TimerLowPowerHandler(uint32_t time)
+/*void TimerLowPowerHandler(uint32_t time)
 {
     if( HasLoopedThroughMain < 5 )
         {
@@ -94,3 +94,4 @@ void TimerLowPowerHandler(uint32_t time)
             xtimer_usleep (time*1000);
         }   
 }
+*/

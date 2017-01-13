@@ -50,6 +50,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 /*!
  * Thread Variables and packet count
  */
+volatile uint8_t HasLoopedThroughMain = 0;
 uint32_t count = 0;
 static sx1276_t sx1276;
 
@@ -593,6 +594,18 @@ static void _event_cb(netdev2_t *dev, netdev2_event_t event)
     }
 }
 
+void TimerLowPowerHandler(uint32_t time)
+{
+    if( HasLoopedThroughMain < 5 )
+        {
+            HasLoopedThroughMain++;
+        }
+        else
+        {
+            HasLoopedThroughMain = 0;
+            xtimer_usleep (time*1000);
+        }   
+}
 #define SX1276_MAC_STACKSIZE    (THREAD_STACKSIZE_DEFAULT)
 
 static char stack[SX1276_MAC_STACKSIZE];
