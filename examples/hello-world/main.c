@@ -21,15 +21,32 @@
 
 #include <stdio.h>
 #include "rtctimers.h"
+#include "periph/rtc.h"
+#include "xtimer.h"
+#include "arch/lpm_arch.h"
+
+#define TM_YEAR_OFFSET              (1900)
+
+
+void cb(void *arg)
+{
+    (void)arg;
+
+    puts("Alarm!");
+
+    struct tm time;
+    rtc_get_alarm(&time);
+    time.tm_sec  += 20;
+    if ( time.tm_sec > 60 )
+        rtc_clear_alarm();
+    rtc_set_alarm(&time, cb, 0);
+}
 
 int main(void)
 {
+	//lpm_arch_init();
     puts("Hello World!");
-
     printf("You are running RIOT on a(n) %s board.\n", RIOT_BOARD);
-    printf("This board features a(n) %s MCU.\n", RIOT_MCU);
-    //volatile uint64_t i;
-	//for (i=0; i<10000000; i++) {}
 
     printf("HELLO! %s\n", "Paula");
     puts("Wake"); 

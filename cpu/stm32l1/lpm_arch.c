@@ -172,10 +172,10 @@ static void lpm_before_i_go_to_sleep (void) {
     }
 
     /* restore GPIO clocks */
-    tmpreg = RCC->AHBENR;
+    /*tmpreg = RCC->AHBENR;
     tmpreg &= ~((uint32_t)0xFF);
-    tmpreg |= ahb_gpio_clocks;
-    periph_clk_en(AHB, tmpreg);
+    tmpreg |= ahb_gpio_clocks; 
+    periph_clk_en(AHB, tmpreg);*/
 }
 
 
@@ -349,6 +349,10 @@ enum lpm_mode lpm_arch_set(enum lpm_mode target)
             PWR->CR |= PWR_CR_CWUF;
             /* Regulator in LP mode */
             PWR->CR |= PWR_CR_LPSDSR;
+            /* Set HSI OFF */
+            RCC->CR &= ~RCC_CR_HSION;
+            /* Set HSE OFF */
+            RCC->CR &= ~RCC_CR_HSEON;
             /* Enable Ultra Low Power mode */
             PWR->CR |= PWR_CR_ULP;
             /* Enable stop mode */
