@@ -76,11 +76,11 @@ void TimerSetValue( TimerEvent_t *obj, uint32_t value, uint8_t message_ct)
     return ( TimerTime_t )( CurrentTime - savedTime );
 }*/
  
-TimerTime_t TimerGetFutureTime( TimerTime_t eventInFuture )
+/*TimerTime_t TimerGetFutureTime( TimerTime_t eventInFuture )
 {
     uint64_t CurrentTime = xtimer_now_usec64();
     return ( TimerTime_t )( CurrentTime + eventInFuture );
-}
+}*/
 
 void TimerLowPowerHandler(uint32_t time)
 {
