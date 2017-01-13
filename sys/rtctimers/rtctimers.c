@@ -29,7 +29,6 @@ extern "C" {
 #include "irq.h"
 #include "div.h"
 #include "rtctimers.h"
-#include "assert.h"
 
 static void _callback_unlock_mutex(void* arg)
 {
@@ -49,17 +48,15 @@ void rtctimers_sleep(uint32_t sleep_sec) {
         return;
     }
 
-     rtctimer_t timer;
+    rtctimer_t timer;
     mutex_t mutex = MUTEX_INIT;
 
     timer.callback = _callback_unlock_mutex;
     timer.arg = (void*) &mutex;
     timer.target = 0;
 
-
     mutex_lock(&mutex);
     rtctimers_set(&timer, sleep_sec);
-    
     mutex_lock(&mutex);
 }
 

@@ -28,7 +28,6 @@ extern "C" {
 #include "periph/rtc.h"
 
 #include "debug.h"
-#include "assert.h"
 //#define DEBUG printf
 
 
@@ -109,7 +108,6 @@ int _rtctimers_set_absolute(rtctimer_t *timer, uint32_t target)
 		DEBUG("[rtctimers] now >= target!\n");
 	}
 	else {
-        puts("set");
 		_add_timer_to_list(&timer_list_head, timer);
 
 		if (timer_list_head == timer) {
@@ -129,9 +127,9 @@ void rtctimers_set(rtctimer_t *timer, uint32_t offset) {
     }
 
     rtctimers_remove(timer);
+
 	uint32_t target = rtctimers_now() + offset;
 	_rtctimers_set_absolute(timer, target);
-
 }
 
 static void _add_timer_to_list(rtctimer_t **list_head, rtctimer_t *timer)
@@ -203,7 +201,7 @@ static void _timer_callback(void)
 	reference = rtctimers_now();
 
     /* check if next timers are close to expiring */
-    while (timer_list_head && (timer_list_head->target - reference <= 0/* RTCTIMERS_ISR_BACKOFF*/)) {
+    while (timer_list_head && ((int) (timer_list_head->target - reference) <= 0/* RTCTIMERS_ISR_BACKOFF*/)) {
         /* pick first timer in list */
         rtctimer_t *timer = timer_list_head;
 
