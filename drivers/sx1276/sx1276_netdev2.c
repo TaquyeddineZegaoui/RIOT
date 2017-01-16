@@ -333,6 +333,7 @@ static int _get_state(sx1276_t *dev, void *val)
 
 static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
 {
+    sx1276_t *dev = (sx1276_t*) netdev;
     switch(opt)
     {
         case NETOPT_STATE:
@@ -363,6 +364,8 @@ static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
 
         case NETOPT_CRC:
             *((netopt_enable_t*) val) = sx1276_get_crc((sx1276_t*) netdev) ? NETOPT_ENABLE : NETOPT_DISABLE;
+        case NETOPT_LORA_HOP:
+            *((netopt_enable_t*) val) = dev->settings.lora.freq_hop_on? NETOPT_ENABLE : NETOPT_DISABLE;
 
         default:
             break;
@@ -371,6 +374,7 @@ static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
 }
 static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len)
 {
+    sx1276_t *dev = (sx1276_t*) netdev;
     switch(opt)
     {
         case NETOPT_STATE:
@@ -401,6 +405,8 @@ static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len)
         case NETOPT_CRC:
             sx1276_set_crc((sx1276_t*) netdev, *((netopt_enable_t*) val) ? true : false);
             return sizeof(netopt_enable_t);
+        case NETOPT_LORA_HOP:
+           dev->settings.lora.freq_hop_on =  *((netopt_enable_t*) val) ? true : false;
 
         default:
             break;
