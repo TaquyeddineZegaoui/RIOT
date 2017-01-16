@@ -252,7 +252,16 @@ typedef enum {
     NETOPT_LORA_CODING_RATE,  /**< coding rate of LoRa */
     NETOPT_LORA_SINGLE_RECEIVE, /**< when enabled, RX is turned of upon reception of a packet */
     NETOPT_LORA_RX_TIMEOUT, /**< Reception timeout of LoRa packet */
+    NETOPT_LORA_TX_TIMEOUT, /**< Reception timeout of LoRa packet */
     NETOPT_LORA_SYNCWORD,
+    NETOPT_LORA_HOP,
+    NETOPT_LORA_HOP_PERIOD,
+    NETOPT_CRC,
+    NETOPT_LORA_IMPLICIT,
+    NETOPT_LORA_IQ_INVERT,
+    NETOPT_LORA_LOW_DATARATE_OPTIMIZE,
+    NETOPT_LORA_PAYLOAD_LENGTH,
+
     NETOPT_NUMOF,
 } netopt_t;
 
