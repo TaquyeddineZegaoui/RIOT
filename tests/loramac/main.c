@@ -612,16 +612,18 @@ static void _event_cb(netdev2_t *dev, netdev2_event_t event)
     }
 }
 
-void TimerLowPowerHandler(uint32_t time)
+uint8_t TimerLowPowerHandler(uint32_t time)
 {
     if( HasLoopedThroughMain < 5 )
         {
             HasLoopedThroughMain++;
+            return 0;
         }
         else
         {
             HasLoopedThroughMain = 0;
             xtimer_usleep (time*1000);
+            return 1;
         }   
 }
 #define SX1276_MAC_STACKSIZE    (THREAD_STACKSIZE_DEFAULT)
