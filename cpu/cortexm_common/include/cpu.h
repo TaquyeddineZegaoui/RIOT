@@ -91,6 +91,11 @@ static inline void cpu_sleep_until_event(void)
 }
 
 /**
+ * @brief   Holds current CPU clock frequency
+ */
+extern uint32_t cpu_clock_global;
+
+/**
  * @brief   Trigger a conditional context scheduler run / context switch
  *
  * This function is supposed to be called in the end of each ISR.

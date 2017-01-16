@@ -70,7 +70,7 @@ static void *idle_thread(void *arg)
             lpm_set(LPM_IDLE);
         }
         else {
-            lpm_set(LPM_IDLE);
+            //lpm_set(LPM_IDLE);
             /* lpm_set(LPM_SLEEP); */
             /* lpm_set(LPM_POWERDOWN); */
         }
