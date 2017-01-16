@@ -192,3 +192,15 @@ uint8_t sx1276_get_rx_single(sx1276_t *dev)
     return dev->settings.lora.rx_continuous ? false : true;
 }
 
+bool sx1276_get_crc(sx1276_t *dev)
+{
+    return sx1276_reg_read(dev, SX1276_REG_LR_MODEMCONFIG2) & SX1276_RF_LORA_MODEMCONFIG2_RXPAYLOADCRC_MASK;
+}
+
+void sx1276_set_crc(sx1276_t *dev, bool crc)
+{
+    uint8_t tmp = sx1276_reg_read(dev, SX1276_REG_LR_MODEMCONFIG2);
+    tmp &= ~SX1276_RF_LORA_MODEMCONFIG2_RXPAYLOADCRC_MASK;
+    tmp |= crc ? SX1276_RF_LORA_MODEMCONFIG2_RXPAYLOADCRC_MASK : 0;
+    sx1276_reg_write(dev, SX1276_REG_LR_MODEMCONFIG2, tmp);
+}

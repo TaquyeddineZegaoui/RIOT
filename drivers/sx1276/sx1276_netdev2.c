@@ -361,6 +361,9 @@ static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
             *((uint8_t*) val) = sx1276_get_syncword((sx1276_t*) netdev);
             return sizeof(uint8_t);
 
+        case NETOPT_CRC:
+            *((netopt_enable_t*) val) = sx1276_get_crc((sx1276_t*) netdev) ? NETOPT_ENABLE : NETOPT_DISABLE;
+
         default:
             break;
     }
@@ -395,6 +398,9 @@ static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len)
         case NETOPT_LORA_SYNCWORD:
             sx1276_set_syncword((sx1276_t*) netdev, *((uint8_t*) val));
             return sizeof(uint8_t);
+        case NETOPT_CRC:
+            sx1276_set_crc((sx1276_t*) netdev, *((netopt_enable_t*) val) ? true : false);
+            return sizeof(netopt_enable_t);
 
         default:
             break;
