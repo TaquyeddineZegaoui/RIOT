@@ -39,9 +39,9 @@ void cb(void *arg)
 
     struct tm time;
     rtc_get_alarm(&time);
-    time.tm_sec  += 20;
+    time.tm_min  += 2;
     if ( time.tm_sec > 60 )
-        rtc_clear_alarm();
+        rtc_clear_alarm(); 
     rtc_set_alarm(&time, cb, 0);
 }
 
@@ -54,16 +54,16 @@ int main(void)
     rtc_init();
  
     struct tm time;
-    time.tm_year = 2011 - TM_YEAR_OFFSET; // years are counted from 1900
+    time.tm_year = 2016 - TM_YEAR_OFFSET; // years are counted from 1900
     time.tm_mon  = 0; // 0 = January, 11 = December
-    time.tm_mday = 13;
+    time.tm_mday = 16;
     time.tm_hour = 14;
     time.tm_min  = 15;
     time.tm_sec  = 15;
 
     rtc_set_time(&time);
 
-    time.tm_sec  += 10;
+    time.tm_min  += 2;
 
     rtc_set_alarm(&time, cb, 0);
     lpm_set(LPM_POWERDOWN);
