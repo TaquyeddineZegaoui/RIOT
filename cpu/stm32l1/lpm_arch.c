@@ -187,6 +187,8 @@ static void lpm_when_i_wake_up (void) {
     uint8_t i;
     GPIO_TypeDef *port;
       
+    /* Enable ADC */
+
     /* restore GPIO settings */
     for (i = 0; i < CPU_NUMBER_OF_PORTS; i++) {
         port = (GPIO_TypeDef *)(GPIOA_BASE + i*(GPIOB_BASE - GPIOA_BASE));
@@ -345,14 +347,18 @@ enum lpm_mode lpm_arch_set(enum lpm_mode target)
             break;
 
         case LPM_POWERDOWN:         /* STOP mode */
+            /* Disable ADC */
+            ADC1->CR2 &= ~ADC_CR2_ADON;
+            ADC1->CR1 |= ADC_CR1_PDI;
+            ADC1->CR1 |= ADC_CR1_PDD;
+            ADC1->CR2 |= ADC_CR2_ADON;
+            /* Disable DAC */
+            DAC->CR &= ~DAC_CR_EN1;
+            DAC->CR &= ~DAC_CR_EN2;
             /* Clear Wakeup flag */    
             PWR->CR |= PWR_CR_CWUF;
             /* Regulator in LP mode */
             PWR->CR |= PWR_CR_LPSDSR;
-            /* Set HSI OFF */
-            RCC->CR &= ~RCC_CR_HSION;
-            /* Set HSE OFF */
-            RCC->CR &= ~RCC_CR_HSEON;
             /* Enable Ultra Low Power mode */
             PWR->CR |= PWR_CR_ULP;
             /* Enable stop mode */
