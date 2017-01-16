@@ -23,7 +23,6 @@
 #include "cpu.h"
 #include "mutex.h"
 #include "periph/adc.h"
-#include "xtimer.h"
 
 /**
  * @brief   Maximum allowed ADC clock speed
@@ -70,10 +69,10 @@ int adc_init(adc_t line)
 
     /* lock and power-on the device */
     prep();
-
-    /* configure the pin if not internal channel*/
-    if(!(adc_config[line].chan == 16 || adc_config[line].chan == 17))
+    /* configure the pin */
+    if ((adc_config[line].pin != GPIO_UNDEF))
         gpio_init_analog(adc_config[line].pin);
+
     /* set clock prescaler to get the maximal possible ADC clock value */
     for (clk_div = 2; clk_div < 8; clk_div += 2) {
         if ((CLOCK_CORECLOCK / clk_div) <= MAX_ADC_SPEED) {
@@ -83,18 +82,13 @@ int adc_init(adc_t line)
 
     ADC->CCR = ((clk_div / 2) - 1) << 16;
 
-   /* check if this channel is an internal ADC channel, if so
-     * enable the internal temperature and Vref */
-    if (adc_config[line].chan == 16 || adc_config[line].chan == 17) {
-        ADC->CCR |= ADC_CCR_TSVREFE;
-    }
-
-    /* set to minimum conversion cycles that supports all resolutions (16)*/
+    /* set to minimum conversion cycles that supports all resolutions (16 cycles)*/
     if(adc_config[line].chan <= 9)
     {
         ADC1->SMPR1 |=  ((0x2) << adc_config[line].chan*3);
     }
-    else if(adc_config[line].chan == 16 || adc_config[line].chan == 17) 
+    /* for internal channels, more cycles is desriable*/
+    else if(adc_config[line].chan == 16 || adc_config[line].chan == 17)
     {
         ADC1->SMPR2 |=  ((0x5) << (adc_config[line].chan - 10)*3);
     }
@@ -107,6 +101,13 @@ int adc_init(adc_t line)
         ADC1->SMPR3 |=  ((0x2) << (adc_config[line].chan - 20)*3);
     }
 
+
+    /* check if this channel is an internal ADC channel, if so
+     * enable the internal temperature and Vref */
+    if (adc_config[line].chan == 16 || adc_config[line].chan == 17) {
+        ADC->CCR |= ADC_CCR_TSVREFE;
+    }
+
     /* enable the ADC module */
     ADC1->CR2 = ADC_CR2_ADON;
     /* turn off during idle phase*/
@@ -114,6 +115,7 @@ int adc_init(adc_t line)
 
     /* free the device again */
     done();
+
     return 0;
 }
 
@@ -134,7 +136,7 @@ int adc_sample(adc_t line, adc_res_t res)
     ADC1->SQR1 &= ~ADC_SQR1_L;
     ADC1->SQR5 = adc_config[line].chan;
 
-    /* wait for regular channel to be ready*/
+    /* wait for regulat channel to be ready*/
     while (!(ADC1->SR & ADC_SR_RCNR)) {}
     /* start conversion and wait for results */
     ADC1->CR2 |= ADC_CR2_SWSTART;

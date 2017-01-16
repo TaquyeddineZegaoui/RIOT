@@ -45,8 +45,8 @@ extern "C" {
 
 /* bus clocks for simplified peripheral initialization, UPDATE MANUALLY! */
 #define CLOCK_AHB           (CLOCK_CORECLOCK / 1)
-#define CLOCK_APB2          (CLOCK_CORECLOCK / 1)
 #define CLOCK_APB1          (CLOCK_CORECLOCK / 1)
+#define CLOCK_APB2          (CLOCK_CORECLOCK / 1)
 /** @} */
 
 /**
@@ -58,10 +58,11 @@ extern "C" {
     { GPIO_PIN(PORT_C, 1), 11 },\
     { GPIO_PIN(PORT_C, 2), 12 },\
     { GPIO_PIN(PORT_C, 5), 15},\
-    { 0, 17 }\
+    { GPIO_UNDEF, ADC_VREF_CHANNEL}, \
+    { GPIO_UNDEF, ADC_TEMPERATURE_CHANNEL}, \
 }
 
-#define ADC_NUMOF           (5)
+#define ADC_NUMOF           (6)
 /** @} */
 
 /**
@@ -74,7 +75,6 @@ extern "C" {
 }
 
 #define DAC_NUMOF           (2)
-
 /** @} */
 
 /**
@@ -97,6 +97,7 @@ static const timer_conf_t timer_config[] = {
         .irqn     = TIM3_IRQn
     }
 };
+
 /* interrupt routines */
 #define TIMER_0_ISR         (isr_tim5)
 #define TIMER_1_ISR         (isr_tim3)
@@ -105,61 +106,56 @@ static const timer_conf_t timer_config[] = {
 /** @} */
 
 /**
- * @brief UART configuration
+ * @brief   UART configuration
  * @{
  */
-#define UART_NUMOF          (UART_0_EN + UART_1_EN + UART_2_EN )
-#define UART_0_EN           1
-#define UART_1_EN           0
-#define UART_2_EN           0
-#define UART_IRQ_PRIO       1
+static const uart_conf_t uart_config[] = {
+    {
+        .dev      = USART3,
+        .rcc_mask = RCC_APB1ENR_USART3EN,
+        .rx_pin   = GPIO_PIN(PORT_B, 11),
+        .tx_pin   = GPIO_PIN(PORT_B, 10),
+        .rx_af    = GPIO_AF7,
+        .tx_af    = GPIO_AF7,
+        .bus      = APB1,
+        .irqn     = USART3_IRQn
+    }/*,
+    {
+        .dev      = USART2,
+        .rcc_mask = RCC_APB1ENR_USART2EN,
+        .rx_pin   = GPIO_PIN(PORT_A, 3),
+        .tx_pin   = GPIO_PIN(PORT_A, 2),
+        .rx_af    = GPIO_AF7,
+        .tx_af    = GPIO_AF7,
+        .bus      = APB1,
+        .irqn     = USART2_IRQn
+    },
+    {
+        .dev      = USART1,
+        .rcc_mask = RCC_APB2ENR_USART1EN,
+        .rx_pin   = GPIO_PIN(PORT_A, 10),
+        .tx_pin   = GPIO_PIN(PORT_A, 9),
+        .rx_af    = GPIO_AF7,
+        .tx_af    = GPIO_AF7,
+        .bus      = APB2,
+        .irqn     = USART1_IRQn
+    }*/
+};
 
-/* UART 0 device configuration */
-#define UART_0_DEV          USART3
-#define UART_0_CLKEN()      (RCC->APB1ENR |= RCC_APB1ENR_USART3EN)
-#define UART_0_CLK          (CLOCK_CORECLOCK)
-#define UART_0_IRQ          USART3_IRQn
-#define UART_0_ISR          isr_usart3
-#define UART_0_BUS_FREQ     32000000
-/* UART 0 pin configuration */
-#define UART_0_RX_PIN       GPIO_PIN(PORT_B, 11)
-#define UART_0_TX_PIN       GPIO_PIN(PORT_B, 10)
-#define UART_0_AF           GPIO_AF7
 
-/* UART 1 device configuration */
-#define UART_1_DEV          USART2       
-#define UART_1_CLKEN()      (RCC->APB1ENR |= RCC_APB1ENR_USART2EN)
-#define UART_1_CLK          (CLOCK_CORECLOCK)
-#define UART_1_IRQ          USART2_IRQn
-#define UART_1_ISR          isr_usart2
-#define UART_1_BUS_FREQ     32000000
-/* UART 1 pin configuration */
-#define UART_1_RX_PIN       GPIO_PIN(PORT_A, 2)
-#define UART_1_TX_PIN       GPIO_PIN(PORT_A, 1)
-#define UART_1_AF           GPIO_AF7
-/** @} */
+#define UART_0_ISR          (isr_usart3)
+#define UART_1_ISR          (isr_usart2)
+#define UART_2_ISR          (isr_usart1)
 
-/* UART 2 device configuration */
-#define UART_2_DEV          USART1       
-#define UART_2_CLKEN()      (RCC->APB2ENR |= RCC_APB2ENR_USART1EN)
-#define UART_2_CLK          (CLOCK_CORECLOCK)
-#define UART_2_IRQ          USART1_IRQn
-#define UART_2_ISR          isr_usart1
-#define UART_2_BUS_FREQ     32000000
-/* UART 1 pin configuration */
-#define UART_2_RX_PIN       GPIO_PIN(PORT_A, 10)
-#define UART_2_TX_PIN       GPIO_PIN(PORT_A, 9)
-#define UART_2_AF           GPIO_AF7
-/** @} */
+#define UART_NUMOF          (sizeof(uart_config) / sizeof(uart_config[0]))
 
 /**
  * @brief SPI configuration
  * @{
  */
-#define SPI_NUMOF           (SPI_0_EN + SPI_1_EN + SPI_2_EN)
+#define SPI_NUMOF           (SPI_0_EN + SPI_1_EN)
 #define SPI_0_EN            1
-#define SPI_1_EN            1
-#define SPI_2_EN            0
+#define SPI_1_EN            0
 
 /* SPI 0 device configuration */
 #define SPI_0_DEV           SPI1  

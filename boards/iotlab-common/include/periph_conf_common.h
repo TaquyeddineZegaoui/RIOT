@@ -94,25 +94,25 @@ static const timer_conf_t timer_config[] = {
  */
 static const uart_conf_t uart_config[] = {
     {
-        .dev     = USART1,
-        .rx_pin  = GPIO_PIN(PORT_A, 10),
-        .tx_pin  = GPIO_PIN(PORT_A, 9),
-        .rcc_pin = RCC_APB2ENR_USART1EN,
-        .bus     = APB2,
-        .irqn    = USART1_IRQn
+        .dev      = USART1,
+        .rcc_mask = RCC_APB2ENR_USART1EN,
+        .rx_pin   = GPIO_PIN(PORT_A, 10),
+        .tx_pin   = GPIO_PIN(PORT_A, 9),
+        .bus      = APB2,
+        .irqn     = USART1_IRQn
     },
     {
-        .dev     = USART2,
-        .rx_pin  = GPIO_PIN(PORT_A, 3),
-        .tx_pin  = GPIO_PIN(PORT_A, 2),
-        .rcc_pin = RCC_APB1ENR_USART2EN,
-        .bus     = APB1,
-        .irqn    = USART2_IRQn
+        .dev      = USART2,
+        .rcc_mask = RCC_APB1ENR_USART2EN,
+        .rx_pin   = GPIO_PIN(PORT_A, 3),
+        .tx_pin   = GPIO_PIN(PORT_A, 2),
+        .bus      = APB1,
+        .irqn     = USART2_IRQn
     }
 };
 
-#define UART_0_ISR          isr_usart1
-#define UART_1_ISR          isr_usart2
+#define UART_0_ISR          (isr_usart1)
+#define UART_1_ISR          (isr_usart2)
 
 #define UART_NUMOF          (sizeof(uart_config) / sizeof(uart_config[0]))
 /** @} */
@@ -150,8 +150,8 @@ static const uart_conf_t uart_config[] = {
 
 /* I2C 0 device configuration */
 #define I2C_0_DEV           I2C1
-#define I2C_0_CLKEN()       (RCC->APB1ENR |= RCC_APB1ENR_I2C1EN)
-#define I2C_0_CLKDIS()      (RCC->APB1ENR &= ~(RCC_APB1ENR_I2C1EN))
+#define I2C_0_CLKEN()       (periph_clk_en(APB1, RCC_APB1ENR_I2C1EN))
+#define I2C_0_CLKDIS()      (periph_clk_dis(APB1, RCC_APB1ENR_I2C1EN))
 #define I2C_0_EVT_IRQ       I2C1_EV_IRQn
 #define I2C_0_EVT_ISR       isr_i2c1_ev
 #define I2C_0_ERR_IRQ       I2C1_ER_IRQn

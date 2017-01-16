@@ -70,27 +70,6 @@ enum {
 };
 
 /**
- * @brief   Available MUX values for configuring a pin's alternate function
- */
-typedef enum {
-    GPIO_AF0 = 0,           /**< use alternate function 0 */
-    GPIO_AF1,               /**< use alternate function 1 */
-    GPIO_AF2,               /**< use alternate function 2 */
-    GPIO_AF3,               /**< use alternate function 3 */
-    GPIO_AF4,               /**< use alternate function 4 */
-    GPIO_AF5,               /**< use alternate function 5 */
-    GPIO_AF6,               /**< use alternate function 6 */
-    GPIO_AF7,               /**< use alternate function 7 */
-    GPIO_AF8,               /**< use alternate function 8 */
-    GPIO_AF9,               /**< use alternate function 9 */
-    GPIO_AF10,              /**< use alternate function 10 */
-    GPIO_AF11,              /**< use alternate function 11 */
-    GPIO_AF12,              /**< use alternate function 12 */
-    GPIO_AF13,              /**< use alternate function 13 */
-    GPIO_AF14               /**< use alternate function 14 */
-} gpio_af_t;
-
-/**
  * @brief   DAC line configuration data
  */
 typedef struct {
@@ -105,6 +84,11 @@ typedef struct {
     gpio_t pin;             /**< pin connected to the channel */
     uint8_t chan;           /**< CPU ADC channel connected to the pin */
 } adc_conf_t;
+
+
+ /* ADC channels 16 and 17 are not connected to any GPIO */
+#define ADC_VREF_CHANNEL 17
+#define ADC_TEMPERATURE_CHANNEL 16
 
 /**
  * @brief   Override the ADC resolution configuration
