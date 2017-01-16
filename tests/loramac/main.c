@@ -63,40 +63,52 @@ static uint8_t NodeId[] = {0x00, 0x00, 0x00, 0x00};
 /*
 * Drope time
 */
-#define DROP_TIME                                   (4*SEC_IN_USEC)
+#ifndef DROP_TIME
+    #define DROP_TIME                                   (4*SEC_IN_USEC)
+#endif
 
 /*!
  * Join requests trials duty cycle.
  */
-#define OVER_THE_AIR_ACTIVATION_DUTYCYCLE           10000 // 10 [s] value in ms
+#ifndef OVER_THE_AIR_ACTIVATION_DUTYCYCLE 
+    #define OVER_THE_AIR_ACTIVATION_DUTYCYCLE           10000 // 10 [s] value in ms
+#endif
 
 /*!
  * Defines the application data transmission duty cycle. 5s, value in [ms].
  */
-#define APP_TX_DUTYCYCLE                            15*1000
+#ifndef APP_TX_DUTYCYCLE
+    #define APP_TX_DUTYCYCLE                            15*1000
+#endif
 
 /*!
  * Defines a random delay for application data transmission duty cycle. 1s,
  * value in [ms].
  */
-#define APP_TX_DUTYCYCLE_RND                        1000
+#define APP_TX_DUTYCYCLE_RND                            1000
 
 /*!
  * LoRaWAN confirmed messages
  */
-#define LORAWAN_CONFIRMED_MSG_ON                    false
+#ifndef LORAWAN_CONFIRMED_MSG_ON 
+    #define LORAWAN_CONFIRMED_MSG_ON                    false
+#endif
 
 /*!
  * LoRaWAN Adaptive Data Rate
  *
  * \remark Please note that when ADR is enabled the end-device should be static
  */
-#define LORAWAN_ADR_ON                              0
+#ifndef LORAWAN_ADR_ON 
+    #define LORAWAN_ADR_ON                              0
+#endif
 
 /*!
  * LoRaWAN application port
  */
-#define LORAWAN_APP_PORT                            2
+#ifndef LORAWAN_APP_PORT 
+    #define LORAWAN_APP_PORT                            2
+#endif
 
 /*!
  * User application data buffer size
@@ -187,6 +199,11 @@ static bool ScheduleNextTx = true;
 static bool DownlinkStatusUpdate = false;
 
 static LoRaMacCallbacks_t LoRaMacCallbacks;
+
+/*
+* Variable to avoid repeated sleep
+*/
+uint8_t cycle_sleep = 0;
 
 /*!
  * LoRaWAN compliance tests support data
@@ -411,6 +428,7 @@ static void OnTxNextPacketTimerEvent( void )
     xtimer_remove(&TxNextPacketTimer.dev);
     TxNextPacket = true;
     ScheduleNextTx = true;
+    cycle_sleep = 0;
 }
 
 /*!
@@ -746,6 +764,10 @@ int main( void )
             // Send to sleep if TxDone
             if(IsTxConfirmed == true)
                 TimerLowPowerHandler(OVER_THE_AIR_ACTIVATION_DUTYCYCLE);
+
+            // Reset counters
+            if(IsNetworkJoined == true)
+                count = 0;
 #endif
         }
         
@@ -788,10 +810,10 @@ int main( void )
         }
 
         // Send to sleep if TxDone
-        if(IsTxConfirmed == true)
+        if(IsTxConfirmed == true && !cycle_sleep)
         {
-            TxNextPacketTimerActual = xtimer_now_usec64() - TxNextPacketTimerInit ;
-            TimerLowPowerHandler( (uint32_t) TxDutyCycleTime);
+            TxNextPacketTimerActual = xtimer_now_usec64() - TxNextPacketTimerInit;
+            cycle_sleep = TimerLowPowerHandler( (uint32_t) (TxDutyCycleTime - TxNextPacketTimerActual));
         }
     }
 
