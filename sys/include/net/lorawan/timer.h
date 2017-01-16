@@ -45,7 +45,7 @@ typedef uint64_t TimerTime_t;
 /*!
  * Timer IRQ event handler
  */
-void TimerIrqHandler( void );
+//void TimerIrqHandler( void );
 
 /*!
  * \brief Starts and adds the timer object to the list of timer events
@@ -102,6 +102,6 @@ void TimerIrqHandler( void );
 /*!
  * \brief Manages the entry into ARM cortex deep-sleep mode
  */
-void TimerLowPowerHandler( uint32_t time );
+//void TimerLowPowerHandler( uint32_t time );
 
 #endif  // __TIMER_H__
