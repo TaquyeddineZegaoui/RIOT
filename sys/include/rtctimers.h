@@ -45,6 +45,6 @@ void rtctimers_remove(rtctimer_t *timer);
 
 void rtctimers_sleep(uint32_t sleep_sec);
 void rtctimers_set_msg(rtctimer_t *timer, uint32_t offset, msg_t *msg, kernel_pid_t target_pid);
-
+void rtctimers_sleep_until(uint32_t target);
 
 #endif /* RTC_TIMERS_H_ */

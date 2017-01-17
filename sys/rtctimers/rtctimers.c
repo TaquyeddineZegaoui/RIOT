@@ -60,6 +60,31 @@ void rtctimers_sleep(uint32_t sleep_sec) {
     mutex_lock(&mutex);
 }
 
+void rtctimers_sleep_until(uint32_t target) {
+   
+    uint32_t now = rtctimers_now();
+
+    if (irq_is_in()) {
+        puts("[rtctimers] Unable to sleep in IRQ"); // FIXME
+        return;
+    }
+    if (target < now) {
+        puts("[rtctimers] Target time is in the past"); // FIXME
+        return;
+    }
+
+    rtctimer_t timer;
+    mutex_t mutex = MUTEX_INIT;
+
+    timer.callback = _callback_unlock_mutex;
+    timer.arg = (void*) &mutex;
+    timer.target = 0;
+
+    mutex_lock(&mutex);
+    rtctimers_set(&timer, target-now);
+    mutex_lock(&mutex);
+}
+
 void rtctimers_set_msg(rtctimer_t *timer, uint32_t offset, msg_t *msg, kernel_pid_t target_pid) {
 	timer->callback = _callback_msg;
 	timer->arg = (void *) msg;
