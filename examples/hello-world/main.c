@@ -58,17 +58,21 @@ int main(void)
     time.tm_sec  = 15;
     rtc_set_time(&time);
 
-    time.tm_sec  += 10;
+    time.tm_sec  += 5;
 
-    rtc_set_alarm(&time, cb, 0);
-    lpm_set(LPM_POWERDOWN);
+    //rtc_set_alarm(&time, cb, 0);
     printf("HELLO! %s\n", "Paula");
-    puts("Wake"); 
-
+    rtctimers_sleep(5);
+    if (irq_is_in()) {
+        puts("[rtctimers] Unable to sleep in IRQ"); // FIXME
+    }
+    //rtctimers_sleep(5);
     while(1)
     {
+        //rtctimers_sleep(10);
         puts("Wake"); 
-        xtimer_usleep(10000000);
+                //assert(0);
+
     }
 
     return 0;
