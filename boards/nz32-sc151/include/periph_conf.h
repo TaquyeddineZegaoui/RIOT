@@ -70,6 +70,7 @@ extern "C" {
  * @{
  */
 #define DAC_CONFIG {            \
+    { GPIO_PIN(PORT_A, 4), 1},  \
     { GPIO_PIN(PORT_A, 5), 2},  \
 }
 
@@ -163,22 +164,24 @@ static const uart_conf_t uart_config[] = {
 #define SPI_0_ISON()        (RCC->APB2ENR & RCC_APB2ENR_SPI1EN)
 #define SPI_0_IRQ           SPI1_IRQn
 #define SPI_0_ISR           isr_spi1
+
 /* SPI 0 pin configuration */
-#define SPI_0_PORT_CLKEN()  (periph_clk_en(AHB, RCC_AHBENR_GPIOAEN))
-#define SPI_0_PORT          GPIOA
-#define SPI_0_PIN_NSS       4
-#define SPI_0_PIN_SCK       5
-#define SPI_0_PIN_MOSI      7
-#define SPI_0_PIN_MISO      6
+#define SPI_0_PORT_CLKEN()  (RCC->AHBENR |= RCC_AHBENR_GPIOBEN)
+#define SPI_0_PORT          GPIOB
+#define SPI_0_PIN_NSS       2
+#define SPI_0_PIN_SCK       3
+#define SPI_0_PIN_MOSI      5
+#define SPI_0_PIN_MISO      4
 #define SPI_0_PIN_AF        5
 
 /* SPI 1 device configuration */
 #define SPI_1_DEV           SPI2          
 #define SPI_1_CLKEN()       (RCC->APB1ENR |= RCC_APB1ENR_SPI2EN)
 #define SPI_1_CLKDIS()      (RCC->APB1ENR &= ~(RCC_APB1ENR_SPI2EN))
-#define SPI_1_ISON()        (RCC->APB1ENR & RCC_APB1ENR_SPI2EN)
+#define SPI_1_ISON()       (RCC->APB1ENR & RCC_APB1ENR_SPI2EN)
 #define SPI_1_IRQ           SPI2_IRQn
 #define SPI_1_ISR           isr_spi2
+
 /* SPI 1 pin configuration */
 #define SPI_1_PORT_CLKEN()  (RCC->AHBENR |= RCC_AHBENR_GPIOBEN)
 #define SPI_1_PORT          GPIOB
