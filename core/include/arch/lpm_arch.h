@@ -26,6 +26,8 @@
  extern "C" {
 #endif
 
+#include "periph/gpio.h"
+
 /**
  * @brief Define the mapping between the architecture independent interfaces
           and the kernel internal interfaces
@@ -91,6 +93,12 @@ void lpm_arch_begin_awake(void);
  * @brief This hook is called on the end of a wake-up phase
  */
 void lpm_arch_end_awake(void);
+
+/**
+ *@brief We are not using gpio_init as it sets GPIO clock speed to maximum 
+* We add GPIOs we touched to exclusion mask lpm_portmask_system 
+*/
+void pin_set(GPIO_TypeDef* port, uint8_t pin, uint8_t value);
 
 #ifdef __cplusplus
 }

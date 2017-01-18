@@ -47,7 +47,7 @@ volatile uint8_t lpm_run_mode;
 
 /* We are not using gpio_init as it sets GPIO clock speed to maximum */
 /* We add GPIOs we touched to exclusion mask lpm_portmask_system */
-static void pin_set(GPIO_TypeDef* port, uint8_t pin, uint8_t value) {
+void pin_set(GPIO_TypeDef* port, uint8_t pin, uint8_t value) {
     tmpreg = port->MODER;
     tmpreg &= ~(3 << (2*pin));
     tmpreg |= (1 << (2*pin));
@@ -98,7 +98,7 @@ static void lpm_before_i_go_to_sleep (void) {
     /* NSS = 1, MOSI = 0, SCK = 0, MISO doesn't matter */
 #if SPI_0_EN
     if (SPI_0_ISON()) {
-        pin_set(SPI_0_PORT, SPI_0_PIN_NSS, 1);
+        //pin_set(SPI_0_PORT, SPI_0_PIN_NSS, 1);
         pin_set(SPI_0_PORT, SPI_0_PIN_SCK, 0);
         pin_set(SPI_0_PORT, SPI_0_PIN_MOSI, 0);
     } else {
@@ -110,7 +110,7 @@ static void lpm_before_i_go_to_sleep (void) {
 #endif
 #if SPI_1_EN
     if (SPI_1_ISON()) {
-        pin_set(SPI_1_PORT, SPI_1_PIN_NSS, 1);
+        //pin_set(SPI_1_PORT, SPI_1_PIN_NSS, 1);
         pin_set(SPI_1_PORT, SPI_1_PIN_SCK, 0);
         pin_set(SPI_1_PORT, SPI_1_PIN_MOSI, 0);
     } else {
@@ -122,7 +122,7 @@ static void lpm_before_i_go_to_sleep (void) {
 #endif
 #if SPI_2_EN
     if (SPI_2_ISON()) {
-        pin_set(SPI_2_PORT, SPI_2_PIN_NSS, 1);
+        //pin_set(SPI_2_PORT, SPI_2_PIN_NSS, 1);
         pin_set(SPI_2_PORT, SPI_2_PIN_SCK, 0);
         pin_set(SPI_2_PORT, SPI_2_PIN_MOSI, 0);
     } else {
