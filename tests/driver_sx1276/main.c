@@ -197,7 +197,7 @@ int config_channel(int argc, char **argv)
 int rx_test(int argc, char **argv)
 {
     nd->driver->set(nd, NETOPT_LORA_SINGLE_RECEIVE, false, sizeof(uint8_t));
-    sx1276_set_rx(&sx1276);
+    sx1276_set_rx(&sx1276, 0);
 
     return 0;
 }
