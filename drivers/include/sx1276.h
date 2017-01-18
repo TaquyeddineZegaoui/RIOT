@@ -457,6 +457,10 @@ uint8_t sx1276_get_rx_single(sx1276_t *dev);
 
 void sx1276_set_crc(sx1276_t *dev, bool crc);
 bool sx1276_get_crc(sx1276_t *dev);
+
+uint8_t sx1276_get_hop_period(sx1276_t *dev);
+void sx1276_set_hop_period(sx1276_t *dev, uint8_t hop_period);
+
 #ifdef __cplusplus
 }
 #endif
