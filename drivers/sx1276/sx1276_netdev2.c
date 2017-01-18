@@ -181,6 +181,9 @@ static int _send(netdev2_t *netdev, const struct iovec *vector, unsigned count)
                       & SX1276_RF_LORA_DIOMAPPING1_DIO0_MASK)
                      | SX1276_RF_LORA_DIOMAPPING1_DIO0_01);
 
+    /* Start TX timeout timer */
+    xtimer_set(&dev->_internal.tx_timeout_timer, dev->settings.lora.tx_timeout);
+
     /* Put chip into transfer mode */
     sx1276_set_status(dev, SX1276_RF_TX_RUNNING);
     sx1276_set_op_mode(dev, SX1276_RF_OPMODE_TRANSMITTER);
@@ -204,6 +207,8 @@ static int _recv(netdev2_t *netdev, void *buf, size_t len, void *info)
             sx1276_set_status(dev,  SX1276_RF_IDLE);
         }
 
+        xtimer_remove(&dev->_internal.rx_timeout_timer);
+        netdev->event_callback(netdev, NETDEV2_EVENT_CRC_ERROR);
         return -EBADMSG;
     }
 
@@ -255,6 +260,7 @@ static int _recv(netdev2_t *netdev, void *buf, size_t len, void *info)
         sx1276_set_status(dev,  SX1276_RF_IDLE);
     }
 
+    xtimer_remove(&dev->_internal.rx_timeout_timer);
     /* Read the last packet from FIFO */
     uint8_t last_rx_addr = sx1276_reg_read(dev, SX1276_REG_LR_FIFORXCURRENTADDR);
     sx1276_reg_write(dev, SX1276_REG_LR_FIFOADDRPTR, last_rx_addr);
@@ -275,7 +281,8 @@ static int _set_state(sx1276_t *dev, netopt_state_t state)
             break;
 
         case NETOPT_STATE_IDLE:
-            sx1276_set_rx(dev);
+            //TODO
+            sx1276_set_rx(dev, 0); //set permanent listening
             break;
 
         case NETOPT_STATE_TX:
@@ -350,6 +357,10 @@ static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
             *((uint8_t*) val) = sx1276_get_rx_single((sx1276_t*) netdev);
             return sizeof(uint8_t);
 
+        case NETOPT_LORA_SYNCWORD:
+            *((uint8_t*) val) = sx1276_get_syncword((sx1276_t*) netdev);
+            return sizeof(uint8_t);
+
         default:
             break;
     }
@@ -380,6 +391,10 @@ static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len)
         case NETOPT_CHANNEL:
             sx1276_set_channel((sx1276_t*) netdev, *((uint32_t*) val));
             return sizeof(uint32_t);
+
+        case NETOPT_LORA_SYNCWORD:
+            sx1276_set_syncword((sx1276_t*) netdev, *((uint8_t*) val));
+            return sizeof(uint8_t);
 
         default:
             break;

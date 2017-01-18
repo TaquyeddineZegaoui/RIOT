@@ -170,6 +170,8 @@ typedef struct {
     /* Data that will be passed to events handler in application */
     uint32_t last_channel;                  /**< Last channel in frequency hopping sequence */
     bool is_last_cad_success;               /**< Sign of success of last CAD operation (activity detected) */
+    xtimer_t tx_timeout_timer;              /**< TX operation timeout timer */
+    xtimer_t rx_timeout_timer;              /**< RX operation timeout timer */
 } sx1276_internal_t;
 
 /**
@@ -265,6 +267,9 @@ void sx1276_set_modem(sx1276_t *dev, sx1276_radio_modems_t modem);
  * @param	[IN]	dev		The sx1276 device structure pointer
  */
 
+uint8_t sx1276_get_syncword(sx1276_t *dev);
+
+void sx1276_set_syncword(sx1276_t *dev, uint8_t syncword);
 uint32_t sx1276_get_channel(sx1276_t *dev);
 /**
  * @brief Sets the channel frequency.
@@ -363,7 +368,7 @@ void sx1276_set_standby(sx1276_t *dev);
  *
  * @param	[IN]	timeout	reception timeout [us] [0: continuous, others: timeout]
  */
-void sx1276_set_rx(sx1276_t *dev);
+void sx1276_set_rx(sx1276_t *dev, uint32_t timeout);
 
 /**
  * @brief Sets the radio in transmission mode for given amount of time.
@@ -436,6 +441,7 @@ uint8_t sx1276_get_op_mode(sx1276_t *dev);
  * @brief Resets the SX1276
  */
 void sx1276_reset(sx1276_t *dev);
+uint32_t sx1276_random(sx1276_t *dev);
 
 void init_configs(sx1276_t *dev);
 
