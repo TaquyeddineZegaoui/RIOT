@@ -69,7 +69,11 @@ void sx1276_set_spreading_factor(sx1276_t *dev, sx1276_lora_spreading_factor_t s
     tmp &= SX1276_RF_LORA_MODEMCONFIG2_SF_MASK;
     tmp |= sf << 4;
     sx1276_reg_write(dev, SX1276_REG_LR_MODEMCONFIG2, tmp);
+
     _low_datarate_optimize(dev);
+
+    sx1276_reg_write(dev, SX1276_REG_LR_DETECTOPTIMIZE, SX1276_RF_LORA_DETECTIONOPTIMIZE_SF7_TO_SF12);
+    sx1276_reg_write(dev, SX1276_REG_LR_DETECTIONTHRESHOLD, SX1276_RF_LORA_DETECTIONTHRESH_SF7_TO_SF12);
 }
 
 sx1276_lora_coding_rate_t sx1276_get_coding_rate(sx1276_t *dev)

@@ -346,10 +346,6 @@ void sx1276_configure_lora(sx1276_t *dev, sx1276_lora_settings_t *settings)
     sx1276_set_hop_period(dev, dev->settings.lora.hop_period);
 
     setup_power_amplifier(dev, settings);
-
-
-    sx1276_reg_write(dev, SX1276_REG_LR_DETECTOPTIMIZE, SX1276_RF_LORA_DETECTIONOPTIMIZE_SF7_TO_SF12);
-    sx1276_reg_write(dev, SX1276_REG_LR_DETECTIONTHRESHOLD, SX1276_RF_LORA_DETECTIONTHRESH_SF7_TO_SF12);
 }
 
 void sx1276_configure_lora_bw(sx1276_t *dev, sx1276_lora_bandwidth_t bw)
