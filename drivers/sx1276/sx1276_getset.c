@@ -251,7 +251,7 @@ void sx1276_set_crc(sx1276_t *dev, bool crc)
 {
     uint8_t tmp = sx1276_reg_read(dev, SX1276_REG_LR_MODEMCONFIG2);
     tmp &= SX1276_RF_LORA_MODEMCONFIG2_RXPAYLOADCRC_MASK;
-    tmp |= crc ? SX1276_RF_LORA_MODEMCONFIG2_RXPAYLOADCRC_MASK : 0;
+    tmp |= crc << 2;
     sx1276_reg_write(dev, SX1276_REG_LR_MODEMCONFIG2, tmp);
 }
 
