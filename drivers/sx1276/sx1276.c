@@ -326,9 +326,6 @@ static void setup_power_amplifier(sx1276_t *dev, sx1276_lora_settings_t *setting
     sx1276_reg_write(dev, SX1276_REG_PADAC, pa_dac);
 }
 
-void configure_low_datarate_optimize(sx1276_t *dev)
-{
-}
 void sx1276_configure_lora(sx1276_t *dev, sx1276_lora_settings_t *settings)
 {
     sx1276_set_modem(dev, SX1276_MODEM_LORA);
