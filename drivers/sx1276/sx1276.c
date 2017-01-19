@@ -341,14 +341,12 @@ void sx1276_configure_lora(sx1276_t *dev, sx1276_lora_settings_t *settings)
     sx1276_set_bandwidth(dev, dev->settings.lora.bandwidth);
     sx1276_set_coding_rate(dev, dev->settings.lora.coderate);
     sx1276_set_implicit_mode(dev, dev->settings.lora.implicit_header);
-
+    sx1276_set_spreading_factor(dev, dev->settings.lora.datarate);
 
     sx1276_reg_write(dev, SX1276_REG_LR_MODEMCONFIG2,
                      (sx1276_reg_read(dev, SX1276_REG_LR_MODEMCONFIG2) &
-                      SX1276_RF_LORA_MODEMCONFIG2_SF_MASK &
                       SX1276_RF_LORA_MODEMCONFIG2_RXPAYLOADCRC_MASK &
-                      SX1276_RF_LORA_MODEMCONFIG2_SYMBTIMEOUTMSB_MASK) | (dev->settings.lora.datarate << 4)
-                     | (dev->settings.lora.crc_on << 2)
+                      SX1276_RF_LORA_MODEMCONFIG2_SYMBTIMEOUTMSB_MASK) | (dev->settings.lora.crc_on << 2)
                      | ((dev->settings.lora.rx_timeout >> 8)
                         & ~SX1276_RF_LORA_MODEMCONFIG2_SYMBTIMEOUTMSB_MASK));
 
