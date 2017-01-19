@@ -220,3 +220,48 @@ uint8_t sx1276_get_hop_period(sx1276_t *dev)
 {
     return sx1276_reg_read(dev, SX1276_REG_LR_HOPPERIOD);
 }
+
+void sx1276_set_implicit_mode(sx1276_t *dev, bool implicit)
+{
+}
+
+bool  sx12376_get_implicit_mode(sx1276_t *dev)
+{
+    return true;
+}
+
+void sx1276_set_low_datarate_optimize(sx1276_t *dev, bool ldo)
+{
+}
+
+bool sx1276_get_low_datarate_optimize(sx1276_t *dev)
+{
+    return true;
+}
+
+void sx1276_set_payload_length(sx1276_t *dev, uint8_t len)
+{
+}
+
+uint8_t sx1276_get_payload_length(sx1276_t *dev)
+{
+    return 0;
+}
+
+void sx1276_set_power(sx1276_t *dev, uint8_t power)
+{
+}
+
+uint8_t sx1276_get_power(sx1276_t *dev)
+{
+    return 0;
+}
+
+void sx1276_set_preamble_length(sx1276_t *dev, uint8_t preamble)
+{
+}
+
+uint8_t sx1276_get_preamble_length(sx1276_t *dev)
+{
+    return 0;
+}
