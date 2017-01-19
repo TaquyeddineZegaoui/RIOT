@@ -471,6 +471,7 @@ uint16_t sx1276_get_preamble_length(sx1276_t *dev);
 void sx1276_set_bandwidth(sx1276_t *dev, sx1276_lora_bandwidth_t bandwidth);
 void sx1276_set_coding_rate(sx1276_t *dev, sx1276_lora_coding_rate_t coderate);
 void sx1276_set_spreading_factor(sx1276_t *dev, sx1276_lora_spreading_factor_t sf);
+void sx1276_set_symbol_timeout(sx1276_t *dev, uint16_t timeout);
 #ifdef __cplusplus
 }
 #endif

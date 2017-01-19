@@ -253,6 +253,7 @@ typedef enum {
     NETOPT_LORA_SINGLE_RECEIVE, /**< when enabled, RX is turned of upon reception of a packet */
     NETOPT_LORA_RX_TIMEOUT, /**< Reception timeout of LoRa packet */
     NETOPT_LORA_TX_TIMEOUT, /**< Reception timeout of LoRa packet */
+    NETOPT_LORA_SYMBOL_TIMEOUT,
     NETOPT_LORA_SYNCWORD,
     NETOPT_LORA_HOP,
     NETOPT_LORA_HOP_PERIOD,

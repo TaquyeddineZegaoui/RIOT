@@ -317,3 +317,12 @@ uint16_t sx1276_get_preamble_length(sx1276_t *dev)
 {
     return 0;
 }
+
+void sx1276_set_symbol_timeout(sx1276_t *dev, uint16_t timeout)
+{
+    uint8_t tmp = sx1276_reg_read(dev, SX1276_REG_LR_MODEMCONFIG2);
+    tmp &= SX1276_RF_LORA_MODEMCONFIG2_SYMBTIMEOUTMSB_MASK;
+    tmp |= (timeout >> 8) & ~SX1276_RF_LORA_MODEMCONFIG2_SYMBTIMEOUTMSB_MASK;
+    sx1276_reg_write(dev, SX1276_REG_LR_MODEMCONFIG2, tmp);
+    sx1276_reg_write(dev, SX1276_REG_LR_SYMBTIMEOUTLSB,timeout & 0xFF);
+}
