@@ -466,8 +466,8 @@ void sx1276_set_payload_length(sx1276_t *dev, uint8_t len);
 uint8_t sx1276_get_payload_length(sx1276_t *dev);
 void sx1276_set_power(sx1276_t *dev, uint8_t power);
 uint8_t sx1276_get_power(sx1276_t *dev);
-void sx1276_set_preamble_length(sx1276_t *dev, uint8_t preamble);
-uint8_t sx1276_get_preamble_length(sx1276_t *dev);
+void sx1276_set_preamble_length(sx1276_t *dev, uint16_t preamble);
+uint16_t sx1276_get_preamble_length(sx1276_t *dev);
 #ifdef __cplusplus
 }
 #endif

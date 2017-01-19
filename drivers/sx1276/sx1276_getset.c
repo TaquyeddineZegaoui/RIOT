@@ -232,6 +232,9 @@ bool  sx12376_get_implicit_mode(sx1276_t *dev)
 
 void sx1276_set_payload_length(sx1276_t *dev, uint8_t len)
 {
+    if (dev->settings.lora.implicit_header) {
+        sx1276_reg_write(dev, SX1276_REG_LR_PAYLOADLENGTH, len);
+    }
 }
 
 uint8_t sx1276_get_payload_length(sx1276_t *dev)
@@ -248,11 +251,15 @@ uint8_t sx1276_get_power(sx1276_t *dev)
     return 0;
 }
 
-void sx1276_set_preamble_length(sx1276_t *dev, uint8_t preamble)
+void sx1276_set_preamble_length(sx1276_t *dev, uint16_t preamble)
 {
+    sx1276_reg_write(dev, SX1276_REG_LR_PREAMBLEMSB,
+                     (preamble >> 8) & 0xFF);
+    sx1276_reg_write(dev, SX1276_REG_LR_PREAMBLELSB,
+                     preamble & 0xFF);
 }
 
-uint8_t sx1276_get_preamble_length(sx1276_t *dev)
+uint16_t sx1276_get_preamble_length(sx1276_t *dev)
 {
     return 0;
 }

@@ -372,15 +372,9 @@ void sx1276_configure_lora(sx1276_t *dev, sx1276_lora_settings_t *settings)
     sx1276_reg_write(dev, SX1276_REG_LR_SYMBTIMEOUTLSB,
                      (uint8_t)(dev->settings.lora.rx_timeout & 0xFF));
 
-    sx1276_reg_write(dev, SX1276_REG_LR_PREAMBLEMSB,
-                     (uint8_t)((dev->settings.lora.preamble_len >> 8) & 0xFF));
-    sx1276_reg_write(dev, SX1276_REG_LR_PREAMBLELSB,
-                     (uint8_t)(dev->settings.lora.preamble_len & 0xFF));
+    sx1276_set_preamble_length(dev, dev->settings.lora.preamble_len);
 
-    if (dev->settings.lora.implicit_header) {
-        sx1276_reg_write(dev, SX1276_REG_LR_PAYLOADLENGTH, dev->settings.lora.payload_len);
-    }
-
+    sx1276_set_payload_length(dev, dev->settings.lora.payload_len);
 
     if (dev->settings.lora.freq_hop_on) {
         sx1276_reg_write(dev,
