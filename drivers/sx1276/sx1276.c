@@ -94,16 +94,6 @@ static void _init_isrs(sx1276_t *dev)
     gpio_init_int(dev->params.dio3_pin, GPIO_IN, GPIO_RISING, sx1276_on_dio3_isr, dev);
 }
 
-static inline uint8_t sx1276_get_pa_select(uint32_t channel)
-{
-    if (channel < SX1276_RF_MID_BAND_THRESH) {
-        return SX1276_RF_PACONFIG_PASELECT_PABOOST;
-    }
-    else {
-        return SX1276_RF_PACONFIG_PASELECT_RFO;
-    }
-}
-
 static void _on_tx_timeout(void *arg)
 {
     netdev2_t *dev = (netdev2_t *) arg;
@@ -266,66 +256,6 @@ static void _rx_chain_calibration(sx1276_t *dev)
     sx1276_set_channel(dev, initial_freq);
 }
 
-static void setup_power_amplifier(sx1276_t *dev, sx1276_lora_settings_t *settings)
-{
-    uint8_t pa_config = 0;
-    uint8_t pa_dac = 0;
-
-    pa_config = sx1276_reg_read(dev, SX1276_REG_PACONFIG);
-    pa_dac = sx1276_reg_read(dev, SX1276_REG_PADAC);
-
-    pa_config = (pa_config & SX1276_RF_PACONFIG_PASELECT_MASK) | sx1276_get_pa_select(dev->settings.channel) << 7;
-    pa_config = (pa_config & SX1276_RF_PACONFIG_MAX_POWER_MASK) | (0x05 << 4); /* max power is 14dBm */
-
-    sx1276_reg_write(dev, SX1276_REG_PARAMP, SX1276_RF_PARAMP_0050_US);
-
-    if ((pa_config & SX1276_RF_PACONFIG_PASELECT_PABOOST)
-        == SX1276_RF_PACONFIG_PASELECT_PABOOST) {
-        if (dev->settings.lora.power > 17) {
-            pa_dac = (pa_dac & SX1276_RF_PADAC_20DBM_MASK) | SX1276_RF_PADAC_20DBM_ON;
-        }
-        else {
-            pa_dac = (pa_dac & SX1276_RF_PADAC_20DBM_MASK) | SX1276_RF_PADAC_20DBM_OFF;
-        }
-        if ((pa_dac & SX1276_RF_PADAC_20DBM_ON) == SX1276_RF_PADAC_20DBM_ON) {
-            if (dev->settings.lora.power < 5) {
-                dev->settings.lora.power = 5;
-            }
-            if (dev->settings.lora.power > 20) {
-                dev->settings.lora.power = 20;
-            }
-
-            pa_config = (pa_config & SX1276_RF_PACONFIG_OUTPUTPOWER_MASK)
-                        | (uint8_t)((uint16_t)(dev->settings.lora.power - 5) & 0x0F);
-        }
-        else {
-            if (dev->settings.lora.power < 2) {
-                dev->settings.lora.power = 2;
-            }
-            if (dev->settings.lora.power > 17) {
-                dev->settings.lora.power = 17;
-            }
-
-            pa_config = (pa_config & SX1276_RF_PACONFIG_OUTPUTPOWER_MASK)
-                        | (uint8_t)((uint16_t)(dev->settings.lora.power - 2) & 0x0F);
-        }
-    }
-    else {
-        if (dev->settings.lora.power < -1) {
-            dev->settings.lora.power = -1;
-        }
-        if (dev->settings.lora.power > 14) {
-            dev->settings.lora.power = 14;
-        }
-
-        pa_config = (pa_config & SX1276_RF_PACONFIG_OUTPUTPOWER_MASK)
-                    | (uint8_t)((uint16_t)(dev->settings.lora.power + 1) & 0x0F);
-    }
-
-    sx1276_reg_write(dev, SX1276_REG_PACONFIG, pa_config);
-    sx1276_reg_write(dev, SX1276_REG_PADAC, pa_dac);
-}
-
 void sx1276_configure_lora(sx1276_t *dev, sx1276_lora_settings_t *settings)
 {
     sx1276_set_modem(dev, SX1276_MODEM_LORA);
@@ -344,8 +274,7 @@ void sx1276_configure_lora(sx1276_t *dev, sx1276_lora_settings_t *settings)
     sx1276_set_preamble_length(dev, dev->settings.lora.preamble_len);
     sx1276_set_payload_length(dev, dev->settings.lora.payload_len);
     sx1276_set_hop_period(dev, dev->settings.lora.hop_period);
-
-    setup_power_amplifier(dev, settings);
+    sx1276_set_power(dev, dev->settings.lora.power);
 }
 
 void sx1276_configure_lora_bw(sx1276_t *dev, sx1276_lora_bandwidth_t bw)

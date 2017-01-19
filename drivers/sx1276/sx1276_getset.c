@@ -316,8 +316,75 @@ uint8_t sx1276_get_payload_length(sx1276_t *dev)
     return 0;
 }
 
+static inline uint8_t sx1276_get_pa_select(uint32_t channel)
+{
+    if (channel < SX1276_RF_MID_BAND_THRESH) {
+        return SX1276_RF_PACONFIG_PASELECT_PABOOST;
+    }
+    else {
+        return SX1276_RF_PACONFIG_PASELECT_RFO;
+    }
+}
+
 void sx1276_set_power(sx1276_t *dev, uint8_t power)
 {
+    uint8_t pa_config = 0;
+    uint8_t pa_dac = 0;
+
+    pa_config = sx1276_reg_read(dev, SX1276_REG_PACONFIG);
+    pa_dac = sx1276_reg_read(dev, SX1276_REG_PADAC);
+
+    pa_config = (pa_config & SX1276_RF_PACONFIG_PASELECT_MASK) | sx1276_get_pa_select(dev->settings.channel) << 7;
+    pa_config = (pa_config & SX1276_RF_PACONFIG_MAX_POWER_MASK) | (0x05 << 4); /* max power is 14dBm */
+
+    sx1276_reg_write(dev, SX1276_REG_PARAMP, SX1276_RF_PARAMP_0050_US);
+
+    if ((pa_config & SX1276_RF_PACONFIG_PASELECT_PABOOST)
+        == SX1276_RF_PACONFIG_PASELECT_PABOOST) {
+        if (power > 17) {
+            pa_dac = (pa_dac & SX1276_RF_PADAC_20DBM_MASK) | SX1276_RF_PADAC_20DBM_ON;
+        }
+        else {
+            pa_dac = (pa_dac & SX1276_RF_PADAC_20DBM_MASK) | SX1276_RF_PADAC_20DBM_OFF;
+        }
+        if ((pa_dac & SX1276_RF_PADAC_20DBM_ON) == SX1276_RF_PADAC_20DBM_ON) {
+            if (power < 5) {
+                power = 5;
+            }
+            if (power > 20) {
+                power = 20;
+            }
+
+            pa_config = (pa_config & SX1276_RF_PACONFIG_OUTPUTPOWER_MASK)
+                        | (uint8_t)((uint16_t)(power - 5) & 0x0F);
+        }
+        else {
+            if (power < 2) {
+                power = 2;
+            }
+            if (power > 17) {
+                power = 17;
+            }
+
+            pa_config = (pa_config & SX1276_RF_PACONFIG_OUTPUTPOWER_MASK)
+                        | (uint8_t)((uint16_t)(power - 2) & 0x0F);
+        }
+    }
+    else {
+        if (power < -1) {
+            power = -1;
+        }
+        if (power > 14) {
+            power = 14;
+        }
+
+        pa_config = (pa_config & SX1276_RF_PACONFIG_OUTPUTPOWER_MASK)
+                    | (uint8_t)((uint16_t)(power + 1) & 0x0F);
+    }
+
+    dev->settings.lora.power = power;
+    sx1276_reg_write(dev, SX1276_REG_PACONFIG, pa_config);
+    sx1276_reg_write(dev, SX1276_REG_PADAC, pa_dac);
 }
 
 uint8_t sx1276_get_power(sx1276_t *dev)
