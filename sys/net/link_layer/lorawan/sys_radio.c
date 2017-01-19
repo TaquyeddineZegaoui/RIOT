@@ -109,9 +109,8 @@ void SX1276SetTxConfig( RadioModems_t modem, int8_t power, uint32_t fdev,
     settings.crc_on = crcOn;
     settings.freq_hop_on = freqHopOn;
     settings.hop_period = hopPeriod;
-    settings.implicit_header = false;
+    settings.implicit_header = fixLen;
     settings.iq_inverted = iqInverted;
-    settings.low_datarate_optimize = fixLen;
     settings.payload_len = 0;
     settings.power = power;
     settings.preamble_len = preambleLen;

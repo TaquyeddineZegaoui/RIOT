@@ -347,6 +347,12 @@ void sx1276_configure_lora(sx1276_t *dev, sx1276_lora_settings_t *settings)
     }
 
     sx1276_reg_write(dev,
+                     SX1276_REG_LR_MODEMCONFIG3,
+                     (sx1276_reg_read(dev, SX1276_REG_LR_MODEMCONFIG3)
+                      & SX1276_RF_LORA_MODEMCONFIG3_LOWDATARATEOPTIMIZE_MASK)
+                     | (dev->settings.lora.low_datarate_optimize << 3));
+
+    sx1276_reg_write(dev,
                      SX1276_REG_LR_MODEMCONFIG1,
                      (sx1276_reg_read(dev, SX1276_REG_LR_MODEMCONFIG1) &
                       SX1276_RF_LORA_MODEMCONFIG1_BW_MASK &
@@ -362,12 +368,6 @@ void sx1276_configure_lora(sx1276_t *dev, sx1276_lora_settings_t *settings)
                      | (dev->settings.lora.crc_on << 2)
                      | ((dev->settings.lora.rx_timeout >> 8)
                         & ~SX1276_RF_LORA_MODEMCONFIG2_SYMBTIMEOUTMSB_MASK));
-
-    sx1276_reg_write(dev,
-                     SX1276_REG_LR_MODEMCONFIG3,
-                     (sx1276_reg_read(dev, SX1276_REG_LR_MODEMCONFIG3)
-                      & SX1276_RF_LORA_MODEMCONFIG3_LOWDATARATEOPTIMIZE_MASK)
-                     | (dev->settings.lora.low_datarate_optimize << 3));
 
     sx1276_reg_write(dev, SX1276_REG_LR_SYMBTIMEOUTLSB,
                      (uint8_t)(dev->settings.lora.rx_timeout & 0xFF));
