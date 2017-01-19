@@ -171,8 +171,9 @@ int rtc_get_alarm(struct tm *time)
     time->tm_mon  = (((RTC->DR     & RTC_DR_MT)      >> 12) * 10) + ((RTC->DR & RTC_DR_MU)          >>  8) - 1;
     time->tm_mday = (((RTC->ALRMAR & RTC_ALRMAR_DT)  >> 28) * 10) + ((RTC->ALRMAR & RTC_ALRMAR_DU)  >> 24);
     time->tm_hour = (((RTC->ALRMAR & RTC_ALRMAR_HT)  >> 20) * 10) + ((RTC->ALRMAR & RTC_ALRMAR_HU)  >> 16);
-    if ( (RTC->ALRMAR & RTC_ALRMAR_PM) && (RTC->CR & RTC_CR_FMT) )
+    if ( (RTC->ALRMAR & RTC_ALRMAR_PM) && (RTC->CR & RTC_CR_FMT) ) {
         time->tm_hour += 12;
+    }
     time->tm_min  = (((RTC->ALRMAR & RTC_ALRMAR_MNT) >> 12) * 10) + ((RTC->ALRMAR & RTC_ALRMAR_MNU) >>  8);
     time->tm_sec  = (((RTC->ALRMAR & RTC_ALRMAR_ST)  >>  4) * 10) + ((RTC->ALRMAR & RTC_ALRMAR_SU)  >>  0);
     return 0;
@@ -230,10 +231,13 @@ void rtc_poweroff(void)
 void isr_rtc_alarm(void)
 {
     if ((RTC->ISR & RTC_ISR_ALRAF) && (rtc_callback.cb != NULL)) {
-        rtc_callback.cb(rtc_callback.arg);
         RTC->ISR &= ~RTC_ISR_ALRAF;
+        EXTI->PR = EXTI_PR_PR17;
+        rtc_callback.cb(rtc_callback.arg);
     }
-    cortexm_isr_end();
+    if (sched_context_switch_request) {
+        thread_yield();
+    }
 }
 
 /**
