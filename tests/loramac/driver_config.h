@@ -1,25 +1,20 @@
 /*
- * Copyright (C) Cr0s
+ * Copyright (C) 2016 Fundacion Inria Chile
  *
- * This file is subject to the terms and conditions of the GNU Lesser
- * General Public License v2.1. See the file LICENSE in the top level
- * directory for more details.
+ * This file is subject to the terms and conditions of the GNU Lesser General
+ * Public License v2.1. See the file LICENSE in the top level directory for more
+ * details.
  */
 
-/**
- * @ingroup     tests
- * @{
+/* @file        driver_config.h
+ * @brief       sx1276 driver port specification, compatible with nz32-sc151 and samr21-xpro
  *
- * @file
- * @brief   Common header for sx1276 tests
- *
- * @author  Cr0s
- */
-#ifndef COMMON_H_
-#define COMMON_H_
+ * @author      Francisco Molina <francisco.molina@inria.cl>
+*/
 
+#ifndef DRIVER_CONFIG_H_
+#define DRIVER_CONFIG_H_
 
-#include <stdint.h>
 #include "sx1276.h"
 #include "board.h"
 
@@ -104,5 +99,5 @@ void init_radio(void);
 }
 #endif
 
-#endif /* COMMON_H_ */
+#endif /* DRIVER_CONFIG_H_ */
 /** @} */

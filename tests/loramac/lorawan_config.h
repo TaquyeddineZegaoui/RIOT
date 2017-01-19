@@ -1,18 +1,19 @@
 /*
- / _____)             _              | |
-( (____  _____ ____ _| |_ _____  ____| |__
- \____ \| ___ |    (_   _) ___ |/ ___)  _ \
- _____) ) ____| | | || |_| ____( (___| | | |
-(______/|_____)_|_|_| \__)_____)\____)_| |_|
-    (C)2015 Semtech
-Description: End device commissioning parameters
-License: Revised BSD License, see LICENSE.TXT file include in the project
-Maintainer: Miguel Luis and Gregory Cristian
-*/
-#ifndef __LORA_COMMISSIONING_H__
-#define __LORA_COMMISSIONING_H__
+ * Copyright (C) 2016 Fundacion Inria Chile
+ *
+ * This file is subject to the terms and conditions of the GNU Lesser General
+ * Public License v2.1. See the file LICENSE in the top level directory for more
+ * details.
+ */
 
-#include "common.h"
+/* @file        lorawan_config.h
+ * @brief       lorawan layer configuration, all parameter can be set from MAKEDILE
+ *
+ * @author      Francisco Molina <francisco.molina@inria.cl>
+*/
+
+#ifndef __LORAWAN_CONFIG_H__
+#define __LORAWAN_CONFIG_H__
 
 /*!
  * When set to 1 the application uses the Over-the-Air activation procedure
@@ -90,4 +91,4 @@ Maintainer: Miguel Luis and Gregory Cristian
 #define LORAWAN_APPSKEY                             { 0x2B, 0x7E, 0x15, 0x16, 0x28, 0xAE, 0xD2, 0xA6, 0xAB, 0xF7, 0x15, 0x88, 0x09, 0xCF, 0x4F, 0x3A }
 #endif
 
-#endif // __LORA_COMMISSIONING_H__
+#endif // __LORAWAN_CONFIG_H__
