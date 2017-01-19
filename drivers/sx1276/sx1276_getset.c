@@ -12,6 +12,26 @@ sx1276_lora_bandwidth_t sx1276_get_bandwidth(sx1276_t *dev)
     return dev->settings.lora.bandwidth;
 }
 
+void _low_datarate_optimize(sx1276_t *dev)
+{
+    if (((dev->settings.lora.bandwidth == SX1276_BW_125_KHZ) 
+			&& ((dev->settings.lora.datarate == SX1276_SF11) 
+					|| (dev->settings.lora.datarate == SX1276_SF12)))
+        			|| ((dev->settings.lora.bandwidth == SX1276_BW_250_KHZ) 
+							&& (dev->settings.lora.datarate == SX1276_SF12))) {
+        dev->settings.lora.low_datarate_optimize = 0x01;
+    }
+    else {
+        dev->settings.lora.low_datarate_optimize = 0x00;
+    }
+
+    sx1276_reg_write(dev,
+                     SX1276_REG_LR_MODEMCONFIG3,
+                     (sx1276_reg_read(dev, SX1276_REG_LR_MODEMCONFIG3)
+                      & SX1276_RF_LORA_MODEMCONFIG3_LOWDATARATEOPTIMIZE_MASK)
+                     | (dev->settings.lora.low_datarate_optimize << 3));
+
+}
 void sx1276_set_bandwidth(sx1276_t *dev, sx1276_lora_bandwidth_t bandwidth)
 {
     uint8_t tmp = sx1276_reg_read(dev, SX1276_REG_LR_MODEMCONFIG1);
@@ -20,6 +40,7 @@ void sx1276_set_bandwidth(sx1276_t *dev, sx1276_lora_bandwidth_t bandwidth)
 
     dev->settings.lora.bandwidth = bandwidth;
     sx1276_reg_write(dev, SX1276_REG_LR_MODEMCONFIG1, tmp);
+    _low_datarate_optimize(dev);
 }
 
 sx1276_lora_spreading_factor_t sx1276_get_spreading_factor(sx1276_t *dev)
