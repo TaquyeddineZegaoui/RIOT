@@ -115,6 +115,7 @@ void sx1276_set_syncword(sx1276_t *dev, uint8_t syncword)
 void sx1276_set_channel(sx1276_t *dev, uint32_t freq)
 {
     /* Save current operating mode */
+    dev->settings.channel = freq;
     uint8_t prev_mode = sx1276_reg_read(dev, SX1276_REG_OPMODE);
 
     sx1276_set_op_mode(dev, SX1276_RF_OPMODE_STANDBY);
