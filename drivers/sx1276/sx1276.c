@@ -258,13 +258,13 @@ static void _rx_chain_calibration(sx1276_t *dev)
 
 void sx1276_configure_lora(sx1276_t *dev, sx1276_lora_settings_t *settings)
 {
-    sx1276_set_modem(dev, SX1276_MODEM_LORA);
 
     /* Copy LoRa configuration into device structure */
     if (settings != NULL) {
         memcpy(&dev->settings.lora, settings, sizeof(sx1276_lora_settings_t));
     }
 
+    sx1276_set_modem(dev, SX1276_MODEM_LORA);
     sx1276_set_bandwidth(dev, dev->settings.lora.bandwidth);
     sx1276_set_coding_rate(dev, dev->settings.lora.coderate);
     sx1276_set_implicit_mode(dev, dev->settings.lora.implicit_header);
