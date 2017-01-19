@@ -376,14 +376,7 @@ void sx1276_configure_lora(sx1276_t *dev, sx1276_lora_settings_t *settings)
 
     sx1276_set_payload_length(dev, dev->settings.lora.payload_len);
 
-    if (dev->settings.lora.freq_hop_on) {
-        sx1276_reg_write(dev,
-                         SX1276_REG_LR_PLLHOP,
-                         (sx1276_reg_read(dev, SX1276_REG_LR_PLLHOP)
-                          & SX1276_RF_LORA_PLLHOP_FASTHOP_MASK) | SX1276_RF_LORA_PLLHOP_FASTHOP_ON);
-        sx1276_reg_write(dev, SX1276_REG_LR_HOPPERIOD,
-                         dev->settings.lora.hop_period);
-    }
+    sx1276_set_hop_period(dev, dev->settings.lora.hop_period);
 
     setup_power_amplifier(dev, settings);
 
