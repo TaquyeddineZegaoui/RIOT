@@ -264,6 +264,10 @@ uint8_t sx1276_get_hop_period(sx1276_t *dev)
 
 void sx1276_set_implicit_mode(sx1276_t *dev, bool implicit)
 {
+    uint8_t tmp = sx1276_reg_read(dev, SX1276_REG_LR_MODEMCONFIG1);
+    tmp &= ~SX1276_RF_LORA_MODEMCONFIG1_IMPLICITHEADER_MASK;
+    tmp |= implicit;
+    sx1276_reg_write(dev, SX1276_REG_LR_MODEMCONFIG1, tmp);
 }
 
 bool  sx12376_get_implicit_mode(sx1276_t *dev)
