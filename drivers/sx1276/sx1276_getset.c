@@ -12,6 +12,16 @@ sx1276_lora_bandwidth_t sx1276_get_bandwidth(sx1276_t *dev)
     return dev->settings.lora.bandwidth;
 }
 
+void sx1276_set_bandwidth(sx1276_t *dev, sx1276_lora_bandwidth_t bandwidth)
+{
+    uint8_t tmp = sx1276_reg_read(dev, SX1276_REG_LR_MODEMCONFIG1);
+    tmp &= SX1276_RF_LORA_MODEMCONFIG1_BW_MASK;
+    tmp |= bandwidth << 4;
+
+    dev->settings.lora.bandwidth = bandwidth;
+    sx1276_reg_write(dev, SX1276_REG_LR_MODEMCONFIG1, tmp);
+}
+
 sx1276_lora_spreading_factor_t sx1276_get_spreading_factor(sx1276_t *dev)
 {
     return dev->settings.lora.datarate;
