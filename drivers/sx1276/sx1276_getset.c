@@ -241,7 +241,7 @@ bool sx1276_get_crc(sx1276_t *dev)
 void sx1276_set_crc(sx1276_t *dev, bool crc)
 {
     uint8_t tmp = sx1276_reg_read(dev, SX1276_REG_LR_MODEMCONFIG2);
-    tmp &= ~SX1276_RF_LORA_MODEMCONFIG2_RXPAYLOADCRC_MASK;
+    tmp &= SX1276_RF_LORA_MODEMCONFIG2_RXPAYLOADCRC_MASK;
     tmp |= crc ? SX1276_RF_LORA_MODEMCONFIG2_RXPAYLOADCRC_MASK : 0;
     sx1276_reg_write(dev, SX1276_REG_LR_MODEMCONFIG2, tmp);
 }
@@ -251,7 +251,7 @@ void sx1276_set_hop_period(sx1276_t *dev, uint8_t hop_period)
     uint8_t tmp = sx1276_reg_read(dev, SX1276_REG_LR_PLLHOP);
     dev->settings.lora.hop_period = hop_period;
     if (dev->settings.lora.freq_hop_on) {
-        tmp |= ~SX1276_RF_LORA_PLLHOP_FASTHOP_ON;
+        tmp |= SX1276_RF_LORA_PLLHOP_FASTHOP_ON;
         sx1276_reg_write(dev, SX1276_REG_LR_PLLHOP, tmp);
         sx1276_reg_write(dev, SX1276_REG_LR_HOPPERIOD, hop_period);
     }
@@ -265,7 +265,7 @@ uint8_t sx1276_get_hop_period(sx1276_t *dev)
 void sx1276_set_implicit_mode(sx1276_t *dev, bool implicit)
 {
     uint8_t tmp = sx1276_reg_read(dev, SX1276_REG_LR_MODEMCONFIG1);
-    tmp &= ~SX1276_RF_LORA_MODEMCONFIG1_IMPLICITHEADER_MASK;
+    tmp &= SX1276_RF_LORA_MODEMCONFIG1_IMPLICITHEADER_MASK;
     tmp |= implicit;
     sx1276_reg_write(dev, SX1276_REG_LR_MODEMCONFIG1, tmp);
 }
