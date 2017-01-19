@@ -340,32 +340,13 @@ void sx1276_configure_lora(sx1276_t *dev, sx1276_lora_settings_t *settings)
     sx1276_set_implicit_mode(dev, dev->settings.lora.implicit_header);
     sx1276_set_spreading_factor(dev, dev->settings.lora.datarate);
     sx1276_set_crc(dev, dev->settings.lora.crc_on);
-
     sx1276_set_symbol_timeout(dev, dev->settings.lora.rx_timeout);
-
     sx1276_set_preamble_length(dev, dev->settings.lora.preamble_len);
-
     sx1276_set_payload_length(dev, dev->settings.lora.payload_len);
-
     sx1276_set_hop_period(dev, dev->settings.lora.hop_period);
 
     setup_power_amplifier(dev, settings);
 
-    /* ERRATA sensetivity tweaks */
-    if ((dev->settings.lora.bandwidth == SX1276_BW_500_KHZ) && (SX1276_RF_MID_BAND_THRESH)) {
-        /* ERRATA 2.1 - Sensitivity Optimization with a 500 kHz Bandwidth */
-        sx1276_reg_write(dev, SX1276_REG_LR_TEST36, 0x02);
-        sx1276_reg_write(dev, SX1276_REG_LR_TEST3A, 0x64);
-    }
-    else if (dev->settings.lora.bandwidth == SX1276_BW_500_KHZ) {
-        /* ERRATA 2.1 - Sensitivity Optimization with a 500 kHz Bandwidth */
-        sx1276_reg_write(dev, SX1276_REG_LR_TEST36, 0x02);
-        sx1276_reg_write(dev, SX1276_REG_LR_TEST3A, 0x7F);
-    }
-    else {
-        /* ERRATA 2.1 - Sensitivity Optimization with another Bandwidth */
-        sx1276_reg_write(dev, SX1276_REG_LR_TEST36, 0x03);
-    }
 
     sx1276_reg_write(dev, SX1276_REG_LR_DETECTOPTIMIZE, SX1276_RF_LORA_DETECTIONOPTIMIZE_SF7_TO_SF12);
     sx1276_reg_write(dev, SX1276_REG_LR_DETECTIONTHRESHOLD, SX1276_RF_LORA_DETECTIONTHRESH_SF7_TO_SF12);

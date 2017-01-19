@@ -41,6 +41,21 @@ void sx1276_set_bandwidth(sx1276_t *dev, sx1276_lora_bandwidth_t bandwidth)
     dev->settings.lora.bandwidth = bandwidth;
     sx1276_reg_write(dev, SX1276_REG_LR_MODEMCONFIG1, tmp);
     _low_datarate_optimize(dev);
+    /* ERRATA sensetivity tweaks */
+    if ((dev->settings.lora.bandwidth == SX1276_BW_500_KHZ) && (SX1276_RF_MID_BAND_THRESH)) {
+        /* ERRATA 2.1 - Sensitivity Optimization with a 500 kHz Bandwidth */
+        sx1276_reg_write(dev, SX1276_REG_LR_TEST36, 0x02);
+        sx1276_reg_write(dev, SX1276_REG_LR_TEST3A, 0x64);
+    }
+    else if (dev->settings.lora.bandwidth == SX1276_BW_500_KHZ) {
+        /* ERRATA 2.1 - Sensitivity Optimization with a 500 kHz Bandwidth */
+        sx1276_reg_write(dev, SX1276_REG_LR_TEST36, 0x02);
+        sx1276_reg_write(dev, SX1276_REG_LR_TEST3A, 0x7F);
+    }
+    else {
+        /* ERRATA 2.1 - Sensitivity Optimization with another Bandwidth */
+        sx1276_reg_write(dev, SX1276_REG_LR_TEST36, 0x03);
+    }
 }
 
 sx1276_lora_spreading_factor_t sx1276_get_spreading_factor(sx1276_t *dev)
