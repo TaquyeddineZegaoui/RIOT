@@ -462,8 +462,6 @@ uint8_t sx1276_get_hop_period(sx1276_t *dev);
 void sx1276_set_hop_period(sx1276_t *dev, uint8_t hop_period);
 void sx1276_set_implicit_mode(sx1276_t *dev, bool implicit);
 bool  sx12376_get_implicit_mode(sx1276_t *dev);
-void sx1276_set_low_datarate_optimize(sx1276_t *dev, bool ldo);
-bool sx1276_get_low_datarate_optimize(sx1276_t *dev);
 void sx1276_set_payload_length(sx1276_t *dev, uint8_t len);
 uint8_t sx1276_get_payload_length(sx1276_t *dev);
 void sx1276_set_power(sx1276_t *dev, uint8_t power);

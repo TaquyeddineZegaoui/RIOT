@@ -230,15 +230,6 @@ bool  sx12376_get_implicit_mode(sx1276_t *dev)
     return true;
 }
 
-void sx1276_set_low_datarate_optimize(sx1276_t *dev, bool ldo)
-{
-}
-
-bool sx1276_get_low_datarate_optimize(sx1276_t *dev)
-{
-    return true;
-}
-
 void sx1276_set_payload_length(sx1276_t *dev, uint8_t len)
 {
 }
