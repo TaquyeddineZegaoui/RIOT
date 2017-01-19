@@ -326,15 +326,8 @@ static void setup_power_amplifier(sx1276_t *dev, sx1276_lora_settings_t *setting
     sx1276_reg_write(dev, SX1276_REG_PADAC, pa_dac);
 }
 
-void sx1276_configure_lora(sx1276_t *dev, sx1276_lora_settings_t *settings)
+void configure_low_datarate_optimize(sx1276_t *dev)
 {
-    sx1276_set_modem(dev, SX1276_MODEM_LORA);
-
-    /* Copy LoRa configuration into device structure */
-    if (settings != NULL) {
-        memcpy(&dev->settings.lora, settings, sizeof(sx1276_lora_settings_t));
-    }
-
     if (((dev->settings.lora.bandwidth == SX1276_BW_125_KHZ) 
 			&& ((dev->settings.lora.datarate == SX1276_SF11) 
 					|| (dev->settings.lora.datarate == SX1276_SF12)))
@@ -351,6 +344,18 @@ void sx1276_configure_lora(sx1276_t *dev, sx1276_lora_settings_t *settings)
                      (sx1276_reg_read(dev, SX1276_REG_LR_MODEMCONFIG3)
                       & SX1276_RF_LORA_MODEMCONFIG3_LOWDATARATEOPTIMIZE_MASK)
                      | (dev->settings.lora.low_datarate_optimize << 3));
+
+}
+void sx1276_configure_lora(sx1276_t *dev, sx1276_lora_settings_t *settings)
+{
+    sx1276_set_modem(dev, SX1276_MODEM_LORA);
+
+    /* Copy LoRa configuration into device structure */
+    if (settings != NULL) {
+        memcpy(&dev->settings.lora, settings, sizeof(sx1276_lora_settings_t));
+    }
+
+    configure_low_datarate_optimize(dev);
 
     sx1276_reg_write(dev,
                      SX1276_REG_LR_MODEMCONFIG1,
