@@ -53,6 +53,16 @@ sx1276_lora_coding_rate_t sx1276_get_coding_rate(sx1276_t *dev)
     return dev->settings.lora.coderate;
 }
 
+void sx1276_set_coding_rate(sx1276_t *dev, sx1276_lora_coding_rate_t coderate)
+{
+    uint8_t tmp = sx1276_reg_read(dev, SX1276_REG_LR_MODEMCONFIG1);
+    tmp &= SX1276_RF_LORA_MODEMCONFIG1_CODINGRATE_MASK;
+    tmp |= coderate << 1;
+
+    dev->settings.lora.coderate = coderate;
+    sx1276_reg_write(dev, SX1276_REG_LR_MODEMCONFIG1, tmp);
+}
+
 sx1276_radio_state_t sx1276_get_status(sx1276_t *dev)
 {
     return dev->settings.state;

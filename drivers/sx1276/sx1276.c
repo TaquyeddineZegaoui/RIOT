@@ -339,12 +339,12 @@ void sx1276_configure_lora(sx1276_t *dev, sx1276_lora_settings_t *settings)
     }
 
     sx1276_set_bandwidth(dev, dev->settings.lora.bandwidth);
+    sx1276_set_coding_rate(dev, dev->settings.lora.coderate);
 
     sx1276_reg_write(dev,
                      SX1276_REG_LR_MODEMCONFIG1,
                      (sx1276_reg_read(dev, SX1276_REG_LR_MODEMCONFIG1) &
-                      SX1276_RF_LORA_MODEMCONFIG1_CODINGRATE_MASK &
-                      SX1276_RF_LORA_MODEMCONFIG1_IMPLICITHEADER_MASK)  | (dev->settings.lora.coderate << 1) | dev->settings.lora.implicit_header);
+                      SX1276_RF_LORA_MODEMCONFIG1_IMPLICITHEADER_MASK) | dev->settings.lora.implicit_header);
 
     sx1276_reg_write(dev, SX1276_REG_LR_MODEMCONFIG2,
                      (sx1276_reg_read(dev, SX1276_REG_LR_MODEMCONFIG2) &
