@@ -788,11 +788,25 @@ void sx1276_on_dio5(void *arg)
 void init_configs(sx1276_t *dev)
 {
     sx1276_lora_settings_t lora_settings;
+    netdev2_t *netdev = (netdev2_t*) dev;
 
+#if 0
     sx1276_set_freq_hop(dev, false);
     sx1276_set_iq_invert(dev, false);
     sx1276_set_rx_single(dev, false);
     sx1276_set_tx_timeout(dev, 1000 * 1000 * 30);
+#else
+    bool freq_hop_on = false;
+    bool iq_invert = false;
+    uint8_t rx_single = false;
+    uint32_t tx_timeout = 1000 * 1000 * 30;
+
+    netdev->driver->set(netdev, NETOPT_LORA_HOP, &freq_hop_on, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_LORA_IQ_INVERT, &iq_invert, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_LORA_SINGLE_RECEIVE, &rx_single, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_LORA_TX_TIMEOUT, &tx_timeout, sizeof(uint32_t));
+
+#endif
 
     lora_settings.bandwidth = SX1276_BW_125_KHZ;
     lora_settings.coderate = SX1276_CR_4_5;
