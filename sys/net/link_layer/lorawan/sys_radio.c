@@ -73,25 +73,42 @@ void SX1276SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
                          bool crcOn, bool freqHopOn, uint8_t hopPeriod,
                          bool iqInverted, bool rxContinuous )
 {
-    sx1276_lora_settings_t settings;
     dev_ptr->settings.modem = modem;
+    //TODO: SET MODEM!!!
+    netdev2_t *netdev = (netdev2_t*) dev_ptr;
     (void) bandwidthAfc;
-    settings.bandwidth = bandwidth + 7;
-    settings.coderate = coderate;
-    settings.datarate = datarate;
-    settings.crc_on = crcOn;
-    settings.freq_hop_on = freqHopOn;
-    settings.hop_period = hopPeriod;
-    settings.implicit_header = false;
-    settings.iq_inverted = iqInverted;
-    settings.low_datarate_optimize = fixLen;
-    settings.payload_len = payloadLen;
-    settings.power = 14;
-    settings.preamble_len = preambleLen;
-    settings.rx_continuous = rxContinuous;
-    settings.tx_timeout = 3 * 1000 * 1000; // base units us
-    settings.rx_timeout = symbTimeout;
-    sx1276_configure_lora(dev_ptr, &settings);
+
+    bool freq_hop_on = freqHopOn;
+    bool iq_invert = iqInverted;
+    uint8_t rx_single = rxContinuous ? false : true;
+    uint32_t tx_timeout = 3 * 1000 * 1000;
+    sx1276_lora_bandwidth_t bw = bandwidth + 7;
+    sx1276_lora_coding_rate_t cr = coderate;
+    sx1276_lora_spreading_factor_t sf = datarate;
+    bool implicit = fixLen;
+    bool crc = crcOn;
+    uint16_t rx_timeout = symbTimeout;
+    uint16_t preamble = preambleLen;
+    uint8_t payload_len = payloadLen;
+    uint8_t hop_period = hopPeriod;
+    uint8_t power = 14;
+
+    netdev->driver->set(netdev, NETOPT_LORA_HOP, &freq_hop_on, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_LORA_IQ_INVERT, &iq_invert, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_LORA_SINGLE_RECEIVE, &rx_single, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_LORA_TX_TIMEOUT, &tx_timeout, sizeof(uint32_t));
+
+    netdev->driver->set(netdev, NETOPT_LORA_BANDWIDTH, &bw, sizeof(sx1276_lora_bandwidth_t));
+    netdev->driver->set(netdev, NETOPT_LORA_CODING_RATE, &cr, sizeof(sx1276_lora_coding_rate_t));
+    netdev->driver->set(netdev, NETOPT_LORA_SPREADING_FACTOR, &sf, sizeof(sx1276_lora_spreading_factor_t));
+    netdev->driver->set(netdev, NETOPT_LORA_IMPLICIT, &implicit, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_CRC, &crc, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_LORA_SYMBOL_TIMEOUT, &rx_timeout, sizeof(uint16_t));
+    netdev->driver->set(netdev, NETOPT_LORA_PREAMBLE_LENGTH, &preamble, sizeof(uint16_t));
+    netdev->driver->set(netdev, NETOPT_LORA_PAYLOAD_LENGTH, &payload_len, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_LORA_HOP_PERIOD, &hop_period, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_TX_POWER, &power, sizeof(uint8_t));
+
 }
 
 void SX1276SetTxConfig( RadioModems_t modem, int8_t power, uint32_t fdev,
