@@ -423,3 +423,8 @@ void sx1276_set_symbol_timeout(sx1276_t *dev, uint16_t timeout)
     sx1276_reg_write(dev, SX1276_REG_LR_MODEMCONFIG2, tmp);
     sx1276_reg_write(dev, SX1276_REG_LR_SYMBTIMEOUTLSB,timeout & 0xFF);
 }
+
+void sx1276_set_iq_invert(sx1276_t *dev, bool iq_invert)
+{
+    dev->settings.lora.iq_inverted = iq_invert;
+}
