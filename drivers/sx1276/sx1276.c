@@ -265,9 +265,11 @@ void sx1276_configure_lora(sx1276_t *dev, sx1276_lora_settings_t *settings)
         memcpy(&dev->settings.lora, settings, sizeof(sx1276_lora_settings_t));
     }
 
-    sx1276_set_modem(dev, SX1276_MODEM_LORA);
+    netopt_enable_t modem = NETOPT_ENABLE;
+    netdev->driver->set(netdev, NETOPT_LORA_MODE, &modem, sizeof(netopt_enable_t));
     
 #if 0
+    sx1276_set_modem(dev, SX1276_MODEM_LORA);
     sx1276_set_bandwidth(dev, dev->settings.lora.bandwidth);
     sx1276_set_coding_rate(dev, dev->settings.lora.coderate);
     sx1276_set_implicit_mode(dev, dev->settings.lora.implicit_header);

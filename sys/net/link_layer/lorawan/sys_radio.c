@@ -73,9 +73,12 @@ void SX1276SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
                          bool crcOn, bool freqHopOn, uint8_t hopPeriod,
                          bool iqInverted, bool rxContinuous )
 {
+    netdev2_t *netdev = (netdev2_t*) dev_ptr;
     dev_ptr->settings.modem = modem;
     //TODO: SET MODEM!!!
-    netdev2_t *netdev = (netdev2_t*) dev_ptr;
+
+    netopt_enable_t _modem = modem;
+    netdev->driver->set(netdev, NETOPT_LORA_MODE, &_modem, sizeof(netopt_enable_t));
     (void) bandwidthAfc;
 
     bool freq_hop_on = freqHopOn;

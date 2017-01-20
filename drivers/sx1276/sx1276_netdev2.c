@@ -437,6 +437,8 @@ static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len)
         case NETOPT_LORA_TX_TIMEOUT:
             sx1276_set_tx_timeout(dev, *((uint32_t*) val));
             return sizeof(uint32_t);
+        case NETOPT_LORA_MODE:
+            sx1276_set_modem(dev, *((netopt_enable_t*) val) ? SX1276_MODEM_LORA : SX1276_MODEM_FSK);
 
 
         default:
