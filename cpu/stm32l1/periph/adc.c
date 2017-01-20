@@ -69,6 +69,7 @@ int adc_init(adc_t line)
 
     /* lock and power-on the device */
     prep();
+
     /* configure the pin */
     if ((adc_config[line].pin != GPIO_UNDEF))
         gpio_init_analog(adc_config[line].pin);
@@ -82,25 +83,11 @@ int adc_init(adc_t line)
 
     ADC->CCR = ((clk_div / 2) - 1) << 16;
 
-    /* set to minimum conversion cycles that supports all resolutions (16 cycles)*/
-    if(adc_config[line].chan <= 9)
-    {
-        ADC1->SMPR1 |=  ((0x2) << adc_config[line].chan*3);
-    }
     /* for internal channels, more cycles is desriable*/
-    else if(adc_config[line].chan == 16 || adc_config[line].chan == 17)
+    if(adc_config[line].chan == 16 || adc_config[line].chan == 17)
     {
         ADC1->SMPR2 |=  ((0x5) << (adc_config[line].chan - 10)*3);
     }
-    else if((adc_config[line].chan > 9) && (adc_config[line].chan <= 19))
-    {
-        ADC1->SMPR2 |=  ((0x2) << (adc_config[line].chan - 10)*3);
-    }
-    else if((adc_config[line].chan > 19) && (adc_config[line].chan <= 29))
-    {
-        ADC1->SMPR3 |=  ((0x2) << (adc_config[line].chan - 20)*3);
-    }
-
 
     /* check if this channel is an internal ADC channel, if so
      * enable the internal temperature and Vref */
@@ -144,6 +131,7 @@ int adc_sample(adc_t line, adc_res_t res)
     /* finally read sample and reset the STRT bit in the status register */
     sample = (int)ADC1->DR;
     ADC1 -> SR &= ~ADC_SR_STRT;
+
 
     /* power off and unlock device again */
     done();
