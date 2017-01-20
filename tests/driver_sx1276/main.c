@@ -247,9 +247,10 @@ int lora_setup(int argc, char **argv) {
 
 	lora_cr = (sx1276_lora_coding_rate_t) (cr - 5);
 
-	sx1276_configure_lora_bw(&sx1276, lora_bw);
-	sx1276_configure_lora_sf(&sx1276, lora_sf);
-	sx1276_configure_lora_cr(&sx1276, lora_cr);
+    netdev2_t *netdev = (netdev2_t*) &sx1276;
+    netdev->driver->set(netdev, NETOPT_LORA_BANDWIDTH, &lora_bw, sizeof(sx1276_lora_bandwidth_t));
+    netdev->driver->set(netdev, NETOPT_LORA_SPREADING_FACTOR, &lora_sf, sizeof(sx1276_lora_spreading_factor_t));
+    netdev->driver->set(netdev, NETOPT_LORA_CODING_RATE, &lora_cr, sizeof(sx1276_lora_coding_rate_t));
 
 	puts("lora_setup: configuration is set");
 

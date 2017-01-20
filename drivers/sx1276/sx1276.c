@@ -277,24 +277,6 @@ void sx1276_configure_lora(sx1276_t *dev, sx1276_lora_settings_t *settings)
     sx1276_set_power(dev, dev->settings.lora.power);
 }
 
-void sx1276_configure_lora_bw(sx1276_t *dev, sx1276_lora_bandwidth_t bw)
-{
-    dev->settings.lora.bandwidth = bw;
-    sx1276_configure_lora(dev, NULL);
-}
-
-void sx1276_configure_lora_sf(sx1276_t *dev, sx1276_lora_spreading_factor_t sf)
-{
-    dev->settings.lora.datarate = sf;
-    sx1276_configure_lora(dev, NULL);
-}
-
-void sx1276_configure_lora_cr(sx1276_t *dev, sx1276_lora_coding_rate_t cr)
-{
-    dev->settings.lora.coderate = cr;
-    sx1276_configure_lora(dev, NULL);
-}
-
 void sx1276_send(sx1276_t *dev, uint8_t *buffer, uint8_t size)
 {
     switch (dev->settings.modem) {
