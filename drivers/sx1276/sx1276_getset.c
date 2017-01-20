@@ -428,3 +428,8 @@ void sx1276_set_iq_invert(sx1276_t *dev, bool iq_invert)
 {
     dev->settings.lora.iq_inverted = iq_invert;
 }
+
+void sx1276_set_freq_hop(sx1276_t *dev, bool freq_hop_on)
+{
+    dev->settings.lora.freq_hop_on = freq_hop_on;
+}

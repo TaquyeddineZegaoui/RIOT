@@ -763,7 +763,8 @@ void init_configs(sx1276_t *dev)
 {
     sx1276_lora_settings_t lora_settings;
 
-    lora_settings.freq_hop_on = false;
+    sx1276_set_freq_hop(dev, false);
+    //lora_settings.freq_hop_on = false;
     sx1276_set_iq_invert(dev, false);
     //lora_settings.iq_inverted = false;
     //lora_settings.low_datarate_optimize = false;

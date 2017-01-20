@@ -474,6 +474,7 @@ void sx1276_set_spreading_factor(sx1276_t *dev, sx1276_lora_spreading_factor_t s
 void sx1276_set_symbol_timeout(sx1276_t *dev, uint16_t timeout);
 void sx1276_set_tx_timeout(sx1276_t *dev, uint32_t timeout);
 void sx1276_set_iq_invert(sx1276_t *dev, bool iq_invert);
+void sx1276_set_freq_hop(sx1276_t *dev, bool freq_hop_on);
 #ifdef __cplusplus
 }
 #endif
