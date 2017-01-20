@@ -386,7 +386,7 @@ static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len)
             return _set_state((sx1276_t*) netdev, *((netopt_state_t*) val));
 
         case NETOPT_LORA_BANDWIDTH:
-            sx1276_configure_lora_bw((sx1276_t*) netdev, *((sx1276_lora_bandwidth_t*) val));
+            sx1276_set_bandwidth((sx1276_t*) netdev, *((sx1276_lora_bandwidth_t*) val));
             return sizeof(sx1276_lora_bandwidth_t);
 
         case NETOPT_LORA_SPREADING_FACTOR:
