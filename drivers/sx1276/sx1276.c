@@ -259,12 +259,15 @@ static void _rx_chain_calibration(sx1276_t *dev)
 void sx1276_configure_lora(sx1276_t *dev, sx1276_lora_settings_t *settings)
 {
 
+    netdev2_t *netdev = (netdev2_t*) dev;
     /* Copy LoRa configuration into device structure */
     if (settings != NULL) {
         memcpy(&dev->settings.lora, settings, sizeof(sx1276_lora_settings_t));
     }
 
     sx1276_set_modem(dev, SX1276_MODEM_LORA);
+    
+#if 0
     sx1276_set_bandwidth(dev, dev->settings.lora.bandwidth);
     sx1276_set_coding_rate(dev, dev->settings.lora.coderate);
     sx1276_set_implicit_mode(dev, dev->settings.lora.implicit_header);
@@ -275,6 +278,29 @@ void sx1276_configure_lora(sx1276_t *dev, sx1276_lora_settings_t *settings)
     sx1276_set_payload_length(dev, dev->settings.lora.payload_len);
     sx1276_set_hop_period(dev, dev->settings.lora.hop_period);
     sx1276_set_power(dev, dev->settings.lora.power);
+#else
+    sx1276_lora_bandwidth_t bw = dev->settings.lora.bandwidth;
+    sx1276_lora_coding_rate_t cr = dev->settings.lora.coderate;
+    sx1276_lora_spreading_factor_t sf = dev->settings.lora.datarate;
+    bool implicit = dev->settings.lora.implicit_header;
+    bool crc = dev->settings.lora.crc_on;
+    uint16_t rx_timeout = dev->settings.lora.rx_timeout;
+    uint16_t preamble = dev->settings.lora.preamble_len;
+    uint8_t payload_len = dev->settings.lora.payload_len;
+    uint8_t hop_period = dev->settings.lora.hop_period;
+    uint8_t power = dev->settings.lora.power;
+
+    netdev->driver->set(netdev, NETOPT_LORA_BANDWIDTH, &bw, sizeof(sx1276_lora_bandwidth_t));
+    netdev->driver->set(netdev, NETOPT_LORA_CODING_RATE, &cr, sizeof(sx1276_lora_coding_rate_t));
+    netdev->driver->set(netdev, NETOPT_LORA_SPREADING_FACTOR, &sf, sizeof(sx1276_lora_spreading_factor_t));
+    netdev->driver->set(netdev, NETOPT_LORA_IMPLICIT, &implicit, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_CRC, &crc, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_LORA_SYMBOL_TIMEOUT, &rx_timeout, sizeof(uint16_t));
+    netdev->driver->set(netdev, NETOPT_LORA_PREAMBLE_LENGTH, &preamble, sizeof(uint16_t));
+    netdev->driver->set(netdev, NETOPT_LORA_PAYLOAD_LENGTH, &payload_len, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_LORA_HOP_PERIOD, &hop_period, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_TX_POWER, &power, sizeof(uint8_t));
+#endif
 }
 
 void sx1276_send(sx1276_t *dev, uint8_t *buffer, uint8_t size)
