@@ -65,6 +65,7 @@ sx1276_lora_spreading_factor_t sx1276_get_spreading_factor(sx1276_t *dev)
 
 void sx1276_set_spreading_factor(sx1276_t *dev, sx1276_lora_spreading_factor_t sf)
 {
+    dev->settings.lora.datarate = sf;
     uint8_t tmp = sx1276_reg_read(dev, SX1276_REG_LR_MODEMCONFIG2);
     tmp &= SX1276_RF_LORA_MODEMCONFIG2_SF_MASK;
     tmp |= sf << 4;
@@ -269,6 +270,7 @@ bool sx1276_get_crc(sx1276_t *dev)
 
 void sx1276_set_crc(sx1276_t *dev, bool crc)
 {
+    dev->settings.lora.crc_on = crc;
     uint8_t tmp = sx1276_reg_read(dev, SX1276_REG_LR_MODEMCONFIG2);
     tmp &= SX1276_RF_LORA_MODEMCONFIG2_RXPAYLOADCRC_MASK;
     tmp |= crc << 2;
@@ -293,6 +295,7 @@ uint8_t sx1276_get_hop_period(sx1276_t *dev)
 
 void sx1276_set_implicit_mode(sx1276_t *dev, bool implicit)
 {
+    dev->settings.lora.implicit_header = implicit;
     uint8_t tmp = sx1276_reg_read(dev, SX1276_REG_LR_MODEMCONFIG1);
     tmp &= SX1276_RF_LORA_MODEMCONFIG1_IMPLICITHEADER_MASK;
     tmp |= implicit;
@@ -307,6 +310,7 @@ bool  sx12376_get_implicit_mode(sx1276_t *dev)
 void sx1276_set_payload_length(sx1276_t *dev, uint8_t len)
 {
     if (dev->settings.lora.implicit_header) {
+        dev->settings.lora.payload_len = len;
         sx1276_reg_write(dev, SX1276_REG_LR_PAYLOADLENGTH, len);
     }
 }
@@ -394,6 +398,7 @@ uint8_t sx1276_get_power(sx1276_t *dev)
 
 void sx1276_set_preamble_length(sx1276_t *dev, uint16_t preamble)
 {
+    dev->settings.lora.preamble_len = preamble;
     sx1276_reg_write(dev, SX1276_REG_LR_PREAMBLEMSB,
                      (preamble >> 8) & 0xFF);
     sx1276_reg_write(dev, SX1276_REG_LR_PREAMBLELSB,
@@ -407,6 +412,7 @@ uint16_t sx1276_get_preamble_length(sx1276_t *dev)
 
 void sx1276_set_symbol_timeout(sx1276_t *dev, uint16_t timeout)
 {
+    dev->settings.lora.rx_timeout = timeout;
     uint8_t tmp = sx1276_reg_read(dev, SX1276_REG_LR_MODEMCONFIG2);
     tmp &= SX1276_RF_LORA_MODEMCONFIG2_SYMBTIMEOUTMSB_MASK;
     tmp |= (timeout >> 8) & ~SX1276_RF_LORA_MODEMCONFIG2_SYMBTIMEOUTMSB_MASK;
