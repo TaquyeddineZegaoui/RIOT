@@ -390,7 +390,7 @@ static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len)
             return sizeof(sx1276_lora_bandwidth_t);
 
         case NETOPT_LORA_SPREADING_FACTOR:
-            sx1276_configure_lora_sf((sx1276_t*) netdev, *((sx1276_lora_spreading_factor_t*) val));
+            sx1276_set_spreading_factor((sx1276_t*) netdev, *((sx1276_lora_spreading_factor_t*) val));
             return sizeof(sx1276_lora_spreading_factor_t);
         case NETOPT_LORA_CODING_RATE:
             sx1276_configure_lora_cr((sx1276_t*) netdev, *((sx1276_lora_coding_rate_t*) val));
