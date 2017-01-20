@@ -259,16 +259,13 @@ static void _rx_chain_calibration(sx1276_t *dev)
 void sx1276_configure_lora(sx1276_t *dev, sx1276_lora_settings_t *settings)
 {
 
-    netdev2_t *netdev = (netdev2_t*) dev;
     /* Copy LoRa configuration into device structure */
     if (settings != NULL) {
         memcpy(&dev->settings.lora, settings, sizeof(sx1276_lora_settings_t));
     }
 
-    netopt_enable_t modem = NETOPT_ENABLE;
-    netdev->driver->set(netdev, NETOPT_LORA_MODE, &modem, sizeof(netopt_enable_t));
     
-#if 0
+#if 1
     sx1276_set_modem(dev, SX1276_MODEM_LORA);
     sx1276_set_bandwidth(dev, dev->settings.lora.bandwidth);
     sx1276_set_coding_rate(dev, dev->settings.lora.coderate);
@@ -281,6 +278,9 @@ void sx1276_configure_lora(sx1276_t *dev, sx1276_lora_settings_t *settings)
     sx1276_set_hop_period(dev, dev->settings.lora.hop_period);
     sx1276_set_power(dev, dev->settings.lora.power);
 #else
+    netdev2_t *netdev = (netdev2_t*) dev;
+    netopt_enable_t modem = NETOPT_ENABLE;
+    netdev->driver->set(netdev, NETOPT_LORA_MODE, &modem, sizeof(netopt_enable_t));
     sx1276_lora_bandwidth_t bw = dev->settings.lora.bandwidth;
     sx1276_lora_coding_rate_t cr = dev->settings.lora.coderate;
     sx1276_lora_spreading_factor_t sf = dev->settings.lora.datarate;

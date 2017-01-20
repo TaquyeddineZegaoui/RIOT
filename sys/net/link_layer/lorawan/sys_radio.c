@@ -75,7 +75,6 @@ void SX1276SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
 {
     netdev2_t *netdev = (netdev2_t*) dev_ptr;
     dev_ptr->settings.modem = modem;
-    //TODO: SET MODEM!!!
 
     netopt_enable_t _modem = modem;
     netdev->driver->set(netdev, NETOPT_LORA_MODE, &_modem, sizeof(netopt_enable_t));
