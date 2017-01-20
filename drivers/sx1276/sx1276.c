@@ -764,14 +764,10 @@ void init_configs(sx1276_t *dev)
     sx1276_lora_settings_t lora_settings;
 
     sx1276_set_freq_hop(dev, false);
-    //lora_settings.freq_hop_on = false;
     sx1276_set_iq_invert(dev, false);
-    //lora_settings.iq_inverted = false;
-    //lora_settings.low_datarate_optimize = false;
     sx1276_set_rx_single(dev, false);
-    //lora_settings.rx_continuous = true;
     sx1276_set_tx_timeout(dev, 1000 * 1000 * 30);
-    //lora_settings.tx_timeout = 1000 * 1000 * 30; // 30 sec
+
     lora_settings.bandwidth = SX1276_BW_125_KHZ;
     lora_settings.coderate = SX1276_CR_4_5;
     lora_settings.datarate = SX1276_SF12;
