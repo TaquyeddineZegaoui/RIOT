@@ -1766,33 +1766,33 @@ LoRaMacStatus_t LoRaMacMcpsRequest( McpsReq_t *mcpsRequest );
 /*!
  * \brief Function executed on Resend Frame timer event.
  */
-void OnMacStateCheckTimerEvent( void );
+void OnMacStateCheckTimerEvent(netdev2_t *netdev);
 
 /*!
  * \brief Function executed on duty cycle delayed Tx  timer event
  */
-void OnTxDelayedTimerEvent( void );
+void OnTxDelayedTimerEvent(netdev2_t *netdev);
 
 /*!
  * \brief Function executed on first Rx window timer event
  */
-void OnRxWindow1TimerEvent( void );
+void OnRxWindow1TimerEvent(netdev2_t *netdev);
 
 /*!
  * \brief Function executed on second Rx window timer event
  */
-void OnRxWindow2TimerEvent( void );
+void OnRxWindow2TimerEvent(netdev2_t *netdev);
 
 /*!
  * \brief Function executed on AckTimeout timer event
  */
-void OnAckTimeoutTimerEvent( void );
+void OnAckTimeoutTimerEvent(netdev2_t *netdev);
 
-void OnRadioTxDone( void );
-void OnRadioTxTimeout( void );
-void OnRadioRxError( void );
-void OnRadioRxTimeout( void );
-void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr );
+void OnRadioTxDone( netdev2_t *netdev );
+void OnRadioTxTimeout(netdev2_t *netdev);
+void OnRadioRxError(netdev2_t *netdev);
+void OnRadioRxTimeout(netdev2_t *netdev);
+void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr );
 
 /*! \} defgroup LORAMAC */
 

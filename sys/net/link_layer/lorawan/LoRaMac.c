@@ -542,36 +542,19 @@ static uint8_t RxSlot = 0;
  */
 LoRaMacFlags_t LoRaMacFlags;
 
-/*!
- * \brief Function to be executed on Radio Tx Done event
- */
-void OnRadioTxDone( void );
 
 /*!
  * \brief This function prepares the MAC to abort the execution of function
  *        OnRadioRxDone in case of a reception error.
  */
-static void PrepareRxDoneAbort( void );
+static void PrepareRxDoneAbort(netdev2_t *netdev);
 
 /*!
  * \brief Function to be executed on Radio Rx Done event
  */
-void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr );
+void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr );
 
-/*!
- * \brief Function executed on Radio Tx Timeout event
- */
-void OnRadioTxTimeout( void );
 
-/*!
- * \brief Function executed on Radio Rx error event
- */
-void OnRadioRxError( void );
-
-/*!
- * \brief Function executed on Radio Rx Timeout event
- */
-void OnRadioRxTimeout( void );
 /*!
  * \brief Searches and set the next random available channel
  *
@@ -820,7 +803,7 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel );
  */
 static void ResetMacParameters( void );
 
-void OnRadioTxDone( void )
+void OnRadioTxDone(netdev2_t *netdev)
 {
     TimerTime_t curTime = xtimer_now_usec64();
     if( LoRaMacDeviceClass != CLASS_C )
@@ -829,7 +812,7 @@ void OnRadioTxDone( void )
     }
     else
     {
-        OnRxWindow2TimerEvent( );
+        OnRxWindow2TimerEvent(netdev);
     }
 
     // Store last Tx channel
@@ -880,18 +863,18 @@ void OnRadioTxDone( void )
     }
 }
 
-static void PrepareRxDoneAbort( void )
+static void PrepareRxDoneAbort(netdev2_t *netdev)
 {
     LoRaMacState |= MAC_RX_ABORT;
 
     if( NodeAckRequested )
     {
-        OnAckTimeoutTimerEvent( );
+        OnAckTimeoutTimerEvent(netdev);
     }
 
     if( ( RxSlot == 0 ) && ( LoRaMacDeviceClass == CLASS_C ) )
     {
-        OnRxWindow2TimerEvent( );
+        OnRxWindow2TimerEvent(netdev);
     }
 
     LoRaMacFlags.Bits.McpsInd = 1;
@@ -904,7 +887,7 @@ static void PrepareRxDoneAbort( void )
     //TimerStart( &MacStateCheckTimer, 0);
 }
 
-void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
+void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
 {
     LoRaMacHeader_t macHdr;
     LoRaMacFrameCtrl_t fCtrl;
@@ -1059,7 +1042,7 @@ void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
                     {
                         // We are not the destination of this frame.
                         McpsIndication.Status = LORAMAC_EVENT_INFO_STATUS_ADDRESS_FAIL;
-                        PrepareRxDoneAbort( );
+                        PrepareRxDoneAbort(netdev);
                         return;
                     }
                 }
@@ -1112,7 +1095,7 @@ void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
                 {
                     McpsIndication.Status = LORAMAC_EVENT_INFO_STATUS_DOWNLINK_TOO_MANY_FRAMES_LOSS;
                     McpsIndication.DownLinkCounter = downLinkCounter;
-                    PrepareRxDoneAbort( );
+                    PrepareRxDoneAbort(netdev);
                     return;
                 }
 
@@ -1140,7 +1123,7 @@ void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
                         {
                             McpsIndication.Status = LORAMAC_EVENT_INFO_STATUS_DOWNLINK_REPEATED;
                             McpsIndication.DownLinkCounter = downLinkCounter;
-                            PrepareRxDoneAbort( );
+                            PrepareRxDoneAbort(netdev);
                             return;
                         }
                         curMulticastParams->DownLinkCounter = downLinkCounter;
@@ -1169,7 +1152,7 @@ void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
                             {
                                 McpsIndication.Status = LORAMAC_EVENT_INFO_STATUS_DOWNLINK_REPEATED;
                                 McpsIndication.DownLinkCounter = downLinkCounter;
-                                PrepareRxDoneAbort( );
+                                PrepareRxDoneAbort(netdev);
                                 return;
                             }
                         }
@@ -1269,7 +1252,7 @@ void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
                 {
                     McpsIndication.Status = LORAMAC_EVENT_INFO_STATUS_MIC_FAIL;
 
-                    PrepareRxDoneAbort( );
+                    PrepareRxDoneAbort(netdev);
                     return;
                 }
             }
@@ -1288,13 +1271,13 @@ void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
             }
         default:
             McpsIndication.Status = LORAMAC_EVENT_INFO_STATUS_ERROR;
-            PrepareRxDoneAbort( );
+            PrepareRxDoneAbort(netdev);
             break;
     }
 
     if( ( RxSlot == 0 ) && ( LoRaMacDeviceClass == CLASS_C ) )
     {
-        OnRxWindow2TimerEvent( );
+        OnRxWindow2TimerEvent(netdev);
     }
     LoRaMacFlags.Bits.MacDone = 1;
 
@@ -1305,7 +1288,7 @@ void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
     //TimerStart( &MacStateCheckTimer, 0);
 }
 
-void OnRadioTxTimeout( void )
+void OnRadioTxTimeout( netdev2_t *netdev )
 {
     if( LoRaMacDeviceClass != CLASS_C )
     {
@@ -1313,7 +1296,7 @@ void OnRadioTxTimeout( void )
     }
     else
     {
-        OnRxWindow2TimerEvent( );
+        OnRxWindow2TimerEvent(netdev);
     }
 
     McpsConfirm.Status = LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT;
@@ -1321,7 +1304,7 @@ void OnRadioTxTimeout( void )
     LoRaMacFlags.Bits.MacDone = 1;
 }
 
-void OnRadioRxError( void )
+void OnRadioRxError(netdev2_t *netdev)
 {
     if( LoRaMacDeviceClass != CLASS_C )
     {
@@ -1329,7 +1312,7 @@ void OnRadioRxError( void )
     }
     else
     {
-        OnRxWindow2TimerEvent( );
+        OnRxWindow2TimerEvent(netdev);
     }
 
     if( RxSlot == 1 )
@@ -1343,7 +1326,7 @@ void OnRadioRxError( void )
     }
 }
 
-void OnRadioRxTimeout( void )
+void OnRadioRxTimeout(netdev2_t *netdev)
 {
     if( LoRaMacDeviceClass != CLASS_C )
     {
@@ -1351,7 +1334,7 @@ void OnRadioRxTimeout( void )
     }
     else
     {
-        OnRxWindow2TimerEvent( );
+        OnRxWindow2TimerEvent(netdev);
     }
 
     if( RxSlot == 1 )
@@ -1365,7 +1348,7 @@ void OnRadioRxTimeout( void )
     }
 }
 
-void OnMacStateCheckTimerEvent( void )
+void OnMacStateCheckTimerEvent(netdev2_t *netdev)
 {
     //TimerStop( &MacStateCheckTimer );
     xtimer_remove(&MacStateCheckTimer.dev);
@@ -1557,7 +1540,7 @@ void OnMacStateCheckTimerEvent( void )
     }
 }
 
-void OnTxDelayedTimerEvent( void )
+void OnTxDelayedTimerEvent(netdev2_t *netdev)
 {
     LoRaMacHeader_t macHdr;
     LoRaMacFrameCtrl_t fCtrl;
@@ -1583,7 +1566,7 @@ void OnTxDelayedTimerEvent( void )
     ScheduleTx( );
 }
 
-void OnRxWindow1TimerEvent( void )
+void OnRxWindow1TimerEvent(netdev2_t *netdev)
 {
     uint16_t symbTimeout = 5; // DR_2, DR_1, DR_0
     int8_t datarate = 0;
@@ -1667,7 +1650,7 @@ void OnRxWindow1TimerEvent( void )
 #endif
 }
 
-void OnRxWindow2TimerEvent( void )
+void OnRxWindow2TimerEvent(netdev2_t *netdev)
 {
     uint16_t symbTimeout = 5; // DR_2, DR_1, DR_0
     uint32_t bandwidth = 0; // LoRa 125 kHz
@@ -1740,7 +1723,7 @@ void OnRxWindow2TimerEvent( void )
     }
 }
 
-void OnAckTimeoutTimerEvent( void )
+void OnAckTimeoutTimerEvent(netdev2_t *netdev)
 {
     //TimerStop( &AckTimeoutTimer );
     xtimer_remove(&AckTimeoutTimer.dev);
@@ -3488,7 +3471,9 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
                 {
                     // Set the NodeAckRequested indicator to default
                     NodeAckRequested = false;
-                    OnRxWindow2TimerEvent( );
+                    /* Currently there's no netdev pointer here... it should be fixed later. Let's put an assert for now */
+                    assert(false);
+                    //OnRxWindow2TimerEvent(netdev);
                     break;
                 }
             }
