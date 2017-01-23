@@ -482,7 +482,6 @@ void *_event_loop(void *arg)
     msg_init_queue(_msg_q, GNRC_LORA_MSG_QUEUE);
 
     gnrc_netapi_opt_t *opt;
-    RadioEvents_t *events;
     int res;
 
     while (1) {
@@ -517,26 +516,23 @@ void *_event_loop(void *arg)
                 break;
             case LORAWAN_TX_TIMEOUT_EVENT:
                 puts("sx1276: TX timeout");
-                events = radio_get_event_ptr();
-                events->TxTimeout();
+                OnRadioTxTimeout();
                 break;
             case LORAWAN_RX_TIMEOUT_EVENT:
                 puts("sx1276: RX timeout");
-                events = radio_get_event_ptr();
-                events->RxTimeout();
+                OnRadioRxTimeout();
                 break;
             case LORAWAN_CRC_ERROR:
                 puts("sx1276: RX CRC_ERROR");
-                events = radio_get_event_ptr();
-                events->RxError();
+                OnRadioRxError();
                 break;
             case LORAWAN_FHSS_CHANGE_CHANNEL:
-                events = radio_get_event_ptr();
-                events->FhssChangeChannel(sx1276._internal.last_channel);
+                assert(false);
+                //events->FhssChangeChannel(sx1276._internal.last_channel);
                 break;
             case LORAWAN_CAD_DONE:
-                events = radio_get_event_ptr();
-                events->CadDone(sx1276._internal.is_last_cad_success);
+                assert(false);
+                //events->CadDone(sx1276._internal.is_last_cad_success);
                 break;
             case LORAWAN_TIMER_MAC_STATE:
                 OnMacStateCheckTimerEvent();
@@ -568,7 +564,6 @@ static void _event_cb(netdev2_t *dev, netdev2_event_t event)
     kernel_pid_t *pid = (kernel_pid_t*) dev->context;
     size_t len;
     struct netdev2_radio_rx_info rx_info;
-    RadioEvents_t *events = radio_get_event_ptr();
     switch(event)
     {
         case NETDEV2_EVENT_ISR:
@@ -578,7 +573,7 @@ static void _event_cb(netdev2_t *dev, netdev2_event_t event)
             puts("sx1276: TX done");
             printf("TX done, COUNT : %lu \r\n",count);
             count++;
-            events->TxDone();
+            OnRadioTxDone();
             break;
         case NETDEV2_EVENT_TX_TIMEOUT:
             msg.type = LORAWAN_TX_TIMEOUT_EVENT;
@@ -589,7 +584,7 @@ static void _event_cb(netdev2_t *dev, netdev2_event_t event)
             dev->driver->recv(dev, message, len, NULL);
             printf("%s\n. {RSSI: %i, SNR: %i}", message, rx_info.rssi, (signed int) rx_info.lqi);
             puts("sx1276: RX Done");
-            events->RxDone(message, len, (signed int) rx_info.rssi, (signed int) rx_info.lqi);
+            OnRadioRxDone(message, len, (signed int) rx_info.rssi, (signed int) rx_info.lqi);
             break;
         case NETDEV2_EVENT_RX_TIMEOUT:
             msg.type = LORAWAN_RX_TIMEOUT_EVENT;

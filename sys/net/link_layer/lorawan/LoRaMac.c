@@ -469,11 +469,6 @@ static LoRaMacPrimitives_t *LoRaMacPrimitives;
 static LoRaMacCallback_t *LoRaMacCallbacks;
 
 /*!
- * Radio events function pointer
- */
-static RadioEvents_t RadioEvents;
-
-/*!
  * LoRaMac duty cycle delayed Tx timer
  */
 static TimerEvent_t TxDelayedTimer;
@@ -550,7 +545,7 @@ LoRaMacFlags_t LoRaMacFlags;
 /*!
  * \brief Function to be executed on Radio Tx Done event
  */
-static void OnRadioTxDone( void );
+void OnRadioTxDone( void );
 
 /*!
  * \brief This function prepares the MAC to abort the execution of function
@@ -561,22 +556,22 @@ static void PrepareRxDoneAbort( void );
 /*!
  * \brief Function to be executed on Radio Rx Done event
  */
-static void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr );
+void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr );
 
 /*!
  * \brief Function executed on Radio Tx Timeout event
  */
-static void OnRadioTxTimeout( void );
+void OnRadioTxTimeout( void );
 
 /*!
  * \brief Function executed on Radio Rx error event
  */
-static void OnRadioRxError( void );
+void OnRadioRxError( void );
 
 /*!
  * \brief Function executed on Radio Rx Timeout event
  */
-static void OnRadioRxTimeout( void );
+void OnRadioRxTimeout( void );
 /*!
  * \brief Searches and set the next random available channel
  *
@@ -825,7 +820,7 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel );
  */
 static void ResetMacParameters( void );
 
-static void OnRadioTxDone( void )
+void OnRadioTxDone( void )
 {
     TimerTime_t curTime = xtimer_now_usec64();
     if( LoRaMacDeviceClass != CLASS_C )
@@ -909,7 +904,7 @@ static void PrepareRxDoneAbort( void )
     //TimerStart( &MacStateCheckTimer, 0);
 }
 
-static void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
+void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
 {
     LoRaMacHeader_t macHdr;
     LoRaMacFrameCtrl_t fCtrl;
@@ -1310,7 +1305,7 @@ static void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t
     //TimerStart( &MacStateCheckTimer, 0);
 }
 
-static void OnRadioTxTimeout( void )
+void OnRadioTxTimeout( void )
 {
     if( LoRaMacDeviceClass != CLASS_C )
     {
@@ -1326,7 +1321,7 @@ static void OnRadioTxTimeout( void )
     LoRaMacFlags.Bits.MacDone = 1;
 }
 
-static void OnRadioRxError( void )
+void OnRadioRxError( void )
 {
     if( LoRaMacDeviceClass != CLASS_C )
     {
@@ -1348,7 +1343,7 @@ static void OnRadioRxError( void )
     }
 }
 
-static void OnRadioRxTimeout( void )
+void OnRadioRxTimeout( void )
 {
     if( LoRaMacDeviceClass != CLASS_C )
     {
@@ -3266,13 +3261,6 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacC
     AckTimeoutTimer.dev.callback =  (void*) OnAckTimeoutTimerEvent;
     AckTimeoutTimer.pid = mac_pid;
 
-    // Initialize Radio driver
-    RadioEvents.TxDone = OnRadioTxDone;
-    RadioEvents.RxDone = OnRadioRxDone;
-    RadioEvents.RxError = OnRadioRxError;
-    RadioEvents.TxTimeout = OnRadioTxTimeout;
-    RadioEvents.RxTimeout = OnRadioRxTimeout;
-    Radio.Init( &RadioEvents );
 
     // Random seed initialization
     srand1( Radio.Random( ) );

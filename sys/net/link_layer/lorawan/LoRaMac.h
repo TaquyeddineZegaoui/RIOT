@@ -1788,6 +1788,12 @@ void OnRxWindow2TimerEvent( void );
  */
 void OnAckTimeoutTimerEvent( void );
 
+void OnRadioTxDone( void );
+void OnRadioTxTimeout( void );
+void OnRadioRxError( void );
+void OnRadioRxTimeout( void );
+void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr );
+
 /*! \} defgroup LORAMAC */
 
 #endif // __LORAMAC_H__
