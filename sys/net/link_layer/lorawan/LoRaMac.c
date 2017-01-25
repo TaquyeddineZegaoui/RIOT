@@ -1884,6 +1884,51 @@ static void SetPublicNetwork( bool enable )
     }
 }
 
+void _set_rx_config( RadioModems_t modem, uint32_t bandwidth,
+                         uint32_t datarate, uint8_t coderate,
+                         uint32_t bandwidthAfc, uint16_t preambleLen,
+                         uint16_t symbTimeout, bool fixLen,
+                         uint8_t payloadLen,
+                         bool crcOn, bool freqHopOn, uint8_t hopPeriod,
+                         bool iqInverted, bool rxContinuous )
+{
+    netdev2_t *netdev = (netdev2_t*) dev;
+
+    netopt_enable_t _modem = modem;
+    netdev->driver->set(netdev, NETOPT_LORA_MODE, &_modem, sizeof(netopt_enable_t));
+    (void) bandwidthAfc;
+
+    bool freq_hop_on = freqHopOn;
+    bool iq_invert = iqInverted;
+    uint8_t rx_single = rxContinuous ? false : true;
+    uint32_t tx_timeout = 3 * 1000 * 1000;
+    sx1276_lora_bandwidth_t bw = bandwidth + 7;
+    sx1276_lora_coding_rate_t cr = coderate;
+    sx1276_lora_spreading_factor_t sf = datarate;
+    bool implicit = fixLen;
+    bool crc = crcOn;
+    uint16_t rx_timeout = symbTimeout;
+    uint16_t preamble = preambleLen;
+    uint8_t payload_len = payloadLen;
+    uint8_t hop_period = hopPeriod;
+    uint8_t power = 14;
+
+    netdev->driver->set(netdev, NETOPT_LORA_HOP, &freq_hop_on, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_LORA_IQ_INVERT, &iq_invert, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_LORA_SINGLE_RECEIVE, &rx_single, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_LORA_TX_TIMEOUT, &tx_timeout, sizeof(uint32_t));
+
+    netdev->driver->set(netdev, NETOPT_LORA_BANDWIDTH, &bw, sizeof(sx1276_lora_bandwidth_t));
+    netdev->driver->set(netdev, NETOPT_LORA_CODING_RATE, &cr, sizeof(sx1276_lora_coding_rate_t));
+    netdev->driver->set(netdev, NETOPT_LORA_SPREADING_FACTOR, &sf, sizeof(sx1276_lora_spreading_factor_t));
+    netdev->driver->set(netdev, NETOPT_LORA_IMPLICIT, &implicit, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_CRC, &crc, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_LORA_SYMBOL_TIMEOUT, &rx_timeout, sizeof(uint16_t));
+    netdev->driver->set(netdev, NETOPT_LORA_PREAMBLE_LENGTH, &preamble, sizeof(uint16_t));
+    netdev->driver->set(netdev, NETOPT_LORA_PAYLOAD_LENGTH, &payload_len, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_LORA_HOP_PERIOD, &hop_period, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_TX_POWER, &power, sizeof(uint8_t));
+}
 static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, uint16_t timeout, bool rxContinuous )
 {
     uint8_t downlinkDatarate = Datarates[datarate];
@@ -1900,12 +1945,12 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
         if( datarate == DR_7 )
         {
             modem = MODEM_FSK;
-            Radio.SetRxConfig( modem, 50e3, downlinkDatarate * 1e3, 0, 83.333e3, 5, 0, false, 0, true, 0, 0, false, rxContinuous );
+            _set_rx_config( modem, 50e3, downlinkDatarate * 1e3, 0, 83.333e3, 5, 0, false, 0, true, 0, 0, false, rxContinuous );
         }
         else
         {
             modem = MODEM_LORA;
-            Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous );
+            _set_rx_config( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous );
         }
 #elif defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
         modem = MODEM_LORA;
@@ -1915,13 +1960,13 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
             if(IsLoRaMacNetworkJoined == false)
             {
                 (void) timeout;
-                Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 8, 128, false, 0, false, 0, 0, true, rxContinuous );
+                _set_rx_config( modem, bandwidth, downlinkDatarate, 1, 0, 8, 128, false, 0, false, 0, 0, true, rxContinuous );
             }
             else
-                Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous );
+                _set_rx_config( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous );
             /* Hack End*/
         #else
-            Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous );
+            _set_rx_config( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous );
         #endif
 
 #endif
