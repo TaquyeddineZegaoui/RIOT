@@ -19,6 +19,7 @@
 #include "net/netdev2.h"
 #include "include/sx1276_registers.h"
 #include "include/sx1276_internal.h"
+#include "net/netdev2/lorawan.h"
 #include "sx1276_netdev.h"
 #include "sx1276.h"
 #include <stddef.h>
@@ -370,9 +371,9 @@ static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
             break;
         case NETOPT_LORA_HOP_PERIOD:
             *((uint8_t*) val) = sx1276_get_hop_period(dev);
-
-
+            break;
         default:
+            return netdev2_lorawan_get(netdev, opt, val, max_len);
             break;
     }
     return 0;
@@ -439,9 +440,9 @@ static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len)
             return sizeof(uint32_t);
         case NETOPT_LORA_MODE:
             sx1276_set_modem(dev, *((netopt_enable_t*) val) ? SX1276_MODEM_LORA : SX1276_MODEM_FSK);
-
-
+            return sizeof(netopt_enable_t);
         default:
+            return netdev2_lorawan_set(netdev, opt, val, len);
             break;
     }
     return 0;
