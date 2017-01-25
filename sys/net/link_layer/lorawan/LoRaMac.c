@@ -3049,6 +3049,50 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
     return LORAMAC_STATUS_OK;
 }
 
+void _set_tx_config( RadioModems_t modem, int8_t power, uint32_t fdev,
+                        uint32_t bandwidth, uint32_t datarate,
+                        uint8_t coderate, uint16_t preambleLen,
+                        bool fixLen, bool crcOn, bool freqHopOn,
+                        uint8_t hopPeriod, bool iqInverted, uint32_t timeout )
+{
+    (void) fdev;
+
+    netdev2_t *netdev = (netdev2_t*) dev;
+
+    netopt_enable_t _modem = modem;
+    netdev->driver->set(netdev, NETOPT_LORA_MODE, &_modem, sizeof(netopt_enable_t));
+
+    bool freq_hop_on = freqHopOn;
+    bool iq_invert = iqInverted;
+    uint8_t rx_single = false;
+    uint32_t tx_timeout = timeout * 1000;
+    sx1276_lora_bandwidth_t bw = bandwidth + 7;
+    sx1276_lora_coding_rate_t cr = coderate;
+    sx1276_lora_spreading_factor_t sf = datarate;
+    bool implicit = fixLen;
+    bool crc = crcOn;
+    uint16_t rx_timeout = 10;
+    uint16_t preamble = preambleLen;
+    uint8_t payload_len = 0;
+    uint8_t hop_period = hopPeriod;
+
+    netdev->driver->set(netdev, NETOPT_LORA_HOP, &freq_hop_on, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_LORA_IQ_INVERT, &iq_invert, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_LORA_SINGLE_RECEIVE, &rx_single, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_LORA_TX_TIMEOUT, &tx_timeout, sizeof(uint32_t));
+
+    netdev->driver->set(netdev, NETOPT_LORA_BANDWIDTH, &bw, sizeof(sx1276_lora_bandwidth_t));
+    netdev->driver->set(netdev, NETOPT_LORA_CODING_RATE, &cr, sizeof(sx1276_lora_coding_rate_t));
+    netdev->driver->set(netdev, NETOPT_LORA_SPREADING_FACTOR, &sf, sizeof(sx1276_lora_spreading_factor_t));
+    netdev->driver->set(netdev, NETOPT_LORA_IMPLICIT, &implicit, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_CRC, &crc, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_LORA_SYMBOL_TIMEOUT, &rx_timeout, sizeof(uint16_t));
+    netdev->driver->set(netdev, NETOPT_LORA_PREAMBLE_LENGTH, &preamble, sizeof(uint16_t));
+    netdev->driver->set(netdev, NETOPT_LORA_PAYLOAD_LENGTH, &payload_len, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_LORA_HOP_PERIOD, &hop_period, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_TX_POWER, &power, sizeof(uint8_t));
+
+}
 LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
 {
     int8_t datarate = Datarates[LoRaMacParams.ChannelsDatarate];
@@ -3069,32 +3113,32 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     if( LoRaMacParams.ChannelsDatarate == DR_7 )
     { // High Speed FSK channel
         Radio.SetMaxPayloadLength( MODEM_FSK, LoRaMacBufferPktLen );
-        Radio.SetTxConfig( MODEM_FSK, txPower, 25e3, 0, datarate * 1e3, 0, 5, false, true, 0, 0, false, 3e3 );
+        _set_tx_config( MODEM_FSK, txPower, 25e3, 0, datarate * 1e3, 0, 5, false, true, 0, 0, false, 3e3 );
         TxTimeOnAir = Radio.TimeOnAir( MODEM_FSK, LoRaMacBufferPktLen );
 
     }
     else if( LoRaMacParams.ChannelsDatarate == DR_6 )
     { // High speed LoRa channel
         Radio.SetMaxPayloadLength( MODEM_LORA, LoRaMacBufferPktLen );
-        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 1, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
+        _set_tx_config( MODEM_LORA, txPower, 0, 1, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
         TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
     }
     else
     { // Normal LoRa channel
         Radio.SetMaxPayloadLength( MODEM_LORA, LoRaMacBufferPktLen );
-        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 0, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
+        _set_tx_config( MODEM_LORA, txPower, 0, 0, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
         TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
     }
 #elif defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
     Radio.SetMaxPayloadLength( MODEM_LORA, LoRaMacBufferPktLen );
     if( LoRaMacParams.ChannelsDatarate >= DR_4 )
     { // High speed LoRa channel BW500 kHz
-        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 2, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
+        _set_tx_config( MODEM_LORA, txPower, 0, 2, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
         TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
     }
     else
     { // Normal LoRa channel
-        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 0, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
+        _set_tx_config( MODEM_LORA, txPower, 0, 0, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
         TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
     }
 #else
