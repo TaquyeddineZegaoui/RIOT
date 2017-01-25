@@ -802,9 +802,10 @@ static void ResetMacParameters( void );
 void OnRadioTxDone(netdev2_t *netdev)
 {
     TimerTime_t curTime = xtimer_now_usec64();
+    netopt_state_t state = NETOPT_STATE_SLEEP;
     if( LoRaMacDeviceClass != CLASS_C )
     {
-        Radio.Sleep( );
+        netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
     }
     else
     {
@@ -918,6 +919,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
 
     bool isMicOk = false;
 
+    netopt_state_t state = NETOPT_STATE_SLEEP;
     McpsConfirm.AckReceived = false;
     McpsIndication.Rssi = rssi;
     McpsIndication.Snr = snr;
@@ -934,7 +936,8 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
 
     if( LoRaMacDeviceClass != CLASS_C )
     {
-        Radio.Sleep( );
+        netdev2_t *netdev = (netdev2_t*) dev;
+        netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
     }
     //TimerStop( &RxWindowTimer2 );
     xtimer_remove(&RxWindowTimer2.dev);
@@ -1294,9 +1297,10 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
 
 void OnRadioTxTimeout( netdev2_t *netdev )
 {
+    netopt_state_t state = NETOPT_STATE_SLEEP;
     if( LoRaMacDeviceClass != CLASS_C )
     {
-        Radio.Sleep( );
+        netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
     }
     else
     {
@@ -1310,9 +1314,10 @@ void OnRadioTxTimeout( netdev2_t *netdev )
 
 void OnRadioRxError(netdev2_t *netdev)
 {
+    netopt_state_t state = NETOPT_STATE_SLEEP;
     if( LoRaMacDeviceClass != CLASS_C )
     {
-        Radio.Sleep( );
+        netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
     }
     else
     {
@@ -1332,9 +1337,10 @@ void OnRadioRxError(netdev2_t *netdev)
 
 void OnRadioRxTimeout(netdev2_t *netdev)
 {
+    netopt_state_t state = NETOPT_STATE_SLEEP;
     if( LoRaMacDeviceClass != CLASS_C )
     {
-        Radio.Sleep( );
+        netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
     }
     else
     {
@@ -3347,7 +3353,9 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacC
 
     PublicNetwork = true;
     SetPublicNetwork( PublicNetwork );
-    Radio.Sleep( );
+    netdev2_t *netdev = (netdev2_t*) dev;
+    netopt_state_t state = NETOPT_STATE_SLEEP;
+    netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
 
     return LORAMAC_STATUS_OK;
 }
@@ -3537,6 +3545,8 @@ LoRaMacStatus_t LoRaMacMibGetRequestConfirm( MibRequestConfirm_t *mibGet )
 LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
 {
     LoRaMacStatus_t status = LORAMAC_STATUS_OK;
+    netdev2_t *netdev = (netdev2_t*) dev;
+    netopt_state_t state = NETOPT_STATE_SLEEP;
 
     if( mibSet == NULL )
     {
@@ -3557,7 +3567,7 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
                 case CLASS_A:
                 {
                     // Set the radio into sleep to setup a defined state
-                    Radio.Sleep( );
+                    netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
                     break;
                 }
                 case CLASS_B:

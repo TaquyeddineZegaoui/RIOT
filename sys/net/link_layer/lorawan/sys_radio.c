@@ -62,6 +62,7 @@ void SX1276SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
                          bool crcOn, bool freqHopOn, uint8_t hopPeriod,
                          bool iqInverted, bool rxContinuous )
 {
+    assert(false);
 }
 
 void SX1276SetTxConfig( RadioModems_t modem, int8_t power, uint32_t fdev,
@@ -70,6 +71,7 @@ void SX1276SetTxConfig( RadioModems_t modem, int8_t power, uint32_t fdev,
                         bool fixLen, bool crcOn, bool freqHopOn,
                         uint8_t hopPeriod, bool iqInverted, uint32_t timeout )
 {
+    assert(false);
 }
 
 uint32_t SX1276GetTimeOnAir( RadioModems_t modem, uint8_t pktLen )
@@ -80,6 +82,7 @@ uint32_t SX1276GetTimeOnAir( RadioModems_t modem, uint8_t pktLen )
 
 void SX1276Send( uint8_t *buffer, uint8_t size )
 {
+    assert(false);
 }
 
 void SX1276SetSleep( void )
