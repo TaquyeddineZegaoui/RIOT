@@ -366,7 +366,7 @@ static void ProcessRxFrame( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info
                 }
                 break;
             case 5: // (viii)
-                LoRaMacLinkCheckReq( );
+                check_link(NULL);
                 break;
             default:
                 break;
@@ -730,25 +730,25 @@ int main( void )
             {
                 TxNextPacket = false;
                 
-                sendFrameStatus = LoRaMacJoinReq( DevEui, AppEui, AppKey );
+                sendFrameStatus = join_request(NULL, DevEui, AppEui, AppKey );
                 switch( sendFrameStatus )
                 {
-                case 1: // BUSY
+                case LORAMAC_STATUS_BUSY: // BUSY
                     puts("BUSY");
                     break;
-                case 0: // OK
+                case LORAMAC_STATUS_OK: // OK
                     puts("OK");
                     break;
-                case 2: // NO_NETWORK_JOINED
+                case LORAMAC_STATUS_NO_NETWORK_JOINED: // NO_NETWORK_JOINED
                     puts("NO_NETWORK_JOINED");
                     break;
-                case 3: // LENGTH_PORT_ERROR
+                case LORAMAC_STATUS_LENGTH_ERROR: // LENGTH_PORT_ERROR
                     puts("LENGTH_PORT_ERROR");
                     break;
-                case 4: // MAC_CMD_ERROR
+                case LORAMAC_STATUS_MAC_CMD_LENGTH_ERROR: // MAC_CMD_ERROR
                     puts("MAC_CMD_ERROR");
                     break;
-                case 6: // DEVICE_OFF
+                case LORAMAC_STATUS_DEVICE_OFF: // DEVICE_OFF
                     puts("DEVICE_OFF");
                     break;
                 default:
