@@ -41,5 +41,6 @@ USEMODULE += ps
 USEMODULE += xtimer
 USEMODULE += lorawan
 USEMODULE += random
+USEMODULE += netdev2_lorawan
 
 include $(RIOTBASE)/Makefile.include
