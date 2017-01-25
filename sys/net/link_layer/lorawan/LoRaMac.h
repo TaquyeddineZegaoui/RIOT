@@ -640,10 +640,6 @@ typedef union eLoRaMacFlags_t
          * MCPS-Ind pending
          */
         uint8_t McpsInd         : 1;
-        /*!
-         * MLME-Req pending
-         */
-        uint8_t MlmeReq         : 1;
     }Bits;
 }LoRaMacFlags_t;
 
@@ -1796,6 +1792,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
 LoRaMacStatus_t join_request(netdev2_t *netdev, uint8_t *dev_eui, uint8_t *app_eui, uint8_t *app_key);
 LoRaMacStatus_t check_link(netdev2_t *netdev);
 void lorawan_set_pointer(netdev2_lorawan_t* netdev);
+netdev2_lorawan_t *lorawan_get_pointer(void);
 
 /*! \} defgroup LORAMAC */
 

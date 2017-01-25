@@ -892,6 +892,10 @@ void lorawan_set_pointer(netdev2_lorawan_t* netdev)
 {
     dev = netdev;
 }
+netdev2_lorawan_t *lorawan_get_pointer(void)
+{
+    return dev;
+}
 void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
 {
     LoRaMacHeader_t macHdr;
@@ -1367,7 +1371,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
             LoRaMacState &= ~MAC_TX_RUNNING;
         }
 
-        if( ( LoRaMacFlags.Bits.MlmeReq == 1 ) || ( ( LoRaMacFlags.Bits.McpsReq == 1 ) ) )
+        if( ( dev->flags & LORAWAN_MLME_REQUEST ) || ( ( LoRaMacFlags.Bits.McpsReq == 1 ) ) )
         {
             if( ( McpsConfirm.Status == LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT ) ||
                 ( MlmeConfirm.Status == LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT ) )
@@ -1383,7 +1387,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
 
         if( ( NodeAckRequested == false ) && ( txTimeout == false ) )
         {
-            if( LoRaMacFlags.Bits.MlmeReq == 1 )
+            if( dev->flags & LORAWAN_MLME_REQUEST)
             {
                 if( MlmeConfirm.MlmeRequest == MLME_JOIN )
                 {
@@ -1398,7 +1402,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
                     }
                 }
             }
-            if( ( LoRaMacFlags.Bits.MlmeReq == 1 ) || ( ( LoRaMacFlags.Bits.McpsReq == 1 ) ) )
+            if( ( dev->flags & LORAWAN_MLME_REQUEST) || ( ( LoRaMacFlags.Bits.McpsReq == 1 ) ) )
             {
                 if( ( ChannelsNbRepCounter >= LoRaMacParams.ChannelsNbRep ) || ( LoRaMacFlags.Bits.McpsInd == 1 ) )
                 {
@@ -1521,10 +1525,10 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
             LoRaMacFlags.Bits.McpsReq = 0;
         }
 
-        if( LoRaMacFlags.Bits.MlmeReq == 1 )
+        if( dev->flags & LORAWAN_MLME_REQUEST )
         {
             LoRaMacPrimitives->MacMlmeConfirm( &MlmeConfirm );
-            LoRaMacFlags.Bits.MlmeReq = 0;
+            dev->flags &= ~LORAWAN_MLME_REQUEST;
         }
 
         dev->flags &= ~LORAWAN_MAC_DONE;
@@ -1554,7 +1558,7 @@ void OnTxDelayedTimerEvent(netdev2_t *netdev)
     xtimer_remove(&TxDelayedTimer.dev);
     LoRaMacState &= ~MAC_TX_DELAYED;
 
-    if( ( LoRaMacFlags.Bits.MlmeReq == 1 ) && ( MlmeConfirm.MlmeRequest == MLME_JOIN ) )
+    if( ( dev->flags & LORAWAN_MLME_REQUEST ) && ( MlmeConfirm.MlmeRequest == MLME_JOIN ) )
     {
         macHdr.Value = 0;
         macHdr.Bits.MType = FRAME_TYPE_JOIN_REQ;
@@ -3926,7 +3930,7 @@ LoRaMacStatus_t join_request(netdev2_t *netdev, uint8_t *dev_eui, uint8_t *app_e
         return LORAMAC_STATUS_PARAMETER_INVALID;
     }
 
-    LoRaMacFlags.Bits.MlmeReq = 1;
+    dev->flags |= LORAWAN_MLME_REQUEST;
 
     LoRaMacDevEui = dev_eui;
     LoRaMacAppEui = app_eui;
@@ -3945,7 +3949,7 @@ LoRaMacStatus_t join_request(netdev2_t *netdev, uint8_t *dev_eui, uint8_t *app_e
     if( status != LORAMAC_STATUS_OK )
     {
         NodeAckRequested = false;
-        LoRaMacFlags.Bits.MlmeReq = 0;
+        dev->flags &= ~LORAWAN_MLME_REQUEST;
     }
 
     return status;
@@ -3963,7 +3967,7 @@ LoRaMacStatus_t check_link(netdev2_t *netdev)
 
     MlmeConfirm.Status = LORAMAC_EVENT_INFO_STATUS_ERROR;
 
-    LoRaMacFlags.Bits.MlmeReq = 1;
+    dev->flags |= LORAWAN_MLME_REQUEST;
     // LoRaMac will send this command piggy-pack
     MlmeConfirm.MlmeRequest = MLME_LINK_CHECK;
 
@@ -3972,7 +3976,7 @@ LoRaMacStatus_t check_link(netdev2_t *netdev)
     if( status != LORAMAC_STATUS_OK )
     {
         NodeAckRequested = false;
-        LoRaMacFlags.Bits.MlmeReq = 0;
+        dev->flags &= ~LORAWAN_MLME_REQUEST;
     }
 
     return status;

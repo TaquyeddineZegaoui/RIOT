@@ -51,6 +51,7 @@ static LoRaMacCallbacks_t LoRaMacCallbacks;
  */
 static void McpsConfirm( McpsConfirm_t *mcpsConfirm )
 {
+    netdev2_lorawan_t *dev = lorawan_get_pointer();
     LoRaMacEventInfo.Status = mcpsConfirm->Status;
     LoRaMacEventFlags.Bits.Tx = 1;
 
@@ -58,7 +59,7 @@ static void McpsConfirm( McpsConfirm_t *mcpsConfirm )
     LoRaMacEventInfo.TxNbRetries = mcpsConfirm->NbRetries;
     LoRaMacEventInfo.TxAckReceived = mcpsConfirm->AckReceived;
 
-    if( ( LoRaMacFlags.Bits.McpsInd != 1 ) && ( LoRaMacFlags.Bits.MlmeReq != 1 ) )
+    if( ( LoRaMacFlags.Bits.McpsInd != 1 ) && !( dev->flags & LORAWAN_MLME_REQUEST) )
     {
         LoRaMacCallbacks.MacEvent( &LoRaMacEventFlags, &LoRaMacEventInfo );
         LoRaMacEventFlags.Value = 0;
