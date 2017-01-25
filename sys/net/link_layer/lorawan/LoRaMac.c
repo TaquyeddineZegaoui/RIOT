@@ -878,7 +878,7 @@ static void PrepareRxDoneAbort(netdev2_t *netdev)
         OnRxWindow2TimerEvent(netdev);
     }
 
-    LoRaMacFlags.Bits.McpsInd = 1;
+    dev->flags |= LORAWAN_MCPS_IND;
     dev->flags |= LORAWAN_MAC_DONE;
 
     // Trig OnMacCheckTimerEvent call as soon as possible
@@ -1254,7 +1254,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
 
                     if( skipIndication == false )
                     {
-                        LoRaMacFlags.Bits.McpsInd = 1;
+                        dev->flags |= LORAWAN_MCPS_IND;
                     }
                 }
                 else
@@ -1275,7 +1275,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 McpsIndication.Buffer = LoRaMacRxPayload;
                 McpsIndication.BufferSize = size - pktHeaderLen;
 
-                LoRaMacFlags.Bits.McpsInd = 1;
+                dev->flags |= LORAWAN_MCPS_IND;
                 break;
             }
         default:
@@ -1404,7 +1404,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
             }
             if( ( dev->flags & LORAWAN_MLME_REQUEST) || ( ( LoRaMacFlags.Bits.McpsReq == 1 ) ) )
             {
-                if( ( ChannelsNbRepCounter >= LoRaMacParams.ChannelsNbRep ) || ( LoRaMacFlags.Bits.McpsInd == 1 ) )
+                if( ( ChannelsNbRepCounter >= LoRaMacParams.ChannelsNbRep ) || ( dev->flags & LORAWAN_MCPS_IND ) )
                 {
                     ChannelsNbRepCounter = 0;
 
@@ -1444,7 +1444,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
             }
         }
 
-        if( LoRaMacFlags.Bits.McpsInd == 1 )
+        if( dev->flags & LORAWAN_MCPS_IND )
         {
             if( ( McpsConfirm.AckReceived == true ) || ( AckTimeoutRetriesCounter > AckTimeoutRetries ) )
             {
@@ -1542,10 +1542,10 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
         //TimerStart( &MacStateCheckTimer, 0);
     }
 
-    if( LoRaMacFlags.Bits.McpsInd == 1 )
+    if( dev->flags & LORAWAN_MCPS_IND )
     {
         LoRaMacPrimitives->MacMcpsIndication( &McpsIndication );
-        LoRaMacFlags.Bits.McpsInd = 0;
+        dev->flags &= ~LORAWAN_MCPS_IND;
     }
 }
 

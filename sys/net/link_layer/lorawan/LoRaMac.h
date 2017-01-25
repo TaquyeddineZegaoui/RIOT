@@ -636,10 +636,6 @@ typedef union eLoRaMacFlags_t
          * MCPS-Req pending
          */
         uint8_t McpsReq         : 1;
-        /*!
-         * MCPS-Ind pending
-         */
-        uint8_t McpsInd         : 1;
     }Bits;
 }LoRaMacFlags_t;
 
