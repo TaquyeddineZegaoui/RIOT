@@ -45,6 +45,7 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jä
 /*!
  * Device IEEE EUI
  */
+static netdev2_lorawan_t *dev;
 static uint8_t *LoRaMacDevEui;
 
 /*!
@@ -887,6 +888,10 @@ static void PrepareRxDoneAbort(netdev2_t *netdev)
     //TimerStart( &MacStateCheckTimer, 0);
 }
 
+void lorawan_set_pointer(netdev2_lorawan_t* netdev)
+{
+    dev = netdev;
+}
 void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
 {
     LoRaMacHeader_t macHdr;
