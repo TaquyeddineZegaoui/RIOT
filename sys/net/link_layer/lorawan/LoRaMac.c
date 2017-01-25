@@ -793,6 +793,11 @@ static int8_t AlternateDatarate( uint16_t nbTrials );
  * \retval status          Status of the operation.
  */
 LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel );
+bool check_rf_freq( uint32_t frequency )
+{
+    // Implement check. Currently all frequencies are supported
+    return true;
+}
 
 /*!
  * \brief Resets MAC specific parameters to default
@@ -2004,9 +2009,9 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
 static bool Rx2FreqInRange( uint32_t freq )
 {
 #if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
-    if( Radio.CheckRfFrequency( freq ) == true )
+    if( check_rf_freq( freq ) == true )
 #elif ( defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID ) )
-    if( ( Radio.CheckRfFrequency( freq ) == true ) &&
+    if( ( check_rf_freq( freq ) == true ) &&
         ( freq >= LORAMAC_FIRST_RX2_CHANNEL ) &&
         ( freq <= LORAMAC_LAST_RX2_CHANNEL ) &&
         ( ( ( freq - ( uint32_t ) LORAMAC_FIRST_RX2_CHANNEL ) % ( uint32_t ) LORAMAC_STEPWIDTH_RX2_CHANNEL ) == 0 ) )
@@ -3841,7 +3846,7 @@ LoRaMacStatus_t LoRaMacChannelAdd( uint8_t id, ChannelParams_t params )
 #endif
 
     // Validate the frequency
-    if( ( Radio.CheckRfFrequency( params.Frequency ) == true ) && ( params.Frequency > 0 ) && ( frequencyInvalid == false ) )
+    if( ( check_rf_freq( params.Frequency ) == true ) && ( params.Frequency > 0 ) && ( frequencyInvalid == false ) )
     {
 #if defined( USE_BAND_868 )
         if( ( params.Frequency >= 865000000 ) && ( params.Frequency <= 868000000 ) )

@@ -24,6 +24,7 @@ void radio_set_ptr(sx1276_t* ptr)
 
 void SX1276Init( RadioEvents_t *events )
 {
+    assert(false);
     //RadioEvents = events;
     //TODO: The final code is not using this function for driver init
     //sx1276_init(dev_ptr);
