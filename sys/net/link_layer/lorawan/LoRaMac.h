@@ -50,6 +50,7 @@
 #include "LoRaMac-definitions.h"
 #include "net/lorawan/timer.h"
 #include "thread.h"
+#include "net/netdev2/lorawan.h"
 
 #define MAC_EVENT_HANDLER_STACK_SIZE 2048
 
@@ -1515,7 +1516,7 @@ typedef struct sLoRaMacCallback
 
 
 
-static netdev2_t *dev;
+static netdev2_lorawan_t *dev;
 
 /*!
  * \brief   LoRaMAC layer initialization
@@ -1799,7 +1800,7 @@ void OnRadioRxTimeout(netdev2_t *netdev);
 void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr );
 LoRaMacStatus_t join_request(netdev2_t *netdev, uint8_t *dev_eui, uint8_t *app_eui, uint8_t *app_key);
 LoRaMacStatus_t check_link(netdev2_t *netdev);
-static inline void lorawan_set_pointer(netdev2_t* netdev)
+static inline void lorawan_set_pointer(netdev2_lorawan_t* netdev)
 {
     dev = netdev;
 }

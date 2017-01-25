@@ -658,7 +658,7 @@ void sx1276_on_dio5_isr(void *arg)
 void sx1276_on_dio0(void *arg)
 {
     sx1276_t *dev = (sx1276_t *) arg;
-    netdev2_t *netdev = &dev->netdev;
+    netdev2_t *netdev = (netdev2_t*) &dev->netdev;
 
     switch (dev->settings.state) {
         case SX1276_RF_RX_RUNNING:
@@ -688,7 +688,7 @@ void sx1276_on_dio1(void *arg)
 {
     /* Get interrupt context */
     sx1276_t *dev = (sx1276_t *) arg;
-    netdev2_t *netdev = &dev->netdev;
+    netdev2_t *netdev = (netdev2_t*) &dev->netdev;
 
     switch (dev->settings.state) {
         case SX1276_RF_RX_RUNNING:

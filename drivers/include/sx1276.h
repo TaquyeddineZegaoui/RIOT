@@ -19,6 +19,7 @@
 #include "periph/spi.h"
 #include "xtimer.h"
 #include "net/netdev2.h"
+#include "net/netdev2/lorawan.h"
 
 #ifndef SX1276_H
 #define SX1276_H
@@ -194,7 +195,7 @@ typedef struct {
 typedef uint8_t sx1276_flags_t;
 
 typedef struct sx1276_s {
-    netdev2_t netdev;
+    netdev2_lorawan_t netdev;
     sx1276_settings_t settings;                                         /**< Transceiver settings */
     sx1276_params_t params;
     sx1276_flags_t irq;
