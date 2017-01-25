@@ -32,7 +32,6 @@ extern LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t
                                      uint8_t fPort, void *fBuffer, uint16_t fBufferSize );
 extern LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel );
 extern uint32_t LoRaMacState;
-extern LoRaMacFlags_t LoRaMacFlags;
 
 /*!
  * Static variables

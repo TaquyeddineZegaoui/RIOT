@@ -538,11 +538,6 @@ static MlmeConfirm_t MlmeConfirm;
  */
 static uint8_t RxSlot = 0;
 
-/*!
- * LoRaMac tx/rx operation state
- */
-LoRaMacFlags_t LoRaMacFlags;
-
 
 /*!
  * \brief This function prepares the MAC to abort the execution of function
@@ -850,9 +845,9 @@ void OnRadioTxDone(netdev2_t *netdev)
         McpsConfirm.Status = LORAMAC_EVENT_INFO_STATUS_OK;
         MlmeConfirm.Status = LORAMAC_EVENT_INFO_STATUS_RX2_TIMEOUT;
 
-        if( LoRaMacFlags.Value == 0 )
+        if( dev->flags == 0 )
         {
-            LoRaMacFlags.Bits.McpsReq = 1;
+            dev->flags |= LORAWAN_MCPS_REQUEST;
         }
         dev->flags |= LORAWAN_MAC_DONE;
     }
@@ -1371,7 +1366,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
             LoRaMacState &= ~MAC_TX_RUNNING;
         }
 
-        if( ( dev->flags & LORAWAN_MLME_REQUEST ) || ( ( LoRaMacFlags.Bits.McpsReq == 1 ) ) )
+        if( ( dev->flags & LORAWAN_MLME_REQUEST ) || ( ( dev->flags & LORAWAN_MCPS_REQUEST ) ) )
         {
             if( ( McpsConfirm.Status == LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT ) ||
                 ( MlmeConfirm.Status == LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT ) )
@@ -1402,7 +1397,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
                     }
                 }
             }
-            if( ( dev->flags & LORAWAN_MLME_REQUEST) || ( ( LoRaMacFlags.Bits.McpsReq == 1 ) ) )
+            if( ( dev->flags & LORAWAN_MLME_REQUEST) || ( ( dev->flags & LORAWAN_MCPS_REQUEST ) ) )
             {
                 if( ( ChannelsNbRepCounter >= LoRaMacParams.ChannelsNbRep ) || ( dev->flags & LORAWAN_MCPS_IND ) )
                 {
@@ -1519,10 +1514,10 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
     }
     if( LoRaMacState == MAC_IDLE )
     {
-        if( LoRaMacFlags.Bits.McpsReq == 1 )
+        if( dev->flags & LORAWAN_MCPS_REQUEST )
         {
             LoRaMacPrimitives->MacMcpsConfirm( &McpsConfirm );
-            LoRaMacFlags.Bits.McpsReq = 0;
+            dev->flags &= ~LORAWAN_MCPS_REQUEST;
         }
 
         if( dev->flags & LORAWAN_MLME_REQUEST )
@@ -3141,7 +3136,6 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacC
     LoRaMacPrimitives = primitives;
     LoRaMacCallbacks = callbacks;
 
-    LoRaMacFlags.Value = 0;
     dev->flags = 0;
 
     LoRaMacDeviceClass = CLASS_A;
@@ -4066,7 +4060,7 @@ LoRaMacStatus_t LoRaMacMcpsRequest( McpsReq_t *mcpsRequest )
         if( status == LORAMAC_STATUS_OK )
         {
             McpsConfirm.McpsRequest = mcpsRequest->Type;
-            LoRaMacFlags.Bits.McpsReq = 1;
+            dev->flags |= LORAWAN_MCPS_REQUEST;
         }
         else
         {

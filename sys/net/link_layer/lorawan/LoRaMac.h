@@ -618,26 +618,6 @@ typedef enum eLoRaMacEventInfoStatus
     LORAMAC_EVENT_INFO_STATUS_MIC_FAIL,
 }LoRaMacEventInfoStatus_t;
 
-/*!
- * LoRaMac tx/rx operation state
- */
-typedef union eLoRaMacFlags_t
-{
-    /*!
-     * Byte-access to the bits
-     */
-    uint8_t Value;
-    /*!
-     * Structure containing single access to bits
-     */
-    struct sMacFlagBits
-    {
-        /*!
-         * MCPS-Req pending
-         */
-        uint8_t McpsReq         : 1;
-    }Bits;
-}LoRaMacFlags_t;
 
 /*!
  *
