@@ -637,6 +637,7 @@ int main( void )
 
     /* set sx1276 pointer, init xtimer */
     radio_set_ptr(&sx1276);
+    lorawan_set_pointer((netdev2_t*) &sx1276);
     xtimer_init();
 
     memcpy(&sx1276.params, sx1276_params, sizeof(sx1276_params));

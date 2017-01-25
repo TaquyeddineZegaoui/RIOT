@@ -1513,6 +1513,10 @@ typedef struct sLoRaMacCallback
     uint8_t ( *GetBatteryLevel )( void );
 }LoRaMacCallback_t;
 
+
+
+static netdev2_t *dev;
+
 /*!
  * \brief   LoRaMAC layer initialization
  *
@@ -1795,6 +1799,10 @@ void OnRadioRxTimeout(netdev2_t *netdev);
 void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr );
 LoRaMacStatus_t join_request(netdev2_t *netdev, uint8_t *dev_eui, uint8_t *app_eui, uint8_t *app_key);
 LoRaMacStatus_t check_link(netdev2_t *netdev);
+static inline void lorawan_set_pointer(netdev2_t* netdev)
+{
+    dev = netdev;
+}
 
 /*! \} defgroup LORAMAC */
 
