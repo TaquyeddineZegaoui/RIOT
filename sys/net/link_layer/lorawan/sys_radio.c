@@ -80,7 +80,6 @@ uint32_t SX1276GetTimeOnAir( RadioModems_t modem, uint8_t pktLen )
 
 void SX1276Send( uint8_t *buffer, uint8_t size )
 {
-    sx1276_send(dev_ptr, buffer, size);
 }
 
 void SX1276SetSleep( void )

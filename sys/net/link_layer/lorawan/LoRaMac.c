@@ -3201,7 +3201,11 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     //TimerStart( &MacStateCheckTimer, 0);
 
     // Send now
-    Radio.Send( LoRaMacBuffer, LoRaMacBufferPktLen );
+    struct iovec vec[1];
+    vec[0].iov_base = LoRaMacBuffer;
+    vec[0].iov_len = LoRaMacBufferPktLen;
+    netdev2_t *netdev = (netdev2_t*) dev;
+    netdev->driver->send(netdev, vec, 1); 
 
     LoRaMacState |= MAC_TX_RUNNING;
 
