@@ -24,11 +24,17 @@
 #include "net/netdev2.h"
 #include "net/netopt.h"
 
+#define LORAWAN_MCPS_REQUEST 1
+#define LORAWAN_MCPS_IND 2
+#define LORAWAN_MLME_REQUEST 4
+#define LORAWAN_MAC_DONE 8
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 typedef struct {
     netdev2_t netdev;                       /**< @ref netdev2_t base class */
+    uint8_t flags;
 } netdev2_lorawan_t;
 
 /**
