@@ -398,7 +398,7 @@ void sx1276_set_standby(sx1276_t *dev)
     sx1276_set_status(dev,  SX1276_RF_IDLE);
 }
 
-void sx1276_set_rx(sx1276_t *dev, uint32_t timeout)
+void sx1276_set_rx(sx1276_t *dev)
 {
     bool rx_continuous = false;
 
@@ -501,8 +501,8 @@ void sx1276_set_rx(sx1276_t *dev, uint32_t timeout)
         sx1276_set_op_mode(dev, SX1276_RF_LORA_OPMODE_RECEIVER);
     }
     else {
-        if (timeout != 0) {
-            xtimer_set(&(dev->_internal.rx_timeout_timer), timeout);
+        if (dev->settings.window_timeout != 0) {
+            xtimer_set(&(dev->_internal.rx_timeout_timer), dev->settings.window_timeout);
         }
         sx1276_set_op_mode(dev, SX1276_RF_LORA_OPMODE_RECEIVER_SINGLE);
     }

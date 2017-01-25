@@ -147,6 +147,7 @@ typedef struct {
     uint32_t channel;
     sx1276_lora_settings_t lora;
     sx1276_radio_modems_t modem;
+    uint32_t window_timeout;
 
 } sx1276_settings_t;
 
@@ -369,7 +370,7 @@ void sx1276_set_standby(sx1276_t *dev);
  *
  * @param	[IN]	timeout	reception timeout [us] [0: continuous, others: timeout]
  */
-void sx1276_set_rx(sx1276_t *dev, uint32_t timeout);
+void sx1276_set_rx(sx1276_t *dev);
 
 /**
  * @brief Sets the radio in transmission mode for given amount of time.
@@ -473,6 +474,7 @@ void sx1276_set_bandwidth(sx1276_t *dev, sx1276_lora_bandwidth_t bandwidth);
 void sx1276_set_coding_rate(sx1276_t *dev, sx1276_lora_coding_rate_t coderate);
 void sx1276_set_spreading_factor(sx1276_t *dev, sx1276_lora_spreading_factor_t sf);
 void sx1276_set_symbol_timeout(sx1276_t *dev, uint16_t timeout);
+void sx1276_set_rx_timeout(sx1276_t *dev, uint32_t timeout);
 void sx1276_set_tx_timeout(sx1276_t *dev, uint32_t timeout);
 void sx1276_set_iq_invert(sx1276_t *dev, bool iq_invert);
 void sx1276_set_freq_hop(sx1276_t *dev, bool freq_hop_on);

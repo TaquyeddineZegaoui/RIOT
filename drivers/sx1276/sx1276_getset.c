@@ -410,6 +410,10 @@ uint16_t sx1276_get_preamble_length(sx1276_t *dev)
     return 0;
 }
 
+void sx1276_set_rx_timeout(sx1276_t *dev, uint32_t timeout)
+{
+    dev->settings.window_timeout = timeout;
+}
 void sx1276_set_tx_timeout(sx1276_t *dev, uint32_t timeout)
 {
     dev->settings.lora.tx_timeout = timeout;

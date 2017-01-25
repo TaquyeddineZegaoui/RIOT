@@ -283,7 +283,12 @@ static int _set_state(sx1276_t *dev, netopt_state_t state)
 
         case NETOPT_STATE_IDLE:
             //TODO
-            sx1276_set_rx(dev, 0); //set permanent listening
+            dev->settings.window_timeout = 0;
+            sx1276_set_rx(dev); //set permanent listening
+            break;
+
+        case NETOPT_STATE_RX:
+            sx1276_set_rx(dev);
             break;
 
         case NETOPT_STATE_TX:
@@ -437,6 +442,9 @@ static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len)
             return sizeof(bool);
         case NETOPT_LORA_TX_TIMEOUT:
             sx1276_set_tx_timeout(dev, *((uint32_t*) val));
+            return sizeof(uint32_t);
+        case NETOPT_LORA_RX_TIMEOUT:
+            sx1276_set_rx_timeout(dev, *((uint32_t*) val));
             return sizeof(uint32_t);
         case NETOPT_LORA_MODE:
             sx1276_set_modem(dev, *((netopt_enable_t*) val) ? SX1276_MODEM_LORA : SX1276_MODEM_FSK);
