@@ -87,12 +87,12 @@ void SX1276Send( uint8_t *buffer, uint8_t size )
 
 void SX1276SetSleep( void )
 {
-    sx1276_set_sleep(dev_ptr);
+    assert(false);
 }
 
 void SX1276SetStby( void )
 {
-    sx1276_set_standby(dev_ptr);
+    assert(false);
 }
 
 void SX1276SetRx( uint32_t timeout )

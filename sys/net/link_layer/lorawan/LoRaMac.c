@@ -1586,9 +1586,10 @@ void OnRxWindow1TimerEvent(netdev2_t *netdev)
     xtimer_remove(&RxWindowTimer1.dev);
     RxSlot = 0;
 
+    netopt_state_t state = NETOPT_STATE_STANDBY;
     if( LoRaMacDeviceClass == CLASS_C )
     {
-        Radio.Standby( );
+        netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
     }
 
 #if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
