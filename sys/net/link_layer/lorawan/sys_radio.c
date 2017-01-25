@@ -115,14 +115,13 @@ int16_t SX1276ReadRssi( RadioModems_t modem )
 //TODO: Dummy function. Just used to set SYNCWORD
 void SX1276Write( uint8_t addr, uint8_t data )
 {
-    (void) data;
-    sx1276_set_syncword(dev_ptr, data);
+    assert(false);
 }
 
 //TODO: Dummy function
 uint8_t SX1276Read( uint8_t addr )
 {
-    //return sx1276_reg_read(dev_ptr, addr);
+    assert(false);
     return 0;
 }
 

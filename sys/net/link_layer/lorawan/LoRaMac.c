@@ -1877,18 +1877,21 @@ static bool SetNextChannel( TimerTime_t* time )
 
 static void SetPublicNetwork( bool enable )
 {
+    netdev2_t *netdev = (netdev2_t*) dev;
     PublicNetwork = enable;
     Radio.SetModem( MODEM_LORA );
+    uint8_t sw;
     if( PublicNetwork == true )
     {
         // Change LoRa modem SyncWord
-        Radio.Write( REG_LR_SYNCWORD, LORA_MAC_PUBLIC_SYNCWORD );
+        sw = LORA_MAC_PUBLIC_SYNCWORD;
     }
     else
     {
         // Change LoRa modem SyncWord
-        Radio.Write( REG_LR_SYNCWORD, LORA_MAC_PRIVATE_SYNCWORD );
+        sw = LORA_MAC_PRIVATE_SYNCWORD;
     }
+    netdev->driver->set(netdev, NETOPT_LORA_SYNCWORD, &sw, sizeof(uint8_t));
 }
 
 void _set_rx_config( RadioModems_t modem, uint32_t bandwidth,
