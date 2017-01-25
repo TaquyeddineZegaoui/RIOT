@@ -644,10 +644,6 @@ typedef union eLoRaMacFlags_t
          * MLME-Req pending
          */
         uint8_t MlmeReq         : 1;
-        /*!
-         * MAC cycle done
-         */
-        uint8_t MacDone         : 1;
     }Bits;
 }LoRaMacFlags_t;
 
