@@ -1946,10 +1946,15 @@ void _set_rx_config( RadioModems_t modem, uint32_t bandwidth,
 }
 static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, uint16_t timeout, bool rxContinuous )
 {
+    netdev2_t *netdev = (netdev2_t*) dev;
     uint8_t downlinkDatarate = Datarates[datarate];
     RadioModems_t modem;
 
-    if( Radio.GetStatus( ) == RF_IDLE )
+    netopt_state_t state;
+    netdev->driver->get(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t)); 
+
+
+    if( state == NETOPT_STATE_SLEEP || state == NETOPT_STATE_STANDBY )
     {
         Radio.SetChannel( freq );
 
@@ -1995,7 +2000,6 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
             Radio.SetMaxPayloadLength( modem, MaxPayloadOfDatarate[datarate] + LORA_MAC_FRMPAYLOAD_OVERHEAD );
         }
 
-        netdev2_t *netdev = (netdev2_t*) dev;
         uint32_t val;
         netopt_state_t state = NETOPT_STATE_RX;
         if( rxContinuous == false )

@@ -32,7 +32,9 @@ void SX1276Init( RadioEvents_t *events )
 
 RadioState_t SX1276GetStatus( void )
 {
-    return (RadioState_t) sx1276_get_status(dev_ptr);
+    assert(false);
+    return 0;
+    //return (RadioState_t) sx1276_get_status(dev_ptr);
 }
 
 void SX1276SetModem( RadioModems_t modem)
