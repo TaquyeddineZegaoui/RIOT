@@ -148,7 +148,7 @@ typedef struct {
     sx1276_lora_settings_t lora;
     sx1276_radio_modems_t modem;
     uint32_t window_timeout;
-
+    uint8_t time_on_air_pkt_len;
 } sx1276_settings_t;
 
 typedef enum {
@@ -335,7 +335,7 @@ void sx1276_configure_lora_cr(sx1276_t *dev, sx1276_lora_coding_rate_t cr);
  *
  * @return computed air time (us) for the given packet payload length
  */
-uint32_t sx1276_get_time_on_air(sx1276_t *dev, sx1276_radio_modems_t modem, uint8_t pkt_len);
+uint32_t sx1276_get_time_on_air(sx1276_t *dev);
 
 /**
  * @brief Sends the buffer of size. Prepares the packet to be sent and sets

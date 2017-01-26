@@ -265,6 +265,7 @@ typedef enum {
     NETOPT_LORA_MODE,
     NETOPT_LORA_MAX_PAYLOAD,
     NETOPT_LORA_RANDOM,
+    NETOPT_LORA_TIME_ON_AIR,
     NETOPT_NUMOF,
 } netopt_t;
 

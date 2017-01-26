@@ -3188,6 +3188,9 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     netopt_enable_t lm;
 
     max_payload = LoRaMacBufferPktLen;
+    uint8_t pkt_len = (uint8_t) LoRaMacBufferPktLen;
+    uint32_t time_on_air;
+    netdev->driver->set(netdev, NETOPT_LORA_TIME_ON_AIR, &pkt_len, sizeof(uint8_t));
 #if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
     if( LoRaMacParams.ChannelsDatarate == DR_7 )
     { // High Speed FSK channel
@@ -3195,7 +3198,8 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
         netdev->driver->set(netdev, NETOPT_LORA_MODE, &lm, sizeof(netopt_enable_t));
         netdev->driver->set(netdev, NETOPT_LORA_MAX_PAYLOAD, &max_payload, sizeof(uint8_t));
         _set_tx_config( MODEM_FSK, txPower, 25e3, 0, datarate * 1e3, 0, 5, false, true, 0, 0, false, 3e3 );
-        TxTimeOnAir = Radio.TimeOnAir( MODEM_FSK, LoRaMacBufferPktLen );
+        netdev->driver->get(netdev, NETOPT_LORA_TIME_ON_AIR, &time_on_air, sizeof(uint32_t));
+        TxTimeOnAir = time_on_air;
 
     }
     else if( LoRaMacParams.ChannelsDatarate == DR_6 )
@@ -3204,7 +3208,8 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
         netdev->driver->set(netdev, NETOPT_LORA_MODE, &lm, sizeof(netopt_enable_t));
         netdev->driver->set(netdev, NETOPT_LORA_MAX_PAYLOAD, &max_payload, sizeof(uint8_t));
         _set_tx_config( MODEM_LORA, txPower, 0, 1, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
-        TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
+        netdev->driver->get(netdev, NETOPT_LORA_TIME_ON_AIR, &time_on_air, sizeof(uint32_t));
+        TxTimeOnAir = time_on_air;
     }
     else
     { // Normal LoRa channel
@@ -3212,7 +3217,8 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
         netdev->driver->set(netdev, NETOPT_LORA_MODE, &lm, sizeof(netopt_enable_t));
         netdev->driver->set(netdev, NETOPT_LORA_MAX_PAYLOAD, &max_payload, sizeof(uint8_t));
         _set_tx_config( MODEM_LORA, txPower, 0, 0, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
-        TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
+        netdev->driver->get(netdev, NETOPT_LORA_TIME_ON_AIR, &time_on_air, sizeof(uint32_t));
+        TxTimeOnAir = time_on_air;
     }
 #elif defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
     lm = NETOPT_ENABLE;
@@ -3221,12 +3227,14 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     if( LoRaMacParams.ChannelsDatarate >= DR_4 )
     { // High speed LoRa channel BW500 kHz
         _set_tx_config( MODEM_LORA, txPower, 0, 2, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
-        TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
+        netdev->driver->get(netdev, NETOPT_LORA_TIME_ON_AIR, &time_on_air, sizeof(uint32_t));
+        TxTimeOnAir = time_on_air;
     }
     else
     { // Normal LoRa channel
         _set_tx_config( MODEM_LORA, txPower, 0, 0, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
-        TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
+        netdev->driver->get(netdev, NETOPT_LORA_TIME_ON_AIR, &time_on_air, sizeof(uint32_t));
+        TxTimeOnAir = time_on_air;
     }
 #else
     #error "Please define a frequency band in the compiler options."

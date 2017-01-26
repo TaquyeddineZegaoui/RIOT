@@ -377,6 +377,9 @@ static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
         case NETOPT_LORA_HOP_PERIOD:
             *((uint8_t*) val) = sx1276_get_hop_period(dev);
             break;
+        case NETOPT_LORA_TIME_ON_AIR:
+            *((uint32_t*) val) = sx1276_get_time_on_air(dev);
+            break;
         default:
             return netdev2_lorawan_get(netdev, opt, val, max_len);
             break;
@@ -452,6 +455,9 @@ static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len)
         case NETOPT_LORA_MAX_PAYLOAD:
             sx1276_set_max_payload_len(dev, *((uint8_t*) val));
             return sizeof(uint8_t);
+        case NETOPT_LORA_TIME_ON_AIR:
+            dev->settings.time_on_air_pkt_len = *((uint8_t*) val);
+            break;
         default:
             return netdev2_lorawan_set(netdev, opt, val, len);
             break;

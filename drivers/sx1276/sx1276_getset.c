@@ -164,11 +164,12 @@ void sx1276_set_modem(sx1276_t *dev, sx1276_radio_modems_t modem)
     }
 }
 
-uint32_t sx1276_get_time_on_air(sx1276_t *dev, sx1276_radio_modems_t modem,
-                                uint8_t pkt_len)
+uint32_t sx1276_get_time_on_air(sx1276_t *dev)
 {
     uint32_t air_time = 0;
 
+    uint8_t pkt_len = dev->settings.time_on_air_pkt_len;
+    sx1276_radio_modems_t modem = dev->settings.modem;
     switch (modem) {
         case SX1276_MODEM_FSK:
             break;

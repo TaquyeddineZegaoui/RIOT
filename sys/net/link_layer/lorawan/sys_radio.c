@@ -82,8 +82,10 @@ void SX1276SetTxConfig( RadioModems_t modem, int8_t power, uint32_t fdev,
 
 uint32_t SX1276GetTimeOnAir( RadioModems_t modem, uint8_t pktLen )
 {
-    return sx1276_get_time_on_air(dev_ptr, (sx1276_radio_modems_t) modem,
-                                pktLen);
+    assert(false);
+    return 0;
+    //return sx1276_get_time_on_air(dev_ptr, (sx1276_radio_modems_t) modem,
+     //                           pktLen);
 }
 
 void SX1276Send( uint8_t *buffer, uint8_t size )
