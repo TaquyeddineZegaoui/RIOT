@@ -827,7 +827,7 @@ void OnRadioTxDone(netdev2_t *netdev)
     if( IsRxWindowsEnabled == true )
     {
         RxWindowTimer1.msg.type = LORAWAN_TIMER_RX_WINDOW1;
-        xtimer_set_msg(&(RxWindowTimer1.dev), xtimer_ticks_from_usec(RxWindow1Delay*1000).ticks32, &(RxWindowTimer1.msg), RxWindowTimer1.pid);
+        xtimer_set_msg(&(RxWindowTimer1.dev), xtimer_ticks_from_usec(RxWindow1Delay*1000-3000).ticks32, &(RxWindowTimer1.msg), RxWindowTimer1.pid);
         //TimerSetValue( &RxWindowTimer1, RxWindow1Delay, LORAWAN_TIMER_RX_WINDOW1);
         //TimerStart( &RxWindowTimer1, 0 );
         if( LoRaMacDeviceClass != CLASS_C )
@@ -1995,14 +1995,19 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
             Radio.SetMaxPayloadLength( modem, MaxPayloadOfDatarate[datarate] + LORA_MAC_FRMPAYLOAD_OVERHEAD );
         }
 
+        netdev2_t *netdev = (netdev2_t*) dev;
+        uint32_t val;
+        netopt_state_t state = NETOPT_STATE_RX;
         if( rxContinuous == false )
         {
-            Radio.Rx( LoRaMacParams.MaxRxWindow );
+            val = LoRaMacParams.MaxRxWindow*1000;
         }
         else
         {
-            Radio.Rx( 0 ); // Continuous mode
+            val = 0;
         }
+        netdev->driver->set(netdev, NETOPT_LORA_RX_TIMEOUT, &val, sizeof(uint32_t));
+        netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
     }
 }
 

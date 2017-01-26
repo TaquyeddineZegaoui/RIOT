@@ -98,11 +98,7 @@ void SX1276SetStby( void )
 
 void SX1276SetRx( uint32_t timeout )
 {
-    netdev2_t *netdev = (netdev2_t*) dev_ptr;
-    uint32_t val = timeout * 1000;
-    netopt_state_t state = NETOPT_STATE_RX;
-    netdev->driver->set(netdev, NETOPT_LORA_RX_TIMEOUT, &val, sizeof(uint32_t));
-    netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
+    assert(false);
 }
 
 
