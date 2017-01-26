@@ -23,6 +23,7 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jä
 #include "LoRaMacTest.h"
 #include "thread.h"
 #include "net/lorawan/utilities.h"
+#include "random.h"
 
 
 /*!
@@ -873,7 +874,7 @@ void OnRadioTxDone(netdev2_t *netdev)
         if( ( LoRaMacDeviceClass == CLASS_C ) || ( NodeAckRequested == true ) )
         {
             AckTimeoutTimer.msg.type = LORAWAN_TIMER_ACK_TIMEOUT;
-            xtimer_set_msg(&(AckTimeoutTimer.dev), xtimer_ticks_from_usec(RxWindow2Delay + ACK_TIMEOUT +           randr( -ACK_TIMEOUT_RND, ACK_TIMEOUT_RND )*1000).ticks32, &(AckTimeoutTimer.msg), AckTimeoutTimer.pid);
+            xtimer_set_msg(&(AckTimeoutTimer.dev), xtimer_ticks_from_usec(RxWindow2Delay + ACK_TIMEOUT +           random_uint32_range( -ACK_TIMEOUT_RND, ACK_TIMEOUT_RND+1 )*1000).ticks32, &(AckTimeoutTimer.msg), AckTimeoutTimer.pid);
             //TimerSetValue( &AckTimeoutTimer, RxWindow2Delay + ACK_TIMEOUT +
              //                                randr( -ACK_TIMEOUT_RND, ACK_TIMEOUT_RND ), LORAWAN_TIMER_ACK_TIMEOUT);
             //TimerStart( &AckTimeoutTimer, 0);
@@ -1889,7 +1890,7 @@ static bool SetNextChannel( TimerTime_t* time )
 
     if( nbEnabledChannels > 0 )
     {
-        Channel = enabledChannels[randr( 0, nbEnabledChannels - 1 )];
+        Channel = enabledChannels[random_uint32_range( 0, nbEnabledChannels)];
 #if defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
         if( Channel < ( LORA_MAX_NB_CHANNELS - 8 ) )
         {
@@ -2882,8 +2883,8 @@ static void CalculateBackOff( uint8_t channel )
 
     if( rndTimeOff == true )
     {
-        Bands[Channels[channel].Band].TimeOff = randr( Bands[Channels[channel].Band].TimeOff,
-                                                       Bands[Channels[channel].Band].TimeOff + BACKOFF_RND_OFFSET );
+        Bands[Channels[channel].Band].TimeOff = random_uint32_range( Bands[Channels[channel].Band].TimeOff,
+                                                       Bands[Channels[channel].Band].TimeOff + BACKOFF_RND_OFFSET + 1);
     }
 
     // Update Aggregated Time OFF

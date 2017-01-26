@@ -5,12 +5,6 @@ void srand1( uint32_t seed )
     random_init(seed);
 }
 
-int32_t randr( int32_t min, int32_t max )
-{
-    return random_uint32_range(min, max + 1);
-}
-
-
 void memcpy1( uint8_t *dst, const uint8_t *src, uint16_t size )
 {
     while( size-- )

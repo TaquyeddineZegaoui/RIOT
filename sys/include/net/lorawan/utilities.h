@@ -45,14 +45,6 @@ Maintainer: Miguel Luis and Gregory Cristian
  */
 void srand1( uint32_t seed );
 
-/*!
- * \brief Computes a random number between min and max
- *
- * \param [IN] min range minimum value
- * \param [IN] max range maximum value
- * \retval random random value in range min..max
- */
-int32_t randr( int32_t min, int32_t max );
 
 /*!
  * \brief Copies size elements of src array to dst array
