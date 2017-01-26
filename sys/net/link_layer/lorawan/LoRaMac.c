@@ -22,10 +22,35 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jä
 #include "LoRaMac.h"
 #include "LoRaMacTest.h"
 #include "thread.h"
-#include "net/lorawan/utilities.h"
 #include "random.h"
 #include <string.h>
 
+
+/*!
+ * \brief Returns the minimum value betwen a and b
+ *
+ * \param [IN] a 1st value
+ * \param [IN] b 2nd value
+ * \retval minValue Minimum value
+ */
+#define MIN( a, b ) ( ( ( a ) < ( b ) ) ? ( a ) : ( b ) )
+
+/*!
+ * \brief Returns the maximum value betwen a and b
+ *
+ * \param [IN] a 1st value
+ * \param [IN] b 2nd value
+ * \retval maxValue Maximum value
+ */
+#define MAX( a, b ) ( ( ( a ) > ( b ) ) ? ( a ) : ( b ) )
+
+/*!
+ * \brief Returns 2 raised to the power of n
+ *
+ * \param [IN] n power value
+ * \retval result of raising 2 to the power n
+ */
+#define POW2( n ) ( 1 << n )
 
 /*!
  * Radio wakeup time from SLEEP mode

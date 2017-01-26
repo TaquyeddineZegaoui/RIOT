@@ -21,7 +21,6 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jä
 #include "LoRaMac-api-v3.h"
 #include "LoRaMacTest.h"
 #include "thread.h"
-#include "net/lorawan/utilities.h"
 #include <string.h>
 
 /*!

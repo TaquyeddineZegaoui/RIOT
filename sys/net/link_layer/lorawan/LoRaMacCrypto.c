@@ -19,7 +19,6 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jä
 */
 #include <stdlib.h>
 #include <stdint.h>
-#include "net/lorawan/utilities.h"
 
 #include "crypto/ciphers.h"
 #include "hashes/cmac.h"
