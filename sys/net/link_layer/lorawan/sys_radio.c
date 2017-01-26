@@ -45,7 +45,8 @@ void SX1276SetModem( RadioModems_t modem)
 
 void SX1276SetChannel( uint32_t freq )
 {
-    sx1276_set_channel(dev_ptr, freq);
+    assert(false);
+    //sx1276_set_channel(dev_ptr, freq);
 }
 
 bool SX1276IsChannelFree( RadioModems_t modem, uint32_t freq, int16_t rssiThresh )

@@ -1957,7 +1957,7 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
 
     if( state == NETOPT_STATE_SLEEP || state == NETOPT_STATE_STANDBY )
     {
-        Radio.SetChannel( freq );
+        netdev->driver->set(netdev, NETOPT_CHANNEL, &freq, sizeof(uint32_t));
 
         // Store downlink datarate
         McpsIndication.RxDatarate = ( uint8_t ) datarate;
@@ -3165,6 +3165,7 @@ void _set_tx_config( RadioModems_t modem, int8_t power, uint32_t fdev,
 }
 LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
 {
+    netdev2_t *netdev = (netdev2_t*) dev;
     int8_t datarate = Datarates[LoRaMacParams.ChannelsDatarate];
     int8_t txPowerIndex = 0;
     int8_t txPower = 0;
@@ -3177,7 +3178,7 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     McpsConfirm.Datarate = LoRaMacParams.ChannelsDatarate;
     McpsConfirm.TxPower = txPowerIndex;
 
-    Radio.SetChannel( channel.Frequency );
+    netdev->driver->set(netdev, NETOPT_CHANNEL, &channel.Frequency, sizeof(uint32_t));
 
 #if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
     if( LoRaMacParams.ChannelsDatarate == DR_7 )
@@ -3229,7 +3230,6 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     struct iovec vec[1];
     vec[0].iov_base = LoRaMacBuffer;
     vec[0].iov_len = LoRaMacBufferPktLen;
-    netdev2_t *netdev = (netdev2_t*) dev;
     netdev->driver->send(netdev, vec, 1); 
 
     LoRaMacState |= MAC_TX_RUNNING;
