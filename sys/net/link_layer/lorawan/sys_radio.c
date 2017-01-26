@@ -104,13 +104,15 @@ void SX1276SetRx( uint32_t timeout )
 
 void SX1276StartCad( void )
 {
-    sx1276_start_cad(dev_ptr);
+    assert(false);
+    //sx1276_start_cad(dev_ptr);
 }
 
 int16_t SX1276ReadRssi( RadioModems_t modem )
 {
-    dev_ptr->settings.modem = modem;
-    return sx1276_read_rssi(dev_ptr);
+    assert(false);
+    //dev_ptr->settings.modem = modem;
+    //return sx1276_read_rssi(dev_ptr);
 }
 
 //TODO: Dummy function. Just used to set SYNCWORD
