@@ -380,6 +380,9 @@ static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
         case NETOPT_LORA_TIME_ON_AIR:
             *((uint32_t*) val) = sx1276_get_time_on_air(dev);
             break;
+        case NETOPT_LORA_RANDOM:
+            *((uint32_t*) val) = sx1276_random(dev);
+            break;
         default:
             return netdev2_lorawan_get(netdev, opt, val, max_len);
             break;

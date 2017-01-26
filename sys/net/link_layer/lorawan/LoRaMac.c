@@ -2969,6 +2969,8 @@ static void ResetMacParameters( void )
 
 LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl, uint8_t fPort, void *fBuffer, uint16_t fBufferSize )
 {
+    netdev2_t *netdev = (netdev2_t*) dev;
+    uint32_t random;
     uint16_t i;
     uint8_t pktHeaderLen = 0;
     uint32_t mic = 0;
@@ -3000,7 +3002,8 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
             memcpyr( LoRaMacBuffer + LoRaMacBufferPktLen, LoRaMacDevEui, 8 );
             LoRaMacBufferPktLen += 8;
 
-            LoRaMacDevNonce = Radio.Random( );
+            netdev->driver->get(netdev, NETOPT_LORA_RANDOM, &random, sizeof(uint32_t));
+            LoRaMacDevNonce = random;
 
             LoRaMacBuffer[LoRaMacBufferPktLen++] = LoRaMacDevNonce & 0xFF;
             LoRaMacBuffer[LoRaMacBufferPktLen++] = ( LoRaMacDevNonce >> 8 ) & 0xFF;
@@ -3392,11 +3395,13 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacC
 
 
     // Random seed initialization
-    srand1( Radio.Random( ) );
+    netdev2_t *netdev = (netdev2_t*) dev;
+    uint32_t random;
+    netdev->driver->get(netdev, NETOPT_LORA_RANDOM, &random, sizeof(uint32_t));
+    srand1(random);
 
     PublicNetwork = true;
     SetPublicNetwork( PublicNetwork );
-    netdev2_t *netdev = (netdev2_t*) dev;
     netopt_state_t state = NETOPT_STATE_SLEEP;
     netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
 

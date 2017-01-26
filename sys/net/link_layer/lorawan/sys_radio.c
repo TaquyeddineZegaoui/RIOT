@@ -57,6 +57,7 @@ bool SX1276IsChannelFree( RadioModems_t modem, uint32_t freq, int16_t rssiThresh
 
 uint32_t SX1276Random( void )
 {
+     assert(false);
      return sx1276_random(dev_ptr);
 }
 
