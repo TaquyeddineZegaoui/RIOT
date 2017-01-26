@@ -50,38 +50,10 @@ Maintainer: Miguel Luis and Gregory Cristian
 /*!
  * Thread Variables and packet count
  */
-volatile uint8_t HasLoopedThroughMain = 0;
 uint32_t count = 0;
 static sx1276_t sx1276;
 
 static netdev2_t *nd;
-
-/*
-* Drope time
-*/
-#ifndef DROP_TIME
-    #define DROP_TIME                                   (4*SEC_IN_USEC)
-#endif
-
-/*!
- * Join requests trials duty cycle.
- */
-#ifndef OVER_THE_AIR_ACTIVATION_DUTYCYCLE 
-    #define OVER_THE_AIR_ACTIVATION_DUTYCYCLE           10000 // 10 [s] value in ms
-#endif
-
-/*!
- * Defines the application data transmission duty cycle. 5s, value in [ms].
- */
-#ifndef APP_TX_DUTYCYCLE
-    #define APP_TX_DUTYCYCLE                            15*1000
-#endif
-
-/*!
- * Defines a random delay for application data transmission duty cycle. 1s,
- * value in [ms].
- */
-#define APP_TX_DUTYCYCLE_RND                            1000
 
 /*!
  * LoRaWAN confirmed messages
@@ -160,32 +132,12 @@ static uint8_t AppData[LORAWAN_APP_DATA_MAX_SIZE];
 static uint8_t IsTxConfirmed = LORAWAN_CONFIRMED_MSG_ON;
 
 /*!
- * Timer to handle the application data transmission duty cycle
- */
-static TimerEvent_t TxNextPacketTimer;
-
-#if( OVER_THE_AIR_ACTIVATION != 0 )
-
-/*!
- * Defines the join request timer
- */
-static TimerEvent_t JoinReqTimer;
-
-#endif
-
-/*!
  * Indicates if a new packet can be sent
  */
-static bool TxNextPacket = true;
-static bool ScheduleNextTx = true;
 static bool DownlinkStatusUpdate = false;
 
 static LoRaMacCallbacks_t LoRaMacCallbacks;
 
-/*
-* Variable to avoid repeated sleep
-*/
-uint8_t cycle_sleep = 0;
 
 /*!
  * LoRaWAN compliance tests support data
@@ -208,7 +160,7 @@ struct ComplianceTest_s
 /*!
  * \brief   Prepares the payload of the frame
  */
-static void PrepareTxFrame( uint8_t port, uint8_t* data, uint8_t size)
+static uint8_t PrepareTxFrame( uint8_t port, uint8_t* data, uint8_t size)
 {
     AppPort = port;
     AppDataSize = size;
@@ -244,8 +196,8 @@ static void PrepareTxFrame( uint8_t port, uint8_t* data, uint8_t size)
     {
         if(size > LORAWAN_APP_DATA_SIZE )
         {
-            puts("max data size exceeded");
-            return;
+            puts("ERROR: max data size exceeded");
+            return 0;
         }
 
         for(uint8_t i = 0; i < size; i++)
@@ -253,6 +205,7 @@ static void PrepareTxFrame( uint8_t port, uint8_t* data, uint8_t size)
         break;
     }
     }
+    return 1;
 }
 
 static void ProcessRxFrame( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )
@@ -322,7 +275,7 @@ static void ProcessRxFrame( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info
                 }
                 break;
             case 5: // (viii)
-                LoRaMacLinkCheckReq( );
+                check_link(NULL);
                 break;
             default:
                 break;
@@ -361,32 +314,6 @@ static bool SendFrame( void )
     }
 }
 
-#if( OVER_THE_AIR_ACTIVATION != 0 )
-
-/*!
- * \brief Function executed on JoinReq Timeout event
- */
-static void OnJoinReqTimerEvent( void )
-{
-    //TimerStop( &JoinReqTimer );
-    xtimer_remove(&JoinReqTimer.dev);
-    TxNextPacket = true;
-}
-
-#endif
-
-/*!
- * \brief Function executed on TxNextPacket Timeout event
- */
-static void OnTxNextPacketTimerEvent( void )
-{
-    //TimerStop( &TxNextPacketTimer );
-    xtimer_remove(&TxNextPacketTimer.dev);
-    TxNextPacket = true;
-    ScheduleNextTx = true;
-    cycle_sleep = 0;
-}
-
 /*!
  * \brief Function to be executed on MAC layer event
  */
@@ -394,10 +321,6 @@ static void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )
 {
     if( flags->Bits.JoinAccept == 1 )
     {
-    #if( OVER_THE_AIR_ACTIVATION != 0 )
-            //TimerStop( &JoinReqTimer );
-    xtimer_remove(&JoinReqTimer.dev);
-    #endif
         IsNetworkJoined = true;
     }
     else
@@ -426,13 +349,11 @@ static void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )
             DownlinkStatusUpdate = true;
         }
     }
-    // Schedule a new transmission
-    // ScheduleNextTx = true;
 }
 
 int lorawan_setup(int argc, char **argv) {
     if (argc < 4) {
-        puts("Not enough arguments");
+        puts("ERROR: Not enough arguments");
         return -1;
     }
 
@@ -450,7 +371,7 @@ int lorawan_setup(int argc, char **argv) {
         #endif
         IsNetworkJoined = false;
 
-        LoRaMacJoinReq( DevEui, AppEui, AppKey );
+        join_request(NULL, DevEui, AppEui, AppKey );
 
         puts("Activation Type: OTA");
     }
@@ -470,7 +391,7 @@ int lorawan_setup(int argc, char **argv) {
     }
     else
     {
-        puts("Invalid activation type");
+        puts("ERROR: Invalid activation type");
         return -1;
     }
 
@@ -486,7 +407,7 @@ int lorawan_setup(int argc, char **argv) {
     }
     else
     {
-        puts("Invalid Adaptative Data Rate Setting");
+        puts("ERROR: Invalid Adaptative Data Rate Setting");
         return -1;
     }
 
@@ -502,7 +423,7 @@ int lorawan_setup(int argc, char **argv) {
     }
     else
     {
-        puts("Invalid Network Type");
+        puts("ERROR: Invalid Network Type");
         return -1;
     }
 
@@ -515,7 +436,7 @@ int send(int argc, char **argv)
 {
     
     if (argc <= 3) {
-        puts("Not enough arguments");
+        puts("ERROR: Not enough arguments");
         return -1;
     }
     if(strstr(argv[1], "unconfirmed") != NULL)
@@ -530,7 +451,7 @@ int send(int argc, char **argv)
     }
     else
     {
-        puts("Invalid Message Type");
+        puts("ERROR: Invalid Message Type");
         return -1;
     }
 
@@ -538,25 +459,26 @@ int send(int argc, char **argv)
     uint8_t port = atoi(argv[2]);
     if(port >243)
     {
-        puts("Invalid AppPort");
+        puts("ERROR: Invalid AppPort");
         return -1;
     }
 
     puts("Preparing frame");
 
     uint8_t size = strlen(argv[3]);
-    if(size>255)
+    if(size>254)
     {
-        puts("Input string bigger max physical payload");
+        puts("ERROR: Input string bigger max physical payload");
         return -1;
     }
     uint8_t data[255];
     memcpy(data,argv[3],size);
 
-    PrepareTxFrame( port, data, size);
-    SendFrame( );
-
-    puts("Frame sent");
+    if(PrepareTxFrame( port, data, size))
+    {
+        SendFrame( );
+        puts("Frame sent");
+    }    
     
     return 0;
 }
@@ -712,7 +634,7 @@ int main( void )
 {
     
     /* set sx1276 pointer, init xtimer */
-    radio_set_ptr(&sx1276);
+    lorawan_set_pointer((netdev2_lorawan_t*) &sx1276);
     xtimer_init();
 
     memcpy(&sx1276.params, sx1276_params, sizeof(sx1276_params));
@@ -727,25 +649,10 @@ int main( void )
                      _event_loop, (void *) netdev, "asd");
     netdev->context = &pid;
 
-
     // Set LoRaMAC thread
     LoRaMacCallbacks.MacEvent = OnMacEvent;
     LoRaMacCallbacks.GetBatteryLevel = board_get_battery_level;
     LoRaMacInit( &LoRaMacCallbacks, pid );
-
-
-    // Set TxNextPacket Xtimer
-    TxNextPacket = true;
-    TxNextPacketTimer.dev.target = 0;
-    TxNextPacketTimer.dev.callback =  (void*) OnTxNextPacketTimerEvent;
-    TxNextPacketTimer.pid = (kernel_pid_t) 0;
-
-
-    // Sends a JoinReq Command every OVER_THE_AIR_ACTIVATION_DUTYCYCLE
-    // seconds until the network is joined
-    JoinReqTimer.dev.target = 0;
-    JoinReqTimer.dev.callback =  (void*) OnJoinReqTimerEvent;
-    JoinReqTimer.pid =  (kernel_pid_t) 0;
 
     /* start the shell */
     puts("Initialization successful - starting the shell now");

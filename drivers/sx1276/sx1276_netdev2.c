@@ -19,6 +19,7 @@
 #include "net/netdev2.h"
 #include "include/sx1276_registers.h"
 #include "include/sx1276_internal.h"
+#include "net/netdev2/lorawan.h"
 #include "sx1276_netdev.h"
 #include "sx1276.h"
 #include <stddef.h>
@@ -282,7 +283,12 @@ static int _set_state(sx1276_t *dev, netopt_state_t state)
 
         case NETOPT_STATE_IDLE:
             //TODO
-            sx1276_set_rx(dev, 0); //set permanent listening
+            dev->settings.window_timeout = 0;
+            sx1276_set_rx(dev); //set permanent listening
+            break;
+
+        case NETOPT_STATE_RX:
+            sx1276_set_rx(dev);
             break;
 
         case NETOPT_STATE_TX:
@@ -340,14 +346,14 @@ static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
             return _get_state((sx1276_t*) netdev, val);
 
         case NETOPT_LORA_BANDWIDTH:
-            *((sx1276_lora_bandwidth_t*) val) = sx1276_get_bandwidth((sx1276_t*) netdev);
+            *((uint8_t*) val) = sx1276_get_bandwidth((sx1276_t*) netdev);
             return sizeof(sx1276_lora_bandwidth_t);
 
         case NETOPT_LORA_SPREADING_FACTOR:
-            *((sx1276_lora_spreading_factor_t*) val) = sx1276_get_spreading_factor((sx1276_t*) netdev);
+            *((uint8_t*) val) = sx1276_get_spreading_factor((sx1276_t*) netdev);
             return sizeof(sx1276_lora_spreading_factor_t);
         case NETOPT_LORA_CODING_RATE:
-            *((sx1276_lora_coding_rate_t*) val) = sx1276_get_coding_rate((sx1276_t*) netdev);
+            *((uint8_t*) val) = sx1276_get_coding_rate((sx1276_t*) netdev);
             return sizeof(sx1276_lora_coding_rate_t);
 
         case NETOPT_CHANNEL:
@@ -370,9 +376,15 @@ static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
             break;
         case NETOPT_LORA_HOP_PERIOD:
             *((uint8_t*) val) = sx1276_get_hop_period(dev);
-
-
+            break;
+        case NETOPT_LORA_TIME_ON_AIR:
+            *((uint32_t*) val) = sx1276_get_time_on_air(dev);
+            break;
+        case NETOPT_LORA_RANDOM:
+            *((uint32_t*) val) = sx1276_random(dev);
+            break;
         default:
+            return netdev2_lorawan_get(netdev, opt, val, max_len);
             break;
     }
     return 0;
@@ -386,14 +398,14 @@ static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len)
             return _set_state((sx1276_t*) netdev, *((netopt_state_t*) val));
 
         case NETOPT_LORA_BANDWIDTH:
-            sx1276_set_bandwidth((sx1276_t*) netdev, *((sx1276_lora_bandwidth_t*) val));
+            sx1276_set_bandwidth((sx1276_t*) netdev, *((uint8_t*) val));
             return sizeof(sx1276_lora_bandwidth_t);
 
         case NETOPT_LORA_SPREADING_FACTOR:
-            sx1276_set_spreading_factor((sx1276_t*) netdev, *((sx1276_lora_spreading_factor_t*) val));
+            sx1276_set_spreading_factor((sx1276_t*) netdev, *((uint8_t*) val));
             return sizeof(sx1276_lora_spreading_factor_t);
         case NETOPT_LORA_CODING_RATE:
-            sx1276_set_coding_rate((sx1276_t*) netdev, *((sx1276_lora_coding_rate_t*) val));
+            sx1276_set_coding_rate((sx1276_t*) netdev, *((uint8_t*) val));
             return sizeof(sx1276_lora_coding_rate_t);
 
         case NETOPT_LORA_SINGLE_RECEIVE:
@@ -437,11 +449,20 @@ static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len)
         case NETOPT_LORA_TX_TIMEOUT:
             sx1276_set_tx_timeout(dev, *((uint32_t*) val));
             return sizeof(uint32_t);
+        case NETOPT_LORA_RX_TIMEOUT:
+            sx1276_set_rx_timeout(dev, *((uint32_t*) val));
+            return sizeof(uint32_t);
         case NETOPT_LORA_MODE:
             sx1276_set_modem(dev, *((netopt_enable_t*) val) ? SX1276_MODEM_LORA : SX1276_MODEM_FSK);
-
-
+            return sizeof(netopt_enable_t);
+        case NETOPT_LORA_MAX_PAYLOAD:
+            sx1276_set_max_payload_len(dev, *((uint8_t*) val));
+            return sizeof(uint8_t);
+        case NETOPT_LORA_TIME_ON_AIR:
+            dev->settings.time_on_air_pkt_len = *((uint8_t*) val);
+            break;
         default:
+            return netdev2_lorawan_set(netdev, opt, val, len);
             break;
     }
     return 0;

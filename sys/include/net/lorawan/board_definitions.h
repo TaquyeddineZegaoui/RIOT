@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include "net/lorawan/timer.h"
-#include "net/lorawan/radio.h"
 #include "net/lorawan/utilities.h"
 
 //TODO: Remove this line

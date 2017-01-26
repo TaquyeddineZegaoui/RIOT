@@ -45,6 +45,26 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jä
 /*!
  * Device IEEE EUI
  */
+/*!
+ * Radio driver supported modems
+ */
+typedef enum
+{
+    MODEM_FSK = 0,
+    MODEM_LORA,
+}RadioModems_t;
+
+/*!
+ * Radio driver internal state machine states definition
+ */
+typedef enum
+{
+    RF_IDLE = 0,
+    RF_RX_RUNNING,
+    RF_TX_RUNNING,
+    RF_CAD,
+}RadioState_t;
+static netdev2_lorawan_t *dev;
 static uint8_t *LoRaMacDevEui;
 
 /*!
@@ -537,11 +557,6 @@ static MlmeConfirm_t MlmeConfirm;
  */
 static uint8_t RxSlot = 0;
 
-/*!
- * LoRaMac tx/rx operation state
- */
-LoRaMacFlags_t LoRaMacFlags;
-
 
 /*!
  * \brief This function prepares the MAC to abort the execution of function
@@ -797,6 +812,11 @@ static int8_t AlternateDatarate( uint16_t nbTrials );
  * \retval status          Status of the operation.
  */
 LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel );
+bool check_rf_freq( uint32_t frequency )
+{
+    // Implement check. Currently all frequencies are supported
+    return true;
+}
 
 /*!
  * \brief Resets MAC specific parameters to default
@@ -806,9 +826,10 @@ static void ResetMacParameters( void );
 void OnRadioTxDone(netdev2_t *netdev)
 {
     TimerTime_t curTime = xtimer_now_usec64();
+    netopt_state_t state = NETOPT_STATE_SLEEP;
     if( LoRaMacDeviceClass != CLASS_C )
     {
-        Radio.Sleep( );
+        netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
     }
     else
     {
@@ -825,7 +846,7 @@ void OnRadioTxDone(netdev2_t *netdev)
     if( IsRxWindowsEnabled == true )
     {
         RxWindowTimer1.msg.type = LORAWAN_TIMER_RX_WINDOW1;
-        xtimer_set_msg(&(RxWindowTimer1.dev), xtimer_ticks_from_usec(RxWindow1Delay*1000).ticks32, &(RxWindowTimer1.msg), RxWindowTimer1.pid);
+        xtimer_set_msg(&(RxWindowTimer1.dev), xtimer_ticks_from_usec(RxWindow1Delay*1000-3000).ticks32, &(RxWindowTimer1.msg), RxWindowTimer1.pid);
         //TimerSetValue( &RxWindowTimer1, RxWindow1Delay, LORAWAN_TIMER_RX_WINDOW1);
         //TimerStart( &RxWindowTimer1, 0 );
         if( LoRaMacDeviceClass != CLASS_C )
@@ -849,11 +870,11 @@ void OnRadioTxDone(netdev2_t *netdev)
         McpsConfirm.Status = LORAMAC_EVENT_INFO_STATUS_OK;
         MlmeConfirm.Status = LORAMAC_EVENT_INFO_STATUS_RX2_TIMEOUT;
 
-        if( LoRaMacFlags.Value == 0 )
+        if( dev->flags == 0 )
         {
-            LoRaMacFlags.Bits.McpsReq = 1;
+            dev->flags |= LORAWAN_MCPS_REQUEST;
         }
-        LoRaMacFlags.Bits.MacDone = 1;
+        dev->flags |= LORAWAN_MAC_DONE;
     }
 
     if( NodeAckRequested == false )
@@ -877,8 +898,8 @@ static void PrepareRxDoneAbort(netdev2_t *netdev)
         OnRxWindow2TimerEvent(netdev);
     }
 
-    LoRaMacFlags.Bits.McpsInd = 1;
-    LoRaMacFlags.Bits.MacDone = 1;
+    dev->flags |= LORAWAN_MCPS_IND;
+    dev->flags |= LORAWAN_MAC_DONE;
 
     // Trig OnMacCheckTimerEvent call as soon as possible
     MacStateCheckTimer.msg.type = LORAWAN_TIMER_MAC_STATE;
@@ -887,6 +908,14 @@ static void PrepareRxDoneAbort(netdev2_t *netdev)
     //TimerStart( &MacStateCheckTimer, 0);
 }
 
+void lorawan_set_pointer(netdev2_lorawan_t* netdev)
+{
+    dev = netdev;
+}
+netdev2_lorawan_t *lorawan_get_pointer(void)
+{
+    return dev;
+}
 void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
 {
     LoRaMacHeader_t macHdr;
@@ -914,6 +943,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
 
     bool isMicOk = false;
 
+    netopt_state_t state = NETOPT_STATE_SLEEP;
     McpsConfirm.AckReceived = false;
     McpsIndication.Rssi = rssi;
     McpsIndication.Snr = snr;
@@ -930,7 +960,8 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
 
     if( LoRaMacDeviceClass != CLASS_C )
     {
-        Radio.Sleep( );
+        netdev2_t *netdev = (netdev2_t*) dev;
+        netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
     }
     //TimerStop( &RxWindowTimer2 );
     xtimer_remove(&RxWindowTimer2.dev);
@@ -1245,7 +1276,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
 
                     if( skipIndication == false )
                     {
-                        LoRaMacFlags.Bits.McpsInd = 1;
+                        dev->flags |= LORAWAN_MCPS_IND;
                     }
                 }
                 else
@@ -1266,7 +1297,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 McpsIndication.Buffer = LoRaMacRxPayload;
                 McpsIndication.BufferSize = size - pktHeaderLen;
 
-                LoRaMacFlags.Bits.McpsInd = 1;
+                dev->flags |= LORAWAN_MCPS_IND;
                 break;
             }
         default:
@@ -1279,7 +1310,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
     {
         OnRxWindow2TimerEvent(netdev);
     }
-    LoRaMacFlags.Bits.MacDone = 1;
+    dev->flags |= LORAWAN_MAC_DONE;
 
     // Trig OnMacCheckTimerEvent call as soon as possible
     MacStateCheckTimer.msg.type = LORAWAN_TIMER_MAC_STATE;
@@ -1290,9 +1321,10 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
 
 void OnRadioTxTimeout( netdev2_t *netdev )
 {
+    netopt_state_t state = NETOPT_STATE_SLEEP;
     if( LoRaMacDeviceClass != CLASS_C )
     {
-        Radio.Sleep( );
+        netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
     }
     else
     {
@@ -1301,14 +1333,15 @@ void OnRadioTxTimeout( netdev2_t *netdev )
 
     McpsConfirm.Status = LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT;
     MlmeConfirm.Status = LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT;
-    LoRaMacFlags.Bits.MacDone = 1;
+    dev->flags |= LORAWAN_MAC_DONE;
 }
 
 void OnRadioRxError(netdev2_t *netdev)
 {
+    netopt_state_t state = NETOPT_STATE_SLEEP;
     if( LoRaMacDeviceClass != CLASS_C )
     {
-        Radio.Sleep( );
+        netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
     }
     else
     {
@@ -1322,15 +1355,16 @@ void OnRadioRxError(netdev2_t *netdev)
             McpsConfirm.Status = LORAMAC_EVENT_INFO_STATUS_RX2_ERROR;
         }
         MlmeConfirm.Status = LORAMAC_EVENT_INFO_STATUS_RX2_ERROR;
-        LoRaMacFlags.Bits.MacDone = 1;
+        dev->flags |= LORAWAN_MAC_DONE;
     }
 }
 
 void OnRadioRxTimeout(netdev2_t *netdev)
 {
+    netopt_state_t state = NETOPT_STATE_SLEEP;
     if( LoRaMacDeviceClass != CLASS_C )
     {
-        Radio.Sleep( );
+        netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
     }
     else
     {
@@ -1344,7 +1378,7 @@ void OnRadioRxTimeout(netdev2_t *netdev)
             McpsConfirm.Status = LORAMAC_EVENT_INFO_STATUS_RX2_TIMEOUT;
         }
         MlmeConfirm.Status = LORAMAC_EVENT_INFO_STATUS_RX2_TIMEOUT;
-        LoRaMacFlags.Bits.MacDone = 1;
+        dev->flags |= LORAWAN_MAC_DONE;
     }
 }
 
@@ -1354,7 +1388,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
     xtimer_remove(&MacStateCheckTimer.dev);
     bool txTimeout = false;
 
-    if( LoRaMacFlags.Bits.MacDone == 1 )
+    if( dev->flags & LORAWAN_MAC_DONE)
     {
         if( ( LoRaMacState & MAC_RX_ABORT ) == MAC_RX_ABORT )
         {
@@ -1362,7 +1396,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
             LoRaMacState &= ~MAC_TX_RUNNING;
         }
 
-        if( ( LoRaMacFlags.Bits.MlmeReq == 1 ) || ( ( LoRaMacFlags.Bits.McpsReq == 1 ) ) )
+        if( ( dev->flags & LORAWAN_MLME_REQUEST ) || ( ( dev->flags & LORAWAN_MCPS_REQUEST ) ) )
         {
             if( ( McpsConfirm.Status == LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT ) ||
                 ( MlmeConfirm.Status == LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT ) )
@@ -1378,7 +1412,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
 
         if( ( NodeAckRequested == false ) && ( txTimeout == false ) )
         {
-            if( LoRaMacFlags.Bits.MlmeReq == 1 )
+            if( dev->flags & LORAWAN_MLME_REQUEST)
             {
                 if( MlmeConfirm.MlmeRequest == MLME_JOIN )
                 {
@@ -1393,9 +1427,9 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
                     }
                 }
             }
-            if( ( LoRaMacFlags.Bits.MlmeReq == 1 ) || ( ( LoRaMacFlags.Bits.McpsReq == 1 ) ) )
+            if( ( dev->flags & LORAWAN_MLME_REQUEST) || ( ( dev->flags & LORAWAN_MCPS_REQUEST ) ) )
             {
-                if( ( ChannelsNbRepCounter >= LoRaMacParams.ChannelsNbRep ) || ( LoRaMacFlags.Bits.McpsInd == 1 ) )
+                if( ( ChannelsNbRepCounter >= LoRaMacParams.ChannelsNbRep ) || ( dev->flags & LORAWAN_MCPS_IND ) )
                 {
                     ChannelsNbRepCounter = 0;
 
@@ -1409,7 +1443,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
                 }
                 else
                 {
-                    LoRaMacFlags.Bits.MacDone = 0;
+                    dev->flags &= ~LORAWAN_MAC_DONE;
                     #if defined HACK_OTA
                         /* Hack so retransmited package is re-built*/
                         if(IsLoRaMacNetworkJoined == false)
@@ -1435,7 +1469,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
             }
         }
 
-        if( LoRaMacFlags.Bits.McpsInd == 1 )
+        if( dev->flags & LORAWAN_MCPS_IND )
         {
             if( ( McpsConfirm.AckReceived == true ) || ( AckTimeoutRetriesCounter > AckTimeoutRetries ) )
             {
@@ -1462,7 +1496,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
                 {
                     LoRaMacParams.ChannelsDatarate = MAX( LoRaMacParams.ChannelsDatarate - 1, LORAMAC_TX_MIN_DATARATE );
                 }
-                LoRaMacFlags.Bits.MacDone = 0;
+                dev->flags &= ~LORAWAN_MAC_DONE;
                 // Sends the same frame again
                 ScheduleTx( );
             }
@@ -1510,19 +1544,19 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
     }
     if( LoRaMacState == MAC_IDLE )
     {
-        if( LoRaMacFlags.Bits.McpsReq == 1 )
+        if( dev->flags & LORAWAN_MCPS_REQUEST )
         {
             LoRaMacPrimitives->MacMcpsConfirm( &McpsConfirm );
-            LoRaMacFlags.Bits.McpsReq = 0;
+            dev->flags &= ~LORAWAN_MCPS_REQUEST;
         }
 
-        if( LoRaMacFlags.Bits.MlmeReq == 1 )
+        if( dev->flags & LORAWAN_MLME_REQUEST )
         {
             LoRaMacPrimitives->MacMlmeConfirm( &MlmeConfirm );
-            LoRaMacFlags.Bits.MlmeReq = 0;
+            dev->flags &= ~LORAWAN_MLME_REQUEST;
         }
 
-        LoRaMacFlags.Bits.MacDone = 0;
+        dev->flags &= ~LORAWAN_MAC_DONE;
     }
     else
     {
@@ -1533,10 +1567,10 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
         //TimerStart( &MacStateCheckTimer, 0);
     }
 
-    if( LoRaMacFlags.Bits.McpsInd == 1 )
+    if( dev->flags & LORAWAN_MCPS_IND )
     {
         LoRaMacPrimitives->MacMcpsIndication( &McpsIndication );
-        LoRaMacFlags.Bits.McpsInd = 0;
+        dev->flags &= ~LORAWAN_MCPS_IND;
     }
 }
 
@@ -1549,7 +1583,7 @@ void OnTxDelayedTimerEvent(netdev2_t *netdev)
     xtimer_remove(&TxDelayedTimer.dev);
     LoRaMacState &= ~MAC_TX_DELAYED;
 
-    if( ( LoRaMacFlags.Bits.MlmeReq == 1 ) && ( MlmeConfirm.MlmeRequest == MLME_JOIN ) )
+    if( ( dev->flags & LORAWAN_MLME_REQUEST ) && ( MlmeConfirm.MlmeRequest == MLME_JOIN ) )
     {
         macHdr.Value = 0;
         macHdr.Bits.MType = FRAME_TYPE_JOIN_REQ;
@@ -1576,9 +1610,10 @@ void OnRxWindow1TimerEvent(netdev2_t *netdev)
     xtimer_remove(&RxWindowTimer1.dev);
     RxSlot = 0;
 
+    netopt_state_t state = NETOPT_STATE_STANDBY;
     if( LoRaMacDeviceClass == CLASS_C )
     {
-        Radio.Standby( );
+        netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
     }
 
 #if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
@@ -1735,7 +1770,7 @@ void OnAckTimeoutTimerEvent(netdev2_t *netdev)
     }
     if( LoRaMacDeviceClass == CLASS_C )
     {
-        LoRaMacFlags.Bits.MacDone = 1;
+        dev->flags |= LORAWAN_MAC_DONE;
     }
 }
 
@@ -1866,28 +1901,84 @@ static bool SetNextChannel( TimerTime_t* time )
 
 static void SetPublicNetwork( bool enable )
 {
+    netdev2_t *netdev = (netdev2_t*) dev;
     PublicNetwork = enable;
-    Radio.SetModem( MODEM_LORA );
+    netopt_enable_t lm = NETOPT_ENABLE;
+    netdev->driver->set(netdev, NETOPT_LORA_MODE, &lm, sizeof(netopt_enable_t));
+    uint8_t sw;
     if( PublicNetwork == true )
     {
         // Change LoRa modem SyncWord
-        Radio.Write( REG_LR_SYNCWORD, LORA_MAC_PUBLIC_SYNCWORD );
+        sw = LORA_MAC_PUBLIC_SYNCWORD;
     }
     else
     {
         // Change LoRa modem SyncWord
-        Radio.Write( REG_LR_SYNCWORD, LORA_MAC_PRIVATE_SYNCWORD );
+        sw = LORA_MAC_PRIVATE_SYNCWORD;
     }
+    netdev->driver->set(netdev, NETOPT_LORA_SYNCWORD, &sw, sizeof(uint8_t));
 }
 
+void _set_rx_config( RadioModems_t modem, uint32_t bandwidth,
+                         uint32_t datarate, uint8_t coderate,
+                         uint32_t bandwidthAfc, uint16_t preambleLen,
+                         uint16_t symbTimeout, bool fixLen,
+                         uint8_t payloadLen,
+                         bool crcOn, bool freqHopOn, uint8_t hopPeriod,
+                         bool iqInverted, bool rxContinuous )
+{
+    netdev2_t *netdev = (netdev2_t*) dev;
+
+    netopt_enable_t _modem = modem;
+    netdev->driver->set(netdev, NETOPT_LORA_MODE, &_modem, sizeof(netopt_enable_t));
+    (void) bandwidthAfc;
+
+    bool freq_hop_on = freqHopOn;
+    bool iq_invert = iqInverted;
+    uint8_t rx_single = rxContinuous ? false : true;
+    uint32_t tx_timeout = 3 * 1000 * 1000;
+    uint8_t bw = bandwidth + 7;
+    uint8_t cr = coderate;
+    uint8_t sf = datarate;
+    bool implicit = fixLen;
+    bool crc = crcOn;
+    uint16_t rx_timeout = symbTimeout;
+    uint16_t preamble = preambleLen;
+    uint8_t payload_len = payloadLen;
+    uint8_t hop_period = hopPeriod;
+    uint8_t power = 14;
+
+    netdev->driver->set(netdev, NETOPT_LORA_HOP, &freq_hop_on, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_LORA_IQ_INVERT, &iq_invert, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_LORA_SINGLE_RECEIVE, &rx_single, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_LORA_TX_TIMEOUT, &tx_timeout, sizeof(uint32_t));
+
+    netdev->driver->set(netdev, NETOPT_LORA_BANDWIDTH, &bw, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_LORA_CODING_RATE, &cr, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_LORA_SPREADING_FACTOR, &sf, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_LORA_IMPLICIT, &implicit, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_CRC, &crc, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_LORA_SYMBOL_TIMEOUT, &rx_timeout, sizeof(uint16_t));
+    netdev->driver->set(netdev, NETOPT_LORA_PREAMBLE_LENGTH, &preamble, sizeof(uint16_t));
+    netdev->driver->set(netdev, NETOPT_LORA_PAYLOAD_LENGTH, &payload_len, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_LORA_HOP_PERIOD, &hop_period, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_TX_POWER, &power, sizeof(uint8_t));
+}
 static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, uint16_t timeout, bool rxContinuous )
 {
+    netdev2_t *netdev = (netdev2_t*) dev;
     uint8_t downlinkDatarate = Datarates[datarate];
     RadioModems_t modem;
 
-    if( Radio.GetStatus( ) == RF_IDLE )
+    netopt_state_t state;
+    netdev->driver->get(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t)); 
+
+    netopt_enable_t lm;
+    uint8_t max_payload;
+
+    if( state == NETOPT_STATE_SLEEP || state == NETOPT_STATE_STANDBY )
     {
-        Radio.SetChannel( freq );
+        netdev->driver->set(netdev, NETOPT_CHANNEL, &freq, sizeof(uint32_t));
 
         // Store downlink datarate
         McpsIndication.RxDatarate = ( uint8_t ) datarate;
@@ -1896,12 +1987,12 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
         if( datarate == DR_7 )
         {
             modem = MODEM_FSK;
-            Radio.SetRxConfig( modem, 50e3, downlinkDatarate * 1e3, 0, 83.333e3, 5, 0, false, 0, true, 0, 0, false, rxContinuous );
+            _set_rx_config( modem, 50e3, downlinkDatarate * 1e3, 0, 83.333e3, 5, 0, false, 0, true, 0, 0, false, rxContinuous );
         }
         else
         {
             modem = MODEM_LORA;
-            Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous );
+            _set_rx_config( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous );
         }
 #elif defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
         modem = MODEM_LORA;
@@ -1911,43 +2002,50 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
             if(IsLoRaMacNetworkJoined == false)
             {
                 (void) timeout;
-                Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 8, 128, false, 0, false, 0, 0, true, rxContinuous );
+                _set_rx_config( modem, bandwidth, downlinkDatarate, 1, 0, 8, 128, false, 0, false, 0, 0, true, rxContinuous );
             }
             else
-                Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous );
+                _set_rx_config( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous );
             /* Hack End*/
         #else
-            Radio.SetRxConfig( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous );
+            _set_rx_config( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous );
         #endif
 
 #endif
 
+        lm = modem == MODEM_LORA ? NETOPT_ENABLE : NETOPT_DISABLE;
+        netdev->driver->set(netdev, NETOPT_LORA_MODE, &lm, sizeof(netopt_enable_t));
         if( RepeaterSupport == true )
         {
-            Radio.SetMaxPayloadLength( modem, MaxPayloadOfDatarateRepeater[datarate] + LORA_MAC_FRMPAYLOAD_OVERHEAD );
+            max_payload = MaxPayloadOfDatarateRepeater[datarate] + LORA_MAC_FRMPAYLOAD_OVERHEAD;
         }
         else
         {
-            Radio.SetMaxPayloadLength( modem, MaxPayloadOfDatarate[datarate] + LORA_MAC_FRMPAYLOAD_OVERHEAD );
+            max_payload = MaxPayloadOfDatarate[datarate] + LORA_MAC_FRMPAYLOAD_OVERHEAD ;
         }
 
+        netdev->driver->set(netdev, NETOPT_LORA_MAX_PAYLOAD, &max_payload, sizeof(uint8_t));
+        uint32_t val;
+        netopt_state_t state = NETOPT_STATE_RX;
         if( rxContinuous == false )
         {
-            Radio.Rx( LoRaMacParams.MaxRxWindow );
+            val = LoRaMacParams.MaxRxWindow*1000;
         }
         else
         {
-            Radio.Rx( 0 ); // Continuous mode
+            val = 0;
         }
+        netdev->driver->set(netdev, NETOPT_LORA_RX_TIMEOUT, &val, sizeof(uint32_t));
+        netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
     }
 }
 
 static bool Rx2FreqInRange( uint32_t freq )
 {
 #if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
-    if( Radio.CheckRfFrequency( freq ) == true )
+    if( check_rf_freq( freq ) == true )
 #elif ( defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID ) )
-    if( ( Radio.CheckRfFrequency( freq ) == true ) &&
+    if( ( check_rf_freq( freq ) == true ) &&
         ( freq >= LORAMAC_FIRST_RX2_CHANNEL ) &&
         ( freq <= LORAMAC_LAST_RX2_CHANNEL ) &&
         ( ( ( freq - ( uint32_t ) LORAMAC_FIRST_RX2_CHANNEL ) % ( uint32_t ) LORAMAC_STEPWIDTH_RX2_CHANNEL ) == 0 ) )
@@ -2890,6 +2988,8 @@ static void ResetMacParameters( void )
 
 LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl, uint8_t fPort, void *fBuffer, uint16_t fBufferSize )
 {
+    netdev2_t *netdev = (netdev2_t*) dev;
+    uint32_t random;
     uint16_t i;
     uint8_t pktHeaderLen = 0;
     uint32_t mic = 0;
@@ -2921,7 +3021,8 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
             memcpyr( LoRaMacBuffer + LoRaMacBufferPktLen, LoRaMacDevEui, 8 );
             LoRaMacBufferPktLen += 8;
 
-            LoRaMacDevNonce = Radio.Random( );
+            netdev->driver->get(netdev, NETOPT_LORA_RANDOM, &random, sizeof(uint32_t));
+            LoRaMacDevNonce = random;
 
             LoRaMacBuffer[LoRaMacBufferPktLen++] = LoRaMacDevNonce & 0xFF;
             LoRaMacBuffer[LoRaMacBufferPktLen++] = ( LoRaMacDevNonce >> 8 ) & 0xFF;
@@ -3045,11 +3146,57 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
     return LORAMAC_STATUS_OK;
 }
 
+void _set_tx_config( RadioModems_t modem, int8_t power, uint32_t fdev,
+                        uint32_t bandwidth, uint32_t datarate,
+                        uint8_t coderate, uint16_t preambleLen,
+                        bool fixLen, bool crcOn, bool freqHopOn,
+                        uint8_t hopPeriod, bool iqInverted, uint32_t timeout )
+{
+    (void) fdev;
+
+    netdev2_t *netdev = (netdev2_t*) dev;
+
+    netopt_enable_t _modem = modem;
+    netdev->driver->set(netdev, NETOPT_LORA_MODE, &_modem, sizeof(netopt_enable_t));
+
+    bool freq_hop_on = freqHopOn;
+    bool iq_invert = iqInverted;
+    uint8_t rx_single = false;
+    uint32_t tx_timeout = timeout * 1000;
+    uint8_t bw = bandwidth + 7;
+    uint8_t cr = coderate;
+    uint8_t sf = datarate;
+    bool implicit = fixLen;
+    bool crc = crcOn;
+    uint16_t rx_timeout = 10;
+    uint16_t preamble = preambleLen;
+    uint8_t payload_len = 0;
+    uint8_t hop_period = hopPeriod;
+
+    netdev->driver->set(netdev, NETOPT_LORA_HOP, &freq_hop_on, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_LORA_IQ_INVERT, &iq_invert, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_LORA_SINGLE_RECEIVE, &rx_single, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_LORA_TX_TIMEOUT, &tx_timeout, sizeof(uint32_t));
+
+    netdev->driver->set(netdev, NETOPT_LORA_BANDWIDTH, &bw, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_LORA_CODING_RATE, &cr, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_LORA_SPREADING_FACTOR, &sf, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_LORA_IMPLICIT, &implicit, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_CRC, &crc, sizeof(bool));
+    netdev->driver->set(netdev, NETOPT_LORA_SYMBOL_TIMEOUT, &rx_timeout, sizeof(uint16_t));
+    netdev->driver->set(netdev, NETOPT_LORA_PREAMBLE_LENGTH, &preamble, sizeof(uint16_t));
+    netdev->driver->set(netdev, NETOPT_LORA_PAYLOAD_LENGTH, &payload_len, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_LORA_HOP_PERIOD, &hop_period, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_TX_POWER, &power, sizeof(uint8_t));
+
+}
 LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
 {
+    netdev2_t *netdev = (netdev2_t*) dev;
     int8_t datarate = Datarates[LoRaMacParams.ChannelsDatarate];
     int8_t txPowerIndex = 0;
     int8_t txPower = 0;
+    uint8_t max_payload;
 
     txPowerIndex = LimitTxPower( LoRaMacParams.ChannelsTxPower );
     txPower = TxPowers[txPowerIndex];
@@ -3059,39 +3206,57 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     McpsConfirm.Datarate = LoRaMacParams.ChannelsDatarate;
     McpsConfirm.TxPower = txPowerIndex;
 
-    Radio.SetChannel( channel.Frequency );
+    netdev->driver->set(netdev, NETOPT_CHANNEL, &channel.Frequency, sizeof(uint32_t));
+    netopt_enable_t lm;
 
+    max_payload = LoRaMacBufferPktLen;
+    uint8_t pkt_len = (uint8_t) LoRaMacBufferPktLen;
+    uint32_t time_on_air;
+    netdev->driver->set(netdev, NETOPT_LORA_TIME_ON_AIR, &pkt_len, sizeof(uint8_t));
 #if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
     if( LoRaMacParams.ChannelsDatarate == DR_7 )
     { // High Speed FSK channel
-        Radio.SetMaxPayloadLength( MODEM_FSK, LoRaMacBufferPktLen );
-        Radio.SetTxConfig( MODEM_FSK, txPower, 25e3, 0, datarate * 1e3, 0, 5, false, true, 0, 0, false, 3e3 );
-        TxTimeOnAir = Radio.TimeOnAir( MODEM_FSK, LoRaMacBufferPktLen );
+        lm = NETOPT_DISABLE;
+        netdev->driver->set(netdev, NETOPT_LORA_MODE, &lm, sizeof(netopt_enable_t));
+        netdev->driver->set(netdev, NETOPT_LORA_MAX_PAYLOAD, &max_payload, sizeof(uint8_t));
+        _set_tx_config( MODEM_FSK, txPower, 25e3, 0, datarate * 1e3, 0, 5, false, true, 0, 0, false, 3e3 );
+        netdev->driver->get(netdev, NETOPT_LORA_TIME_ON_AIR, &time_on_air, sizeof(uint32_t));
+        TxTimeOnAir = time_on_air;
 
     }
     else if( LoRaMacParams.ChannelsDatarate == DR_6 )
     { // High speed LoRa channel
-        Radio.SetMaxPayloadLength( MODEM_LORA, LoRaMacBufferPktLen );
-        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 1, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
-        TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
+        lm = NETOPT_ENABLE;
+        netdev->driver->set(netdev, NETOPT_LORA_MODE, &lm, sizeof(netopt_enable_t));
+        netdev->driver->set(netdev, NETOPT_LORA_MAX_PAYLOAD, &max_payload, sizeof(uint8_t));
+        _set_tx_config( MODEM_LORA, txPower, 0, 1, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
+        netdev->driver->get(netdev, NETOPT_LORA_TIME_ON_AIR, &time_on_air, sizeof(uint32_t));
+        TxTimeOnAir = time_on_air;
     }
     else
     { // Normal LoRa channel
-        Radio.SetMaxPayloadLength( MODEM_LORA, LoRaMacBufferPktLen );
-        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 0, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
-        TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
+        lm = NETOPT_ENABLE;
+        netdev->driver->set(netdev, NETOPT_LORA_MODE, &lm, sizeof(netopt_enable_t));
+        netdev->driver->set(netdev, NETOPT_LORA_MAX_PAYLOAD, &max_payload, sizeof(uint8_t));
+        _set_tx_config( MODEM_LORA, txPower, 0, 0, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
+        netdev->driver->get(netdev, NETOPT_LORA_TIME_ON_AIR, &time_on_air, sizeof(uint32_t));
+        TxTimeOnAir = time_on_air;
     }
 #elif defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
-    Radio.SetMaxPayloadLength( MODEM_LORA, LoRaMacBufferPktLen );
+    lm = NETOPT_ENABLE;
+    netdev->driver->set(netdev, NETOPT_LORA_MODE, &lm, sizeof(netopt_enable_t));
+    netdev->driver->set(netdev, NETOPT_LORA_MAX_PAYLOAD, &max_payload, sizeof(uint8_t));
     if( LoRaMacParams.ChannelsDatarate >= DR_4 )
     { // High speed LoRa channel BW500 kHz
-        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 2, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
-        TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
+        _set_tx_config( MODEM_LORA, txPower, 0, 2, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
+        netdev->driver->get(netdev, NETOPT_LORA_TIME_ON_AIR, &time_on_air, sizeof(uint32_t));
+        TxTimeOnAir = time_on_air;
     }
     else
     { // Normal LoRa channel
-        Radio.SetTxConfig( MODEM_LORA, txPower, 0, 0, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
-        TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
+        _set_tx_config( MODEM_LORA, txPower, 0, 0, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
+        netdev->driver->get(netdev, NETOPT_LORA_TIME_ON_AIR, &time_on_air, sizeof(uint32_t));
+        TxTimeOnAir = time_on_air;
     }
 #else
     #error "Please define a frequency band in the compiler options."
@@ -3108,7 +3273,10 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     //TimerStart( &MacStateCheckTimer, 0);
 
     // Send now
-    Radio.Send( LoRaMacBuffer, LoRaMacBufferPktLen );
+    struct iovec vec[1];
+    vec[0].iov_base = LoRaMacBuffer;
+    vec[0].iov_len = LoRaMacBufferPktLen;
+    netdev->driver->send(netdev, vec, 1); 
 
     LoRaMacState |= MAC_TX_RUNNING;
 
@@ -3132,7 +3300,7 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacC
     LoRaMacPrimitives = primitives;
     LoRaMacCallbacks = callbacks;
 
-    LoRaMacFlags.Value = 0;
+    dev->flags = 0;
 
     LoRaMacDeviceClass = CLASS_A;
     LoRaMacState = MAC_IDLE;
@@ -3246,11 +3414,15 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacC
 
 
     // Random seed initialization
-    srand1( Radio.Random( ) );
+    netdev2_t *netdev = (netdev2_t*) dev;
+    uint32_t random;
+    netdev->driver->get(netdev, NETOPT_LORA_RANDOM, &random, sizeof(uint32_t));
+    srand1(random);
 
     PublicNetwork = true;
     SetPublicNetwork( PublicNetwork );
-    Radio.Sleep( );
+    netopt_state_t state = NETOPT_STATE_SLEEP;
+    netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
 
     return LORAMAC_STATUS_OK;
 }
@@ -3440,6 +3612,8 @@ LoRaMacStatus_t LoRaMacMibGetRequestConfirm( MibRequestConfirm_t *mibGet )
 LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
 {
     LoRaMacStatus_t status = LORAMAC_STATUS_OK;
+    netdev2_t *netdev = (netdev2_t*) dev;
+    netopt_state_t state = NETOPT_STATE_SLEEP;
 
     if( mibSet == NULL )
     {
@@ -3460,7 +3634,7 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
                 case CLASS_A:
                 {
                     // Set the radio into sleep to setup a defined state
-                    Radio.Sleep( );
+                    netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
                     break;
                 }
                 case CLASS_B:
@@ -3730,7 +3904,7 @@ LoRaMacStatus_t LoRaMacChannelAdd( uint8_t id, ChannelParams_t params )
 #endif
 
     // Validate the frequency
-    if( ( Radio.CheckRfFrequency( params.Frequency ) == true ) && ( params.Frequency > 0 ) && ( frequencyInvalid == false ) )
+    if( ( check_rf_freq( params.Frequency ) == true ) && ( params.Frequency > 0 ) && ( frequencyInvalid == false ) )
     {
 #if defined( USE_BAND_868 )
         if( ( params.Frequency >= 865000000 ) && ( params.Frequency <= 868000000 ) )
@@ -3892,15 +4066,11 @@ LoRaMacStatus_t LoRaMacMulticastChannelUnlink( MulticastParams_t *channelParam )
     return LORAMAC_STATUS_OK;
 }
 
-LoRaMacStatus_t LoRaMacMlmeRequest( MlmeReq_t *mlmeRequest )
+LoRaMacStatus_t join_request(netdev2_t *netdev, uint8_t *dev_eui, uint8_t *app_eui, uint8_t *app_key)
 {
     LoRaMacStatus_t status = LORAMAC_STATUS_SERVICE_UNKNOWN;
     LoRaMacHeader_t macHdr;
 
-    if( mlmeRequest == NULL )
-    {
-        return LORAMAC_STATUS_PARAMETER_INVALID;
-    }
     if( ( LoRaMacState & MAC_TX_RUNNING ) == MAC_TX_RUNNING )
     {
         return LORAMAC_STATUS_BUSY;
@@ -3910,58 +4080,67 @@ LoRaMacStatus_t LoRaMacMlmeRequest( MlmeReq_t *mlmeRequest )
 
     MlmeConfirm.Status = LORAMAC_EVENT_INFO_STATUS_ERROR;
 
-    switch( mlmeRequest->Type )
+    if( ( LoRaMacState & MAC_TX_DELAYED ) == MAC_TX_DELAYED )
     {
-        case MLME_JOIN:
-        {
-            if( ( LoRaMacState & MAC_TX_DELAYED ) == MAC_TX_DELAYED )
-            {
-                return LORAMAC_STATUS_BUSY;
-            }
-
-            MlmeConfirm.MlmeRequest = mlmeRequest->Type;
-
-            if( ( mlmeRequest->Req.Join.DevEui == NULL ) ||
-                ( mlmeRequest->Req.Join.AppEui == NULL ) ||
-                ( mlmeRequest->Req.Join.AppKey == NULL ) )
-            {
-                return LORAMAC_STATUS_PARAMETER_INVALID;
-            }
-
-            LoRaMacFlags.Bits.MlmeReq = 1;
-
-            LoRaMacDevEui = mlmeRequest->Req.Join.DevEui;
-            LoRaMacAppEui = mlmeRequest->Req.Join.AppEui;
-            LoRaMacAppKey = mlmeRequest->Req.Join.AppKey;
-
-            macHdr.Value = 0;
-            macHdr.Bits.MType  = FRAME_TYPE_JOIN_REQ;
-
-            ResetMacParameters( );
-
-            JoinRequestTrials++;
-            LoRaMacParams.ChannelsDatarate = AlternateDatarate( JoinRequestTrials );
-
-            status = Send( &macHdr, 0, NULL, 0 );
-            break;
-        }
-        case MLME_LINK_CHECK:
-        {
-            LoRaMacFlags.Bits.MlmeReq = 1;
-            // LoRaMac will send this command piggy-pack
-            MlmeConfirm.MlmeRequest = mlmeRequest->Type;
-
-            status = AddMacCommand( MOTE_MAC_LINK_CHECK_REQ, 0, 0 );
-            break;
-        }
-        default:
-            break;
+        return LORAMAC_STATUS_BUSY;
     }
+
+    MlmeConfirm.MlmeRequest = MLME_JOIN;
+
+    if( ( dev_eui == NULL ) ||
+        ( app_eui == NULL ) ||
+        ( app_key == NULL ) )
+    {
+        return LORAMAC_STATUS_PARAMETER_INVALID;
+    }
+
+    dev->flags |= LORAWAN_MLME_REQUEST;
+
+    LoRaMacDevEui = dev_eui;
+    LoRaMacAppEui = app_eui;
+    LoRaMacAppKey = app_key;
+
+    macHdr.Value = 0;
+    macHdr.Bits.MType  = FRAME_TYPE_JOIN_REQ;
+
+    ResetMacParameters( );
+
+    JoinRequestTrials++;
+    LoRaMacParams.ChannelsDatarate = AlternateDatarate( JoinRequestTrials );
+
+    status = Send( &macHdr, 0, NULL, 0 );
 
     if( status != LORAMAC_STATUS_OK )
     {
         NodeAckRequested = false;
-        LoRaMacFlags.Bits.MlmeReq = 0;
+        dev->flags &= ~LORAWAN_MLME_REQUEST;
+    }
+
+    return status;
+}
+
+LoRaMacStatus_t check_link(netdev2_t *netdev)
+{
+    LoRaMacStatus_t status = LORAMAC_STATUS_SERVICE_UNKNOWN;
+    if( ( LoRaMacState & MAC_TX_RUNNING ) == MAC_TX_RUNNING )
+    {
+        return LORAMAC_STATUS_BUSY;
+    }
+
+    memset1( ( uint8_t* ) &MlmeConfirm, 0, sizeof( MlmeConfirm ) );
+
+    MlmeConfirm.Status = LORAMAC_EVENT_INFO_STATUS_ERROR;
+
+    dev->flags |= LORAWAN_MLME_REQUEST;
+    // LoRaMac will send this command piggy-pack
+    MlmeConfirm.MlmeRequest = MLME_LINK_CHECK;
+
+    status = AddMacCommand( MOTE_MAC_LINK_CHECK_REQ, 0, 0 );
+
+    if( status != LORAMAC_STATUS_OK )
+    {
+        NodeAckRequested = false;
+        dev->flags &= ~LORAWAN_MLME_REQUEST;
     }
 
     return status;
@@ -4051,7 +4230,7 @@ LoRaMacStatus_t LoRaMacMcpsRequest( McpsReq_t *mcpsRequest )
         if( status == LORAMAC_STATUS_OK )
         {
             McpsConfirm.McpsRequest = mcpsRequest->Type;
-            LoRaMacFlags.Bits.McpsReq = 1;
+            dev->flags |= LORAWAN_MCPS_REQUEST;
         }
         else
         {

@@ -164,11 +164,12 @@ void sx1276_set_modem(sx1276_t *dev, sx1276_radio_modems_t modem)
     }
 }
 
-uint32_t sx1276_get_time_on_air(sx1276_t *dev, sx1276_radio_modems_t modem,
-                                uint8_t pkt_len)
+uint32_t sx1276_get_time_on_air(sx1276_t *dev)
 {
     uint32_t air_time = 0;
 
+    uint8_t pkt_len = dev->settings.time_on_air_pkt_len;
+    sx1276_radio_modems_t modem = dev->settings.modem;
     switch (modem) {
         case SX1276_MODEM_FSK:
             break;
@@ -239,10 +240,9 @@ void sx1276_set_op_mode(sx1276_t *dev, uint8_t op_mode)
     }
 }
 
-void sx1276_set_max_payload_len(sx1276_t *dev, sx1276_radio_modems_t modem, uint8_t maxlen)
+void sx1276_set_max_payload_len(sx1276_t *dev, uint8_t maxlen)
 {
-    sx1276_set_modem(dev, modem);
-
+    sx1276_radio_modems_t modem = dev->settings.modem;
     switch (modem) {
         case SX1276_MODEM_FSK:
             break;
@@ -410,6 +410,10 @@ uint16_t sx1276_get_preamble_length(sx1276_t *dev)
     return 0;
 }
 
+void sx1276_set_rx_timeout(sx1276_t *dev, uint32_t timeout)
+{
+    dev->settings.window_timeout = timeout;
+}
 void sx1276_set_tx_timeout(sx1276_t *dev, uint32_t timeout)
 {
     dev->settings.lora.tx_timeout = timeout;

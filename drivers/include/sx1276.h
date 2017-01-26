@@ -19,6 +19,7 @@
 #include "periph/spi.h"
 #include "xtimer.h"
 #include "net/netdev2.h"
+#include "net/netdev2/lorawan.h"
 
 #ifndef SX1276_H
 #define SX1276_H
@@ -146,7 +147,8 @@ typedef struct {
     uint32_t channel;
     sx1276_lora_settings_t lora;
     sx1276_radio_modems_t modem;
-
+    uint32_t window_timeout;
+    uint8_t time_on_air_pkt_len;
 } sx1276_settings_t;
 
 typedef enum {
@@ -194,7 +196,7 @@ typedef struct {
 typedef uint8_t sx1276_flags_t;
 
 typedef struct sx1276_s {
-    netdev2_t netdev;
+    netdev2_lorawan_t netdev;
     sx1276_settings_t settings;                                         /**< Transceiver settings */
     sx1276_params_t params;
     sx1276_flags_t irq;
@@ -333,7 +335,7 @@ void sx1276_configure_lora_cr(sx1276_t *dev, sx1276_lora_coding_rate_t cr);
  *
  * @return computed air time (us) for the given packet payload length
  */
-uint32_t sx1276_get_time_on_air(sx1276_t *dev, sx1276_radio_modems_t modem, uint8_t pkt_len);
+uint32_t sx1276_get_time_on_air(sx1276_t *dev);
 
 /**
  * @brief Sends the buffer of size. Prepares the packet to be sent and sets
@@ -368,7 +370,7 @@ void sx1276_set_standby(sx1276_t *dev);
  *
  * @param	[IN]	timeout	reception timeout [us] [0: continuous, others: timeout]
  */
-void sx1276_set_rx(sx1276_t *dev, uint32_t timeout);
+void sx1276_set_rx(sx1276_t *dev);
 
 /**
  * @brief Sets the radio in transmission mode for given amount of time.
@@ -405,7 +407,7 @@ int16_t sx1276_read_rssi(sx1276_t *dev);
  *
  * @param	[IN]	maxlen	Maximum payload length in bytes
  */
-void sx1276_set_max_payload_len(sx1276_t *dev, sx1276_radio_modems_t modem, uint8_t maxlen);
+void sx1276_set_max_payload_len(sx1276_t *dev, uint8_t maxlen);
 
 /**
  * @brief sx1276 state machine hanlder thread body.
@@ -472,6 +474,7 @@ void sx1276_set_bandwidth(sx1276_t *dev, sx1276_lora_bandwidth_t bandwidth);
 void sx1276_set_coding_rate(sx1276_t *dev, sx1276_lora_coding_rate_t coderate);
 void sx1276_set_spreading_factor(sx1276_t *dev, sx1276_lora_spreading_factor_t sf);
 void sx1276_set_symbol_timeout(sx1276_t *dev, uint16_t timeout);
+void sx1276_set_rx_timeout(sx1276_t *dev, uint32_t timeout);
 void sx1276_set_tx_timeout(sx1276_t *dev, uint32_t timeout);
 void sx1276_set_iq_invert(sx1276_t *dev, bool iq_invert);
 void sx1276_set_freq_hop(sx1276_t *dev, bool freq_hop_on);
