@@ -40,26 +40,6 @@ Maintainer: Miguel Luis and Gregory Cristian
 
 
 /*!
- * \brief Copies size elements of src array to dst array reversing the byte order
- *
- * \param [OUT] dst  Destination array
- * \param [IN]  src  Source array
- * \param [IN]  size Number of bytes to be copied
- */
-void memcpyr( uint8_t *dst, const uint8_t *src, uint16_t size );
-
-/*!
- * \brief Set size elements of dst array with value 
- * 
- * \remark STM32 Standard memset function only works on pointers that are aligned
- *
- * \param [OUT] dst   Destination array
- * \param [IN]  value Default value
- * \param [IN]  size  Number of bytes to be copied
- */
-void memset1( uint8_t *dst, uint8_t value, uint16_t size );
-
-/*!
  * \brief Converts a nibble to an hexadecimal character
  * 
  * \param [IN] a   Nibble to be converted

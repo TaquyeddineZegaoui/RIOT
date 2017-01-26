@@ -1805,7 +1805,7 @@ static bool SetNextChannel( TimerTime_t* time )
     uint8_t enabledChannels[LORA_MAX_NB_CHANNELS];
     TimerTime_t nextTxDelay = ( TimerTime_t )( -1 );
 
-    memset1( enabledChannels, 0, LORA_MAX_NB_CHANNELS );
+    memset( enabledChannels, 0, LORA_MAX_NB_CHANNELS );
 
 #if defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
     if( CountNbEnabled125kHzChannels( ChannelsMaskRemaining ) == 0 )
@@ -4100,7 +4100,7 @@ LoRaMacStatus_t join_request(netdev2_t *netdev, uint8_t *dev_eui, uint8_t *app_e
         return LORAMAC_STATUS_BUSY;
     }
 
-    memset1( ( uint8_t* ) &MlmeConfirm, 0, sizeof( MlmeConfirm ) );
+    memset( ( uint8_t* ) &MlmeConfirm, 0, sizeof( MlmeConfirm ) );
 
     MlmeConfirm.Status = LORAMAC_EVENT_INFO_STATUS_ERROR;
 
@@ -4151,7 +4151,7 @@ LoRaMacStatus_t check_link(netdev2_t *netdev)
         return LORAMAC_STATUS_BUSY;
     }
 
-    memset1( ( uint8_t* ) &MlmeConfirm, 0, sizeof( MlmeConfirm ) );
+    memset( ( uint8_t* ) &MlmeConfirm, 0, sizeof( MlmeConfirm ) );
 
     MlmeConfirm.Status = LORAMAC_EVENT_INFO_STATUS_ERROR;
 
@@ -4191,7 +4191,7 @@ LoRaMacStatus_t LoRaMacMcpsRequest( McpsReq_t *mcpsRequest )
     }
 
     macHdr.Value = 0;
-    memset1 ( ( uint8_t* ) &McpsConfirm, 0, sizeof( McpsConfirm ) );
+    memset ( ( uint8_t* ) &McpsConfirm, 0, sizeof( McpsConfirm ) );
     McpsConfirm.Status = LORAMAC_EVENT_INFO_STATUS_ERROR;
 
     switch( mcpsRequest->Type )

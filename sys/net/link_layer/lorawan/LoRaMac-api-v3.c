@@ -22,6 +22,7 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jä
 #include "LoRaMacTest.h"
 #include "thread.h"
 #include "net/lorawan/utilities.h"
+#include <string.h>
 
 /*!
  *  Extern function declarations.
@@ -205,7 +206,7 @@ uint8_t LoRaMacSendFrame( uint8_t fPort, void *fBuffer, uint16_t fBufferSize )
     McpsReq_t mcpsRequest;
     uint8_t retStatus;
 
-    memset1( ( uint8_t* )&LoRaMacEventInfo, 0, sizeof( LoRaMacEventInfo ) );
+    memset( ( uint8_t* )&LoRaMacEventInfo, 0, sizeof( LoRaMacEventInfo ) );
 
     mibGet.Type = MIB_CHANNELS_DATARATE;
     LoRaMacMibGetRequestConfirm( &mibGet );
@@ -251,7 +252,7 @@ uint8_t LoRaMacSendConfirmedFrame( uint8_t fPort, void *fBuffer, uint16_t fBuffe
     McpsReq_t mcpsRequest;
     uint8_t retStatus;
 
-    memset1( ( uint8_t* )&LoRaMacEventInfo, 0, sizeof( LoRaMacEventInfo ) );
+    memset( ( uint8_t* )&LoRaMacEventInfo, 0, sizeof( LoRaMacEventInfo ) );
 
     mibGet.Type = MIB_CHANNELS_DATARATE;
     LoRaMacMibGetRequestConfirm( &mibGet );
@@ -296,7 +297,7 @@ uint8_t LoRaMacSend( LoRaMacHeader_t *macHdr, uint8_t *fOpts, uint8_t fPort, voi
 {
     uint8_t retStatus;
 
-    memset1( ( uint8_t* ) &LoRaMacEventInfo, 0, sizeof( LoRaMacEventInfo ) );
+    memset( ( uint8_t* ) &LoRaMacEventInfo, 0, sizeof( LoRaMacEventInfo ) );
 
     switch( Send( macHdr, fPort, fBuffer, fBufferSize ) )
     {
@@ -359,7 +360,7 @@ uint8_t LoRaMacPrepareFrame( ChannelParams_t channel,LoRaMacHeader_t *macHdr, Lo
 
 uint8_t LoRaMacSendFrameOnChannel( ChannelParams_t channel )
 {
-    memset1( ( uint8_t* ) &LoRaMacEventInfo, 0, sizeof( LoRaMacEventInfo ) );
+    memset( ( uint8_t* ) &LoRaMacEventInfo, 0, sizeof( LoRaMacEventInfo ) );
 
     SendFrameOnChannel( channel );
 

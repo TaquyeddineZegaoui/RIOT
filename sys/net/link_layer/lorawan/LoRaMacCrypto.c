@@ -186,13 +186,13 @@ void LoRaMacJoinComputeSKeys( const uint8_t *key, const uint8_t *appNonce, uint1
     
     cipher_init(&AesContext, CIPHER_AES_128, key, KEYSIZE);
 
-    memset1( nonce, 0, sizeof( nonce ) );
+    memset( nonce, 0, sizeof( nonce ) );
     nonce[0] = 0x01;
     memcpy( nonce + 1, appNonce, 6 );
     memcpy( nonce + 7, pDevNonce, 2 );
     cipher_encrypt(&AesContext, nonce, nwkSKey);
 
-    memset1( nonce, 0, sizeof( nonce ) );
+    memset( nonce, 0, sizeof( nonce ) );
     nonce[0] = 0x02;
     memcpy( nonce + 1, appNonce, 6 );
     memcpy( nonce + 7, pDevNonce, 2 );
