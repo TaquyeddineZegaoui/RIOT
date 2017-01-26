@@ -1,13 +1,5 @@
 #include "random.h"
 
-void memcpy1( uint8_t *dst, const uint8_t *src, uint16_t size )
-{
-    while( size-- )
-    {
-        *dst++ = *src++;
-    }
-}
-
 
 void memcpyr( uint8_t *dst, const uint8_t *src, uint16_t size )
 {

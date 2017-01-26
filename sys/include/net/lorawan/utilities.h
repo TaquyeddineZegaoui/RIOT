@@ -40,17 +40,6 @@ Maintainer: Miguel Luis and Gregory Cristian
 
 
 /*!
- * \brief Copies size elements of src array to dst array
- * 
- * \remark STM32 Standard memcpy function only works on pointers that are aligned
- *
- * \param [OUT] dst  Destination array
- * \param [IN]  src  Source array
- * \param [IN]  size Number of bytes to be copied
- */
-void memcpy1( uint8_t *dst, const uint8_t *src, uint16_t size );
-
-/*!
  * \brief Copies size elements of src array to dst array reversing the byte order
  *
  * \param [OUT] dst  Destination array
