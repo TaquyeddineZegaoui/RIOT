@@ -837,6 +837,14 @@ bool check_rf_freq( uint32_t frequency )
 /*!
  * \brief Resets MAC specific parameters to default
  */
+void memcpyr( uint8_t *dst, const uint8_t *src, uint16_t size )
+{
+   dst = dst + ( size - 1 );
+   while( size-- )
+   {
+       *dst-- = *src++;
+   }
+}
 static void ResetMacParameters( void );
 
 void OnRadioTxDone(netdev2_t *netdev)
