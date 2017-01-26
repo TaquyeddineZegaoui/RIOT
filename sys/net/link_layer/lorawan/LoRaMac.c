@@ -1884,7 +1884,8 @@ static void SetPublicNetwork( bool enable )
 {
     netdev2_t *netdev = (netdev2_t*) dev;
     PublicNetwork = enable;
-    Radio.SetModem( MODEM_LORA );
+    netopt_enable_t lm = NETOPT_ENABLE;
+    netdev->driver->set(netdev, NETOPT_LORA_MODE, &lm, sizeof(netopt_enable_t));
     uint8_t sw;
     if( PublicNetwork == true )
     {

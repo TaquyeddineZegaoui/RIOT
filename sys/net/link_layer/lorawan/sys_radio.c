@@ -39,7 +39,8 @@ RadioState_t SX1276GetStatus( void )
 
 void SX1276SetModem( RadioModems_t modem)
 {
-    sx1276_set_modem(dev_ptr, (sx1276_radio_modems_t) modem);
+    assert(false);
+    //sx1276_set_modem(dev_ptr, (sx1276_radio_modems_t) modem);
 }
 
 void SX1276SetChannel( uint32_t freq )
