@@ -51,7 +51,8 @@ void SX1276SetChannel( uint32_t freq )
 
 bool SX1276IsChannelFree( RadioModems_t modem, uint32_t freq, int16_t rssiThresh )
 {
-    return sx1276_is_channel_free(dev_ptr, freq, rssiThresh);
+    assert(false);
+    //return sx1276_is_channel_free(dev_ptr, freq, rssiThresh);
 }
 
 uint32_t SX1276Random( void )
@@ -147,12 +148,14 @@ void SX1276ReadBuffer( uint8_t addr, uint8_t *buffer, uint8_t size )
 
 void SX1276SetMaxPayloadLength( RadioModems_t modem, uint8_t max )
 {
-    sx1276_set_max_payload_len(dev_ptr, max);
+    assert(false);
+    //sx1276_set_max_payload_len(dev_ptr, max);
 }
 
 bool SX1276CheckRfFrequency( uint32_t frequency )
 {
     // Implement check. Currently all frequencies are supported
+    assert(false);
     return true;
 }
 
