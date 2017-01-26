@@ -45,6 +45,25 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jä
 /*!
  * Device IEEE EUI
  */
+/*!
+ * Radio driver supported modems
+ */
+typedef enum
+{
+    MODEM_FSK = 0,
+    MODEM_LORA,
+}RadioModems_t;
+
+/*!
+ * Radio driver internal state machine states definition
+ */
+typedef enum
+{
+    RF_IDLE = 0,
+    RF_RX_RUNNING,
+    RF_TX_RUNNING,
+    RF_CAD,
+}RadioState_t;
 static netdev2_lorawan_t *dev;
 static uint8_t *LoRaMacDevEui;
 
@@ -1918,9 +1937,9 @@ void _set_rx_config( RadioModems_t modem, uint32_t bandwidth,
     bool iq_invert = iqInverted;
     uint8_t rx_single = rxContinuous ? false : true;
     uint32_t tx_timeout = 3 * 1000 * 1000;
-    sx1276_lora_bandwidth_t bw = bandwidth + 7;
-    sx1276_lora_coding_rate_t cr = coderate;
-    sx1276_lora_spreading_factor_t sf = datarate;
+    uint8_t bw = bandwidth + 7;
+    uint8_t cr = coderate;
+    uint8_t sf = datarate;
     bool implicit = fixLen;
     bool crc = crcOn;
     uint16_t rx_timeout = symbTimeout;
@@ -1934,9 +1953,9 @@ void _set_rx_config( RadioModems_t modem, uint32_t bandwidth,
     netdev->driver->set(netdev, NETOPT_LORA_SINGLE_RECEIVE, &rx_single, sizeof(uint8_t));
     netdev->driver->set(netdev, NETOPT_LORA_TX_TIMEOUT, &tx_timeout, sizeof(uint32_t));
 
-    netdev->driver->set(netdev, NETOPT_LORA_BANDWIDTH, &bw, sizeof(sx1276_lora_bandwidth_t));
-    netdev->driver->set(netdev, NETOPT_LORA_CODING_RATE, &cr, sizeof(sx1276_lora_coding_rate_t));
-    netdev->driver->set(netdev, NETOPT_LORA_SPREADING_FACTOR, &sf, sizeof(sx1276_lora_spreading_factor_t));
+    netdev->driver->set(netdev, NETOPT_LORA_BANDWIDTH, &bw, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_LORA_CODING_RATE, &cr, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_LORA_SPREADING_FACTOR, &sf, sizeof(uint8_t));
     netdev->driver->set(netdev, NETOPT_LORA_IMPLICIT, &implicit, sizeof(bool));
     netdev->driver->set(netdev, NETOPT_CRC, &crc, sizeof(bool));
     netdev->driver->set(netdev, NETOPT_LORA_SYMBOL_TIMEOUT, &rx_timeout, sizeof(uint16_t));
@@ -3144,9 +3163,9 @@ void _set_tx_config( RadioModems_t modem, int8_t power, uint32_t fdev,
     bool iq_invert = iqInverted;
     uint8_t rx_single = false;
     uint32_t tx_timeout = timeout * 1000;
-    sx1276_lora_bandwidth_t bw = bandwidth + 7;
-    sx1276_lora_coding_rate_t cr = coderate;
-    sx1276_lora_spreading_factor_t sf = datarate;
+    uint8_t bw = bandwidth + 7;
+    uint8_t cr = coderate;
+    uint8_t sf = datarate;
     bool implicit = fixLen;
     bool crc = crcOn;
     uint16_t rx_timeout = 10;
@@ -3159,9 +3178,9 @@ void _set_tx_config( RadioModems_t modem, int8_t power, uint32_t fdev,
     netdev->driver->set(netdev, NETOPT_LORA_SINGLE_RECEIVE, &rx_single, sizeof(uint8_t));
     netdev->driver->set(netdev, NETOPT_LORA_TX_TIMEOUT, &tx_timeout, sizeof(uint32_t));
 
-    netdev->driver->set(netdev, NETOPT_LORA_BANDWIDTH, &bw, sizeof(sx1276_lora_bandwidth_t));
-    netdev->driver->set(netdev, NETOPT_LORA_CODING_RATE, &cr, sizeof(sx1276_lora_coding_rate_t));
-    netdev->driver->set(netdev, NETOPT_LORA_SPREADING_FACTOR, &sf, sizeof(sx1276_lora_spreading_factor_t));
+    netdev->driver->set(netdev, NETOPT_LORA_BANDWIDTH, &bw, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_LORA_CODING_RATE, &cr, sizeof(uint8_t));
+    netdev->driver->set(netdev, NETOPT_LORA_SPREADING_FACTOR, &sf, sizeof(uint8_t));
     netdev->driver->set(netdev, NETOPT_LORA_IMPLICIT, &implicit, sizeof(bool));
     netdev->driver->set(netdev, NETOPT_CRC, &crc, sizeof(bool));
     netdev->driver->set(netdev, NETOPT_LORA_SYMBOL_TIMEOUT, &rx_timeout, sizeof(uint16_t));

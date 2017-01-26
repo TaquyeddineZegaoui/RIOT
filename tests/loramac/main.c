@@ -636,7 +636,6 @@ int main( void )
     bool trySendingFrameAgain = false;
 
     /* set sx1276 pointer, init xtimer */
-    radio_set_ptr(&sx1276);
     lorawan_set_pointer((netdev2_lorawan_t*) &sx1276);
     xtimer_init();
 
