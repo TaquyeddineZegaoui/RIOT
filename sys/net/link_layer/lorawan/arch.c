@@ -1,4 +1,3 @@
-#include "net/lorawan/board_definitions.h"
 #include "random.h"
 
 void srand1( uint32_t seed )

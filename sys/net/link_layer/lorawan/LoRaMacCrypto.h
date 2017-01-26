@@ -35,6 +35,7 @@
  */
 #ifndef __LORAMAC_CRYPTO_H__
 #define __LORAMAC_CRYPTO_H__
+#include <inttypes.h>
 
 /*!
  * Computes the LoRaMAC frame MIC field

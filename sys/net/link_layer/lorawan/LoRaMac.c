@@ -17,14 +17,28 @@ License: Revised BSD License, see LICENSE.TXT file include in the project
 
 Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jäckle ( STACKFORCE )
 */
-#include "net/lorawan/board_definitions.h"
 
 #include "LoRaMacCrypto.h"
 #include "LoRaMac.h"
 #include "LoRaMacTest.h"
 #include "thread.h"
+#include "net/lorawan/utilities.h"
 
 
+/*!
+ * Radio wakeup time from SLEEP mode
+ */
+#define RADIO_OSC_STARTUP                           1 // [ms]
+
+/*!
+ * Radio PLL lock and Mode Ready delay which can vary with the temperature
+ */
+#define RADIO_SLEEP_TO_RX                           2 // [ms]
+
+/*!
+ * Radio complete Wake-up Time with margin for temperature compensation
+ */
+#define RADIO_WAKEUP_TIME ( RADIO_OSC_STARTUP + RADIO_SLEEP_TO_RX )
 /*!
  * Maximum PHY layer payload size
  */
