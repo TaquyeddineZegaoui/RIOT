@@ -407,7 +407,7 @@ int16_t sx1276_read_rssi(sx1276_t *dev);
  *
  * @param	[IN]	maxlen	Maximum payload length in bytes
  */
-void sx1276_set_max_payload_len(sx1276_t *dev, sx1276_radio_modems_t modem, uint8_t maxlen);
+void sx1276_set_max_payload_len(sx1276_t *dev, uint8_t maxlen);
 
 /**
  * @brief sx1276 state machine hanlder thread body.

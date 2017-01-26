@@ -239,10 +239,9 @@ void sx1276_set_op_mode(sx1276_t *dev, uint8_t op_mode)
     }
 }
 
-void sx1276_set_max_payload_len(sx1276_t *dev, sx1276_radio_modems_t modem, uint8_t maxlen)
+void sx1276_set_max_payload_len(sx1276_t *dev, uint8_t maxlen)
 {
-    sx1276_set_modem(dev, modem);
-
+    sx1276_radio_modems_t modem = dev->settings.modem;
     switch (modem) {
         case SX1276_MODEM_FSK:
             break;

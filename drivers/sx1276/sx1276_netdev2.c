@@ -449,6 +449,9 @@ static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len)
         case NETOPT_LORA_MODE:
             sx1276_set_modem(dev, *((netopt_enable_t*) val) ? SX1276_MODEM_LORA : SX1276_MODEM_FSK);
             return sizeof(netopt_enable_t);
+        case NETOPT_LORA_MAX_PAYLOAD:
+            sx1276_set_max_payload_len(dev, *((uint8_t*) val));
+            return sizeof(uint8_t);
         default:
             return netdev2_lorawan_set(netdev, opt, val, len);
             break;

@@ -147,7 +147,7 @@ void SX1276ReadBuffer( uint8_t addr, uint8_t *buffer, uint8_t size )
 
 void SX1276SetMaxPayloadLength( RadioModems_t modem, uint8_t max )
 {
-    sx1276_set_max_payload_len(dev_ptr, (sx1276_radio_modems_t) modem, max);
+    sx1276_set_max_payload_len(dev_ptr, max);
 }
 
 bool SX1276CheckRfFrequency( uint32_t frequency )

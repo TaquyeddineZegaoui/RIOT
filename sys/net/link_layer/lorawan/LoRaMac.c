@@ -1954,6 +1954,8 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
     netopt_state_t state;
     netdev->driver->get(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t)); 
 
+    netopt_enable_t lm;
+    uint8_t max_payload;
 
     if( state == NETOPT_STATE_SLEEP || state == NETOPT_STATE_STANDBY )
     {
@@ -1992,15 +1994,18 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
 
 #endif
 
+        lm = modem == MODEM_LORA ? NETOPT_ENABLE : NETOPT_DISABLE;
+        netdev->driver->set(netdev, NETOPT_LORA_MODE, &lm, sizeof(netopt_enable_t));
         if( RepeaterSupport == true )
         {
-            Radio.SetMaxPayloadLength( modem, MaxPayloadOfDatarateRepeater[datarate] + LORA_MAC_FRMPAYLOAD_OVERHEAD );
+            max_payload = MaxPayloadOfDatarateRepeater[datarate] + LORA_MAC_FRMPAYLOAD_OVERHEAD;
         }
         else
         {
-            Radio.SetMaxPayloadLength( modem, MaxPayloadOfDatarate[datarate] + LORA_MAC_FRMPAYLOAD_OVERHEAD );
+            max_payload = MaxPayloadOfDatarate[datarate] + LORA_MAC_FRMPAYLOAD_OVERHEAD ;
         }
 
+        netdev->driver->set(netdev, NETOPT_LORA_MAX_PAYLOAD, &max_payload, sizeof(uint8_t));
         uint32_t val;
         netopt_state_t state = NETOPT_STATE_RX;
         if( rxContinuous == false )
@@ -3169,6 +3174,7 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     int8_t datarate = Datarates[LoRaMacParams.ChannelsDatarate];
     int8_t txPowerIndex = 0;
     int8_t txPower = 0;
+    uint8_t max_payload;
 
     txPowerIndex = LimitTxPower( LoRaMacParams.ChannelsTxPower );
     txPower = TxPowers[txPowerIndex];
@@ -3179,29 +3185,39 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     McpsConfirm.TxPower = txPowerIndex;
 
     netdev->driver->set(netdev, NETOPT_CHANNEL, &channel.Frequency, sizeof(uint32_t));
+    netopt_enable_t lm;
 
+    max_payload = LoRaMacBufferPktLen;
 #if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
     if( LoRaMacParams.ChannelsDatarate == DR_7 )
     { // High Speed FSK channel
-        Radio.SetMaxPayloadLength( MODEM_FSK, LoRaMacBufferPktLen );
+        lm = NETOPT_DISABLE;
+        netdev->driver->set(netdev, NETOPT_LORA_MODE, &lm, sizeof(netopt_enable_t));
+        netdev->driver->set(netdev, NETOPT_LORA_MAX_PAYLOAD, &max_payload, sizeof(uint8_t));
         _set_tx_config( MODEM_FSK, txPower, 25e3, 0, datarate * 1e3, 0, 5, false, true, 0, 0, false, 3e3 );
         TxTimeOnAir = Radio.TimeOnAir( MODEM_FSK, LoRaMacBufferPktLen );
 
     }
     else if( LoRaMacParams.ChannelsDatarate == DR_6 )
     { // High speed LoRa channel
-        Radio.SetMaxPayloadLength( MODEM_LORA, LoRaMacBufferPktLen );
+        lm = NETOPT_ENABLE;
+        netdev->driver->set(netdev, NETOPT_LORA_MODE, &lm, sizeof(netopt_enable_t));
+        netdev->driver->set(netdev, NETOPT_LORA_MAX_PAYLOAD, &max_payload, sizeof(uint8_t));
         _set_tx_config( MODEM_LORA, txPower, 0, 1, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
         TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
     }
     else
     { // Normal LoRa channel
-        Radio.SetMaxPayloadLength( MODEM_LORA, LoRaMacBufferPktLen );
+        lm = NETOPT_ENABLE;
+        netdev->driver->set(netdev, NETOPT_LORA_MODE, &lm, sizeof(netopt_enable_t));
+        netdev->driver->set(netdev, NETOPT_LORA_MAX_PAYLOAD, &max_payload, sizeof(uint8_t));
         _set_tx_config( MODEM_LORA, txPower, 0, 0, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
         TxTimeOnAir = Radio.TimeOnAir( MODEM_LORA, LoRaMacBufferPktLen );
     }
 #elif defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
-    Radio.SetMaxPayloadLength( MODEM_LORA, LoRaMacBufferPktLen );
+    lm = NETOPT_ENABLE;
+    netdev->driver->set(netdev, NETOPT_LORA_MODE, &lm, sizeof(netopt_enable_t));
+    netdev->driver->set(netdev, NETOPT_LORA_MAX_PAYLOAD, &max_payload, sizeof(uint8_t));
     if( LoRaMacParams.ChannelsDatarate >= DR_4 )
     { // High speed LoRa channel BW500 kHz
         _set_tx_config( MODEM_LORA, txPower, 0, 2, datarate, 1, 8, false, true, 0, 0, false, 3e3 );
