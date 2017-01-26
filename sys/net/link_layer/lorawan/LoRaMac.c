@@ -3432,7 +3432,7 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacC
     netdev2_t *netdev = (netdev2_t*) dev;
     uint32_t random;
     netdev->driver->get(netdev, NETOPT_LORA_RANDOM, &random, sizeof(uint32_t));
-    srand1(random);
+    random_init(random);
 
     PublicNetwork = true;
     SetPublicNetwork( PublicNetwork );

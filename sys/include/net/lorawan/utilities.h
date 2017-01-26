@@ -38,13 +38,6 @@ Maintainer: Miguel Luis and Gregory Cristian
  */
 #define POW2( n ) ( 1 << n )
 
-/*!
- * \brief Initializes the pseudo ramdom generator initial value
- *
- * \param [IN] seed Pseudo ramdom generator initial value
- */
-void srand1( uint32_t seed );
-
 
 /*!
  * \brief Copies size elements of src array to dst array

@@ -1,10 +1,5 @@
 #include "random.h"
 
-void srand1( uint32_t seed )
-{
-    random_init(seed);
-}
-
 void memcpy1( uint8_t *dst, const uint8_t *src, uint16_t size )
 {
     while( size-- )
