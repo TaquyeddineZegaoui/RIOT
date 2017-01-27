@@ -19,12 +19,12 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jä
 */
 #include <stdlib.h>
 #include <stdint.h>
-#include "net/lorawan/utilities.h"
 
 #include "crypto/ciphers.h"
 #include "hashes/cmac.h"
 
 #include "LoRaMacCrypto.h"
+#include <string.h>
 
 /*!
  * CMAC/AES Message Integrity Code (MIC) Block B0 size
@@ -185,16 +185,16 @@ void LoRaMacJoinComputeSKeys( const uint8_t *key, const uint8_t *appNonce, uint1
     
     cipher_init(&AesContext, CIPHER_AES_128, key, KEYSIZE);
 
-    memset1( nonce, 0, sizeof( nonce ) );
+    memset( nonce, 0, sizeof( nonce ) );
     nonce[0] = 0x01;
-    memcpy1( nonce + 1, appNonce, 6 );
-    memcpy1( nonce + 7, pDevNonce, 2 );
+    memcpy( nonce + 1, appNonce, 6 );
+    memcpy( nonce + 7, pDevNonce, 2 );
     cipher_encrypt(&AesContext, nonce, nwkSKey);
 
-    memset1( nonce, 0, sizeof( nonce ) );
+    memset( nonce, 0, sizeof( nonce ) );
     nonce[0] = 0x02;
-    memcpy1( nonce + 1, appNonce, 6 );
-    memcpy1( nonce + 7, pDevNonce, 2 );
+    memcpy( nonce + 1, appNonce, 6 );
+    memcpy( nonce + 7, pDevNonce, 2 );
     cipher_encrypt(&AesContext, nonce, appSKey);
 
 }

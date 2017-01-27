@@ -32,7 +32,6 @@ Maintainer: Miguel Luis and Gregory Cristian
 #include "sx1276_regs_fsk.h"
 
 #include "LoRaMac.h"
-#include "net/lorawan/board_definitions.h" 
 #include "Comissioning.h"
 #include "LoRaMac-api-v3.h"
 #include "net/gnrc/netdev2.h"
@@ -275,7 +274,7 @@ static void ProcessRxFrame( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info
                 }
                 break;
             case 5: // (viii)
-                check_link(NULL);
+                LoRaMacLinkCheckReq( );
                 break;
             default:
                 break;
@@ -371,7 +370,7 @@ int lorawan_setup(int argc, char **argv) {
         #endif
         IsNetworkJoined = false;
 
-        join_request(NULL, DevEui, AppEui, AppKey );
+        LoRaMacJoinReq(DevEui, AppEui, AppKey );
 
         puts("Activation Type: OTA");
     }
@@ -380,9 +379,9 @@ int lorawan_setup(int argc, char **argv) {
         if( DevAddr == 0 )
         {
             // Random seed initialization
-            srand1( board_get_random_seed( ) );
+            random_init( board_get_random_seed( ) );
             // Choose a random device address
-            DevAddr = randr( 0, 0x01FFFFFF );
+            DevAddr = random_uint32_range( 0, 0x01FFFFFF+1 );
             // Get sesion Keys
             LoRaMacInitNwkIds( LORAWAN_NETWORK_ID, DevAddr, NwkSKey, AppSKey );
             IsNetworkJoined = true;
