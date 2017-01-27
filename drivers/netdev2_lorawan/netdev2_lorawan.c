@@ -25,12 +25,26 @@
 #define ENABLE_DEBUG (0)
 #include "debug.h"
 
-int netdev2_lorawan_get(netdev2_t *dev, netopt_t opt, void *value, size_t max_len)
+int netdev2_lorawan_get(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_t max_len)
 {
     return 0;
 }
 
-int netdev2_lorawan_set(netdev2_t *dev, netopt_t opt, void *value, size_t value_len)
+int netdev2_lorawan_set(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_t value_len)
 {
+    switch(opt)
+    {
+        case NETOPT_LORAWAN_DEV_EUI:
+            dev->dev_eui = (uint8_t*) value;
+            return sizeof(uint8_t*);
+        case NETOPT_LORAWAN_APP_EUI:
+            dev->app_eui = (uint8_t*) value;
+            return sizeof(uint8_t*);
+        case NETOPT_LORAWAN_APP_KEY:
+            dev->app_key = (uint8_t*) value;
+            return sizeof(uint8_t*);
+        default:
+            break;
+    }
     return 0;
 }

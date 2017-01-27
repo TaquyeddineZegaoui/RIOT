@@ -49,7 +49,7 @@ typedef struct {
  * @return              number of bytes written to @p value
  * @return              <0 on error
  */
-int netdev2_lorawan_get(netdev2_t *dev, netopt_t opt, void *value, size_t max_len);
+int netdev2_lorawan_get(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_t max_len);
 
 /**
  * @brief   Fallback function for netdev2 ethernet devices' _set function
@@ -62,7 +62,7 @@ int netdev2_lorawan_get(netdev2_t *dev, netopt_t opt, void *value, size_t max_le
  * @return              number of bytes used from @p value
  * @return              <0 on error
  */
-int netdev2_lorawan_set(netdev2_t *dev, netopt_t opt, void *value, size_t value_len);
+int netdev2_lorawan_set(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_t value_len);
 
 #ifdef __cplusplus
 }

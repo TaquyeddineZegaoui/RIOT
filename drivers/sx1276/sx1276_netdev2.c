@@ -384,7 +384,7 @@ static int _get(netdev2_t *netdev, netopt_t opt, void *val, size_t max_len)
             *((uint32_t*) val) = sx1276_random(dev);
             break;
         default:
-            return netdev2_lorawan_get(netdev, opt, val, max_len);
+            return netdev2_lorawan_get((netdev2_lorawan_t*) netdev, opt, val, max_len);
             break;
     }
     return 0;
@@ -462,7 +462,7 @@ static int _set(netdev2_t *netdev, netopt_t opt, void *val, size_t len)
             dev->settings.time_on_air_pkt_len = *((uint8_t*) val);
             break;
         default:
-            return netdev2_lorawan_set(netdev, opt, val, len);
+            return netdev2_lorawan_set((netdev2_lorawan_t*) netdev, opt, val, len);
             break;
     }
     return 0;
