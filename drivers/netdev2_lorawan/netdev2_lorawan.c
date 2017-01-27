@@ -22,12 +22,21 @@
 #include <string.h>
 #include <errno.h>
 #include "net/netdev2/lorawan.h"
+#include "LoRaMac-api-v3.h"
 
 #define ENABLE_DEBUG (0)
 #include "debug.h"
 
 int netdev2_lorawan_get(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_t max_len)
 {
+    switch(opt)
+    {
+        case NETOPT_LORAWAN_JOIN:
+            *((uint8_t*) value) = LoRaMacJoinReq(dev->dev_eui, dev->app_eui, dev->app_key);
+            break;
+        default:
+            break;
+    }
     return 0;
 }
 
