@@ -32,6 +32,7 @@ extern LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t
                                      uint8_t fPort, void *fBuffer, uint16_t fBufferSize );
 extern LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel );
 extern uint32_t LoRaMacState;
+extern LoRaMacFlags_t LoRaMacFlags;
 
 /*!
  * Static variables
@@ -50,7 +51,6 @@ static LoRaMacCallbacks_t LoRaMacCallbacks;
  */
 static void McpsConfirm( McpsConfirm_t *mcpsConfirm )
 {
-    netdev2_lorawan_t *dev = lorawan_get_pointer();
     LoRaMacEventInfo.Status = mcpsConfirm->Status;
     LoRaMacEventFlags.Bits.Tx = 1;
 
@@ -58,7 +58,7 @@ static void McpsConfirm( McpsConfirm_t *mcpsConfirm )
     LoRaMacEventInfo.TxNbRetries = mcpsConfirm->NbRetries;
     LoRaMacEventInfo.TxAckReceived = mcpsConfirm->AckReceived;
 
-    if( !( dev->flags & LORAWAN_MCPS_IND) && !( dev->flags & LORAWAN_MLME_REQUEST) )
+     if( ( LoRaMacFlags.Bits.McpsInd != 1 ) && ( LoRaMacFlags.Bits.MlmeReq != 1 ) )
     {
         LoRaMacCallbacks.MacEvent( &LoRaMacEventFlags, &LoRaMacEventInfo );
         LoRaMacEventFlags.Value = 0;
@@ -100,7 +100,6 @@ static void McpsIndication( McpsIndication_t *mcpsIndication )
  */
 static void MlmeConfirm( MlmeConfirm_t *mlmeConfirm )
 {
-    netdev2_lorawan_t *dev = lorawan_get_pointer();
     if( mlmeConfirm->Status == LORAMAC_EVENT_INFO_STATUS_OK )
     {
         switch( mlmeConfirm->MlmeRequest )
@@ -129,7 +128,7 @@ static void MlmeConfirm( MlmeConfirm_t *mlmeConfirm )
     }
     LoRaMacEventInfo.Status = mlmeConfirm->Status;
 
-    if( !(dev->flags & LORAWAN_MCPS_IND) )
+    if( LoRaMacFlags.Bits.McpsInd != 1 )
     {
         LoRaMacCallbacks.MacEvent( &LoRaMacEventFlags, &LoRaMacEventInfo );
         LoRaMacEventFlags.Value = 0;
@@ -198,6 +197,88 @@ void LoRaMacMulticastChannelRemove( MulticastParams_t *channelParam )
 {
     LoRaMacMulticastChannelUnlink( channelParam );
 }
+uint8_t LoRaMacJoinReq( uint8_t *devEui, uint8_t *appEui, uint8_t *appKey )
+{
+    MlmeReq_t mlmeRequest;
+    uint8_t status;
+
+    mlmeRequest.Type = MLME_JOIN;
+    mlmeRequest.Req.Join.AppEui = appEui;
+    mlmeRequest.Req.Join.AppKey = appKey;
+    mlmeRequest.Req.Join.DevEui = devEui;
+
+    switch( LoRaMacMlmeRequest( &mlmeRequest ) )
+    {
+        case LORAMAC_STATUS_OK:
+        {
+            status = 0;
+            break;
+        }
+        case LORAMAC_STATUS_BUSY:
+        {
+            status = 1;
+            break;
+        }
+        case LORAMAC_STATUS_NO_NETWORK_JOINED:
+        {
+            status = 2;
+            break;
+        }
+        case LORAMAC_STATUS_LENGTH_ERROR:
+        case LORAMAC_STATUS_MAC_CMD_LENGTH_ERROR:
+        {
+            status = 3;
+            break;
+        }
+        case LORAMAC_STATUS_SERVICE_UNKNOWN:
+        {
+            status = 4;
+            break;
+        }
+        case LORAMAC_STATUS_DEVICE_OFF:
+        {
+            status = 6;
+            break;
+        }
+        default:
+        {
+            status = 1;
+            break;
+        }
+    }
+
+    return status;
+}
+
+uint8_t LoRaMacLinkCheckReq( void )
+{
+    MlmeReq_t mlmeRequest;
+    uint8_t status;
+
+    mlmeRequest.Type = MLME_LINK_CHECK;
+
+    switch( LoRaMacMlmeRequest( &mlmeRequest ) )
+    {
+        case LORAMAC_STATUS_OK:
+        {
+            status = 0;
+            break;
+        }
+        case LORAMAC_STATUS_SERVICE_UNKNOWN:
+        {
+            status = 1;
+            break;
+        }
+        default:
+        {
+            status = 1;
+            break;
+        }
+    }
+
+    return status;
+}
+
 
 uint8_t LoRaMacSendFrame( uint8_t fPort, void *fBuffer, uint16_t fBufferSize )
 {

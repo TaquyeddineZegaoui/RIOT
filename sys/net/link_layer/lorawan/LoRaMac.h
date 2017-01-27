@@ -618,6 +618,38 @@ typedef enum eLoRaMacEventInfoStatus
     LORAMAC_EVENT_INFO_STATUS_MIC_FAIL,
 }LoRaMacEventInfoStatus_t;
 
+/*!
+ * LoRaMac tx/rx operation state
+ */
+typedef union eLoRaMacFlags_t
+{
+    /*!
+     * Byte-access to the bits
+     */
+    uint8_t Value;
+    /*!
+     * Structure containing single access to bits
+     */
+    struct sMacFlagBits
+    {
+        /*!
+         * MCPS-Req pending
+         */
+        uint8_t McpsReq         : 1;
+        /*!
+         * MCPS-Ind pending
+         */
+        uint8_t McpsInd         : 1;
+        /*!
+         * MLME-Req pending
+         */
+        uint8_t MlmeReq         : 1;
+        /*!
+         * MAC cycle done
+         */
+        uint8_t MacDone         : 1;
+    }Bits;
+}LoRaMacFlags_t;
 
 /*!
  *
@@ -1765,10 +1797,7 @@ void OnRadioTxTimeout(netdev2_t *netdev);
 void OnRadioRxError(netdev2_t *netdev);
 void OnRadioRxTimeout(netdev2_t *netdev);
 void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr );
-LoRaMacStatus_t join_request(netdev2_t *netdev, uint8_t *dev_eui, uint8_t *app_eui, uint8_t *app_key);
-LoRaMacStatus_t check_link(netdev2_t *netdev);
 void lorawan_set_pointer(netdev2_lorawan_t* netdev);
-netdev2_lorawan_t *lorawan_get_pointer(void);
 
 /*! \} defgroup LORAMAC */
 

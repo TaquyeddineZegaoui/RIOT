@@ -274,7 +274,7 @@ static void ProcessRxFrame( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info
                 }
                 break;
             case 5: // (viii)
-                check_link(NULL);
+                LoRaMacLinkCheckReq( );
                 break;
             default:
                 break;
@@ -370,7 +370,7 @@ int lorawan_setup(int argc, char **argv) {
         #endif
         IsNetworkJoined = false;
 
-        join_request(NULL, DevEui, AppEui, AppKey );
+        LoRaMacJoinReq(DevEui, AppEui, AppKey );
 
         puts("Activation Type: OTA");
     }
