@@ -3980,15 +3980,11 @@ LoRaMacStatus_t LoRaMacMulticastChannelUnlink( MulticastParams_t *channelParam )
     return LORAMAC_STATUS_OK;
 }
 
-LoRaMacStatus_t LoRaMacMlmeRequest( MlmeReq_t *mlmeRequest )
+LoRaMacStatus_t join_request(void)
 {
     LoRaMacStatus_t status = LORAMAC_STATUS_SERVICE_UNKNOWN;
     LoRaMacHeader_t macHdr;
 
-    if( mlmeRequest == NULL )
-    {
-        return LORAMAC_STATUS_PARAMETER_INVALID;
-    }
     if( ( LoRaMacState & MAC_TX_RUNNING ) == MAC_TX_RUNNING )
     {
         return LORAMAC_STATUS_BUSY;
@@ -3998,53 +3994,52 @@ LoRaMacStatus_t LoRaMacMlmeRequest( MlmeReq_t *mlmeRequest )
 
     MlmeConfirm.Status = LORAMAC_EVENT_INFO_STATUS_ERROR;
 
-    switch( mlmeRequest->Type )
+    if( ( LoRaMacState & MAC_TX_DELAYED ) == MAC_TX_DELAYED )
     {
-        case MLME_JOIN:
-        {
-            if( ( LoRaMacState & MAC_TX_DELAYED ) == MAC_TX_DELAYED )
-            {
-                return LORAMAC_STATUS_BUSY;
-            }
-
-            MlmeConfirm.MlmeRequest = mlmeRequest->Type;
-
-            if( ( mlmeRequest->Req.Join.DevEui == NULL ) ||
-                ( mlmeRequest->Req.Join.AppEui == NULL ) ||
-                ( mlmeRequest->Req.Join.AppKey == NULL ) )
-            {
-                return LORAMAC_STATUS_PARAMETER_INVALID;
-            }
-
-            LoRaMacFlags.Bits.MlmeReq = 1;
-
-            dev->dev_eui = mlmeRequest->Req.Join.DevEui;
-            dev->app_eui = mlmeRequest->Req.Join.AppEui;
-            dev->app_key = mlmeRequest->Req.Join.AppKey;
-
-            macHdr.Value = 0;
-            macHdr.Bits.MType  = FRAME_TYPE_JOIN_REQ;
-
-            ResetMacParameters( );
-
-            JoinRequestTrials++;
-            LoRaMacParams.ChannelsDatarate = AlternateDatarate( JoinRequestTrials );
-
-            status = Send( &macHdr, 0, NULL, 0 );
-            break;
-        }
-        case MLME_LINK_CHECK:
-        {
-            LoRaMacFlags.Bits.MlmeReq = 1;
-            // LoRaMac will send this command piggy-pack
-            MlmeConfirm.MlmeRequest = mlmeRequest->Type;
-
-            status = AddMacCommand( MOTE_MAC_LINK_CHECK_REQ, 0, 0 );
-            break;
-        }
-        default:
-            break;
+        return LORAMAC_STATUS_BUSY;
     }
+
+    MlmeConfirm.MlmeRequest = MLME_JOIN;
+
+    LoRaMacFlags.Bits.MlmeReq = 1;
+
+    macHdr.Value = 0;
+    macHdr.Bits.MType  = FRAME_TYPE_JOIN_REQ;
+
+    ResetMacParameters( );
+
+    JoinRequestTrials++;
+    LoRaMacParams.ChannelsDatarate = AlternateDatarate( JoinRequestTrials );
+
+    status = Send( &macHdr, 0, NULL, 0 );
+
+    if( status != LORAMAC_STATUS_OK )
+    {
+        NodeAckRequested = false;
+        LoRaMacFlags.Bits.MlmeReq = 0;
+    }
+
+    return status;
+}
+
+LoRaMacStatus_t link_check(void)
+{
+    LoRaMacStatus_t status = LORAMAC_STATUS_SERVICE_UNKNOWN;
+
+    if( ( LoRaMacState & MAC_TX_RUNNING ) == MAC_TX_RUNNING )
+    {
+        return LORAMAC_STATUS_BUSY;
+    }
+
+    memset( ( uint8_t* ) &MlmeConfirm, 0, sizeof( MlmeConfirm ) );
+
+    MlmeConfirm.Status = LORAMAC_EVENT_INFO_STATUS_ERROR;
+
+    LoRaMacFlags.Bits.MlmeReq = 1;
+    // LoRaMac will send this command piggy-pack
+    MlmeConfirm.MlmeRequest = MLME_LINK_CHECK;
+
+    status = AddMacCommand( MOTE_MAC_LINK_CHECK_REQ, 0, 0 );
 
     if( status != LORAMAC_STATUS_OK )
     {

@@ -209,8 +209,8 @@ static uint8_t PrepareTxFrame( uint8_t port, uint8_t* data, uint8_t size)
 
 static void ProcessRxFrame( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )
 {
-
-       netdev2_t *netdev = (netdev2_t*) &sx1276;
+    kernel_pid_t pid = *((kernel_pid_t*) nd->context);
+    uint8_t res;
 
     switch( info->RxPort ) // Check Rx port number
     {
@@ -279,7 +279,7 @@ static void ProcessRxFrame( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info
                 }
                 break;
             case 5: // (viii)
-                LoRaMacLinkCheckReq( );
+                gnrc_netapi_get(pid, NETOPT_LORAWAN_LINK_CHECK,0, &res, sizeof(uint8_t));
                 break;
             default:
                 break;
