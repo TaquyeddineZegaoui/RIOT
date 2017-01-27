@@ -29,6 +29,9 @@ extern "C" {
 #endif
 typedef struct {
     netdev2_t netdev;                       /**< @ref netdev2_t base class */
+    uint8_t *dev_eui;
+    uint8_t *app_key;
+    uint8_t *app_eui;
 } netdev2_lorawan_t;
 
 /**

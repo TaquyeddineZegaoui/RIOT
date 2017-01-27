@@ -106,21 +106,7 @@ typedef enum
     RF_CAD,
 }RadioState_t;
 static netdev2_lorawan_t *dev;
-static uint8_t *LoRaMacDevEui;
 
-/*!
- * Application IEEE EUI
- */
-static uint8_t *LoRaMacAppEui;
-
-/*!
- * AES encryption/decryption cipher application key
- */
-static uint8_t *LoRaMacAppKey;
-
-/*!
- * AES encryption/decryption cipher network session key
- */
 static uint8_t LoRaMacNwkSKey[] =
 {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -1025,11 +1011,11 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
             {
                 break;
             }
-            LoRaMacJoinDecrypt( payload + 1, size - 1, LoRaMacAppKey, LoRaMacRxPayload + 1 );
+            LoRaMacJoinDecrypt( payload + 1, size - 1, dev->app_key, LoRaMacRxPayload + 1 );
 
             LoRaMacRxPayload[0] = macHdr.Value;
 
-            LoRaMacJoinComputeMic( LoRaMacRxPayload, size - LORAMAC_MFR_LEN, LoRaMacAppKey, &mic );
+            LoRaMacJoinComputeMic( LoRaMacRxPayload, size - LORAMAC_MFR_LEN, dev->app_key, &mic );
 
             micRx |= ( uint32_t )LoRaMacRxPayload[size - LORAMAC_MFR_LEN];
             micRx |= ( ( uint32_t )LoRaMacRxPayload[size - LORAMAC_MFR_LEN + 1] << 8 );
@@ -1038,7 +1024,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
 
             if( micRx == mic )
             {
-                LoRaMacJoinComputeSKeys( LoRaMacAppKey, LoRaMacRxPayload + 1, LoRaMacDevNonce, LoRaMacNwkSKey, LoRaMacAppSKey );
+                LoRaMacJoinComputeSKeys( dev->app_key, LoRaMacRxPayload + 1, LoRaMacDevNonce, LoRaMacNwkSKey, LoRaMacAppSKey );
 
                 LoRaMacNetID = ( uint32_t )LoRaMacRxPayload[4];
                 LoRaMacNetID |= ( ( uint32_t )LoRaMacRxPayload[5] << 8 );
@@ -3066,9 +3052,9 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
 
             LoRaMacBufferPktLen = pktHeaderLen;
 
-            memcpyr( LoRaMacBuffer + LoRaMacBufferPktLen, LoRaMacAppEui, 8 );
+            memcpyr( LoRaMacBuffer + LoRaMacBufferPktLen, dev->app_eui, 8 );
             LoRaMacBufferPktLen += 8;
-            memcpyr( LoRaMacBuffer + LoRaMacBufferPktLen, LoRaMacDevEui, 8 );
+            memcpyr( LoRaMacBuffer + LoRaMacBufferPktLen, dev->dev_eui, 8 );
             LoRaMacBufferPktLen += 8;
 
             netdev->driver->get(netdev, NETOPT_LORA_RANDOM, &random, sizeof(uint32_t));
@@ -3077,7 +3063,7 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
             LoRaMacBuffer[LoRaMacBufferPktLen++] = LoRaMacDevNonce & 0xFF;
             LoRaMacBuffer[LoRaMacBufferPktLen++] = ( LoRaMacDevNonce >> 8 ) & 0xFF;
 
-            LoRaMacJoinComputeMic( LoRaMacBuffer, LoRaMacBufferPktLen & 0xFF, LoRaMacAppKey, &mic );
+            LoRaMacJoinComputeMic( LoRaMacBuffer, LoRaMacBufferPktLen & 0xFF, dev->app_key, &mic );
 
             LoRaMacBuffer[LoRaMacBufferPktLen++] = mic & 0xFF;
             LoRaMacBuffer[LoRaMacBufferPktLen++] = ( mic >> 8 ) & 0xFF;
@@ -4155,9 +4141,9 @@ LoRaMacStatus_t LoRaMacMlmeRequest( MlmeReq_t *mlmeRequest )
 
             LoRaMacFlags.Bits.MlmeReq = 1;
 
-            LoRaMacDevEui = mlmeRequest->Req.Join.DevEui;
-            LoRaMacAppEui = mlmeRequest->Req.Join.AppEui;
-            LoRaMacAppKey = mlmeRequest->Req.Join.AppKey;
+            dev->dev_eui = mlmeRequest->Req.Join.DevEui;
+            dev->app_eui = mlmeRequest->Req.Join.AppEui;
+            dev->app_key = mlmeRequest->Req.Join.AppKey;
 
             macHdr.Value = 0;
             macHdr.Bits.MType  = FRAME_TYPE_JOIN_REQ;
