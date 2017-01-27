@@ -981,28 +981,6 @@ typedef struct sMlmeReqJoin
 }MlmeReqJoin_t;
 
 /*!
- * LoRaMAC MLME-Request structure
- */
-typedef struct sMlmeReq
-{
-    /*!
-     * MLME-Request type
-     */
-    Mlme_t Type;
-
-    /*!
-     * MLME-Request parameters
-     */
-    union uMlmeParam
-    {
-        /*!
-         * MLME-Request parameters for a join request
-         */
-        MlmeReqJoin_t Join;
-    }Req;
-}MlmeReq_t;
-
-/*!
  * LoRaMAC MLME-Confirm primitive
  */
 typedef struct sMlmeConfirm
