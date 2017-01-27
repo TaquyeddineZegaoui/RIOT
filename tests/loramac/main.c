@@ -370,7 +370,12 @@ int lorawan_setup(int argc, char **argv) {
         #endif
         IsNetworkJoined = false;
 
-        LoRaMacJoinReq(DevEui, AppEui, AppKey );
+        kernel_pid_t pid = *((kernel_pid_t*) nd->context);
+        uint8_t res;
+        gnrc_netapi_set(pid, NETOPT_LORAWAN_DEV_EUI,0, DevEui, sizeof(uint8_t*));
+        gnrc_netapi_set(pid, NETOPT_LORAWAN_APP_EUI,0, AppEui, sizeof(uint8_t*));
+        gnrc_netapi_set(pid, NETOPT_LORAWAN_APP_KEY,0, AppKey, sizeof(uint8_t*));
+        gnrc_netapi_get(pid, NETOPT_LORAWAN_JOIN,0, &res, sizeof(uint8_t));
 
         puts("Activation Type: OTA");
     }
