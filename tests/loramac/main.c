@@ -379,9 +379,9 @@ int lorawan_setup(int argc, char **argv) {
         if( DevAddr == 0 )
         {
             // Random seed initialization
-            srand1( board_get_random_seed( ) );
+            random_init( board_get_random_seed( ) );
             // Choose a random device address
-            DevAddr = randr( 0, 0x01FFFFFF );
+            DevAddr = random_uint32_range( 0, 0x01FFFFFF+1 );
             // Get sesion Keys
             LoRaMacInitNwkIds( LORAWAN_NETWORK_ID, DevAddr, NwkSKey, AppSKey );
             IsNetworkJoined = true;
