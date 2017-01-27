@@ -1431,28 +1431,11 @@ void OnMacStateCheckTimerEvent( void )
                 }
                 else
                 {
-                    LoRaMacFlags.Bits.MacDone = 0;
-                    #if defined HACK_OTA
-                        /* Hack so retransmited package is re-built*/
-                        if(IsLoRaMacNetworkJoined == false)
-                        {
-                            LoRaMacHeader_t macHdr;
-                            LoRaMacFrameCtrl_t fCtrl;
-
-                            macHdr.Value = 0;
-                            macHdr.Bits.MType = FRAME_TYPE_JOIN_REQ;
-
-                            fCtrl.Value = 0;
-                            fCtrl.Bits.Adr = AdrCtrlOn;
-
-                            /* In case of a join request retransmission, the stack must prepare
-                             * the frame again, because the network server keeps track of the random
-                             * LoRaMacDevNonce values to prevent reply attacks. */
-                            PrepareFrame( &macHdr, &fCtrl, 0, NULL, 0 );
-                            /* End of*/
-                        }
-                    #endif
-                    ScheduleTx( );
+                    /* 
+                    Begin HACK
+                        //ScheduleTx( );
+                    End HACk
+                    */
                 }
             }
         }
