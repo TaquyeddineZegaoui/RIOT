@@ -411,14 +411,15 @@ int lorawan_setup(int argc, char **argv) {
         return -1;
     }
 
+    uint8_t sw;
     if(strstr(argv[3], "public") != NULL)
     {
-        LoRaMacSetPublicNetwork( true );
+        sw = LORA_MAC_PUBLIC_SYNCWORD;
         puts("Network: PUBLIC");
     }
     else if(strstr(argv[3], "private") != NULL)
     {
-        LoRaMacSetPublicNetwork( false );
+        sw = LORA_MAC_PRIVATE_SYNCWORD;
         puts("Network: PRIVATE");
     }
     else
@@ -426,6 +427,9 @@ int lorawan_setup(int argc, char **argv) {
         puts("ERROR: Invalid Network Type");
         return -1;
     }
+
+    netdev2_t *netdev = (netdev2_t*) &sx1276;
+    netdev->driver->set(netdev, NETOPT_LORA_SYNCWORD, &sw, sizeof(uint8_t));
 
     puts("lorawan_setup: configuration is set");
 
