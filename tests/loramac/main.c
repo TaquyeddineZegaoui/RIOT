@@ -209,6 +209,9 @@ static uint8_t PrepareTxFrame( uint8_t port, uint8_t* data, uint8_t size)
 
 static void ProcessRxFrame( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )
 {
+
+       netdev2_t *netdev = (netdev2_t*) &sx1276;
+
     switch( info->RxPort ) // Check Rx port number
     {
     case 1: // The application LED can be controlled on port 1 or 2
@@ -237,7 +240,8 @@ static void ProcessRxFrame( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info
                 ComplianceTest.Running = true;
                 ComplianceTest.State = 1;
                 
-                LoRaMacSetAdrOn( true );
+                bool adr = true;
+                gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_LORAWAN_ADR, 0, &(adr), sizeof(uint8_t));
             }
         }
         else
@@ -251,7 +255,8 @@ static void ProcessRxFrame( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info
                 AppDataSize = LORAWAN_APP_DATA_SIZE;
                 ComplianceTest.DownLinkCounter = 0;
                 ComplianceTest.Running = false;
-                LoRaMacSetAdrOn( LORAWAN_ADR_ON );
+                bool adr = LORAWAN_ADR_ON;
+                gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_LORAWAN_ADR, 0, &(adr), sizeof(uint8_t));
                 break;
             case 1: // (iii, iv)
                 AppDataSize = 2;
@@ -411,13 +416,13 @@ int lorawan_setup(int argc, char **argv) {
     if(strstr(argv[2], "on") != NULL)
     {
         adr = 1;
-        gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_LORA_SYNCWORD, 0, &(adr), sizeof(uint8_t));
+        gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_LORAWAN_ADR, 0, &(adr), sizeof(uint8_t));
         puts("Adaptative Data Rate: ON");
     }
     else if(strstr(argv[2], "off") != NULL)
     {
         adr = 0;
-        gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_LORA_SYNCWORD, 0, &(adr), sizeof(uint8_t));
+        gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_LORAWAN_ADR, 0, &(adr), sizeof(uint8_t));
         puts("Adaptative Data Rate: OFF");
     }
     else

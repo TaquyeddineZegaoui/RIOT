@@ -476,11 +476,6 @@ static TimerEvent_t MacStateCheckTimer;
 static LoRaMacPrimitives_t *LoRaMacPrimitives;
 
 /*!
- * LoRaMac upper layer callback functions
- */
-static LoRaMacCallback_t *LoRaMacCallbacks;
-
-/*!
  * LoRaMac duty cycle delayed Tx timer
  */
 static TimerEvent_t TxDelayedTimer;
@@ -2634,16 +2629,6 @@ static void ProcessMacCommands( uint8_t *payload, uint8_t macIndex, uint8_t comm
                     AddMacCommand( MOTE_MAC_RX_PARAM_SETUP_ANS, status, 0 );
                 }
                 break;
-            case SRV_MAC_DEV_STATUS_REQ:
-                {
-                    uint8_t batteryLevel = BAT_LEVEL_NO_MEASURE;
-                    if( ( LoRaMacCallbacks != NULL ) && ( LoRaMacCallbacks->GetBatteryLevel != NULL ) )
-                    {
-                        batteryLevel = LoRaMacCallbacks->GetBatteryLevel( );
-                    }
-                    AddMacCommand( MOTE_MAC_DEV_STATUS_ANS, batteryLevel, snr );
-                    break;
-                }
             case SRV_MAC_NEW_CHANNEL_REQ:
                 {
                     uint8_t status = 0x03;
@@ -3278,7 +3263,7 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     return LORAMAC_STATUS_OK;
 }
 
-LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacCallback_t *callbacks, kernel_pid_t mac_pid)
+LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, kernel_pid_t mac_pid)
 {
     if( primitives == NULL )
     {
@@ -3293,7 +3278,6 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacC
     }
 
     LoRaMacPrimitives = primitives;
-    LoRaMacCallbacks = callbacks;
 
     LoRaMacFlags.Value = 0;
 

@@ -40,7 +40,6 @@ extern LoRaMacFlags_t LoRaMacFlags;
 static LoRaMacEventFlags_t LoRaMacEventFlags;
 static LoRaMacEventInfo_t LoRaMacEventInfo;
 static LoRaMacPrimitives_t LoRaMacPrimitives;
-static LoRaMacCallback_t LoRaMacCallback;
 static LoRaMacCallbacks_t LoRaMacCallbacks;
 
 /*!
@@ -142,45 +141,8 @@ void LoRaMacInit( LoRaMacCallbacks_t *callbacks, kernel_pid_t mac_pid)
     LoRaMacPrimitives.MacMlmeConfirm = MlmeConfirm;
 
     LoRaMacCallbacks.MacEvent = callbacks->MacEvent;
-    LoRaMacCallbacks.GetBatteryLevel = callbacks->GetBatteryLevel;
-    LoRaMacCallback.GetBatteryLevel = callbacks->GetBatteryLevel;
 
-    LoRaMacInitialization( &LoRaMacPrimitives, &LoRaMacCallback, mac_pid);
-}
-
-void LoRaMacSetAdrOn( bool enable )
-{
-    MibRequestConfirm_t mibSet;
-
-    mibSet.Type = MIB_ADR;
-    mibSet.Param.AdrEnable = enable;
-
-    LoRaMacMibSetRequestConfirm( &mibSet );
-}
-
-void LoRaMacInitNwkIds(uint32_t netID, uint32_t devAddr, uint8_t *nwkSKey, uint8_t *appSKey )
-{
-    MibRequestConfirm_t mibSet;
-
-    mibSet.Type = MIB_NET_ID;
-    mibSet.Param.NetID = netID;
-
-    LoRaMacMibSetRequestConfirm( &mibSet );
-
-    mibSet.Type = MIB_NWK_SKEY;
-    mibSet.Param.NwkSKey = nwkSKey;
-
-    LoRaMacMibSetRequestConfirm( &mibSet );
-
-    mibSet.Type = MIB_APP_SKEY;
-    mibSet.Param.AppSKey = appSKey;
-
-    LoRaMacMibSetRequestConfirm( &mibSet );
-
-    mibSet.Type = MIB_NETWORK_JOINED;
-    mibSet.Param.IsNetworkJoined = true;
-
-    LoRaMacMibSetRequestConfirm( &mibSet );
+    LoRaMacInitialization( &LoRaMacPrimitives, mac_pid);
 }
 
 void LoRaMacMulticastChannelAdd( MulticastParams_t *channelParam )
