@@ -381,13 +381,17 @@ int lorawan_setup(int argc, char **argv) {
     {
         if( DevAddr == 0 )
         {
+            uint32_t netid = LORAWAN_NETWORK_ID;
+
             // Random seed initialization
             random_init( board_get_random_seed( ) );
             // Choose a random device address
             DevAddr = random_uint32_range( 0, 0x01FFFFFF+1 );
             // Get sesion Keys
             gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_ADDRESS, 0, &DevAddr, sizeof(DevAddr));
-            LoRaMacInitNwkIds( LORAWAN_NETWORK_ID, DevAddr, NwkSKey, AppSKey );
+            gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_LORAWAN_NWK_AKEY, 0, AppSKey, sizeof(AppKey)/sizeof(AppSKey[0]));
+            gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_LORAWAN_NWK_SKEY, 0, NwkSKey, sizeof(NwkSKey)/sizeof(NwkSKey[0]));
+            gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_LORAWAN_NET_ID, 0, &(netid), sizeof(netid));
             IsNetworkJoined = true;
         }
         puts("Activation Type: ABP");

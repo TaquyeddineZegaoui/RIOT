@@ -106,17 +106,6 @@ typedef enum
     RF_CAD,
 }RadioState_t;
 static netdev2_lorawan_t *dev;
-static uint8_t *LoRaMacDevEui;
-
-/*!
- * Application IEEE EUI
- */
-static uint8_t *LoRaMacAppEui;
-
-/*!
- * AES encryption/decryption cipher application key
- */
-static uint8_t *LoRaMacAppKey;
 
 /*!
  * Device nonce is a random value extracted by issuing a sequence of RSSI
@@ -958,8 +947,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
     uint32_t downLinkCounter = 0;
 
     MulticastParams_t *curMulticastParams = NULL;
-    uint8_t *nwkSKey = LoRaMacNwkSKey;
-    uint8_t *appSKey = LoRaMacAppSKey;
 
     uint8_t multicast = 0;
 
@@ -997,11 +984,11 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
             {
                 break;
             }
-            LoRaMacJoinDecrypt( payload + 1, size - 1, LoRaMacAppKey, LoRaMacRxPayload + 1 );
+            LoRaMacJoinDecrypt( payload + 1, size - 1, dev->app_key, LoRaMacRxPayload + 1 );
 
             LoRaMacRxPayload[0] = macHdr.Value;
 
-            LoRaMacJoinComputeMic( LoRaMacRxPayload, size - LORAMAC_MFR_LEN, LoRaMacAppKey, &mic );
+            LoRaMacJoinComputeMic( LoRaMacRxPayload, size - LORAMAC_MFR_LEN, dev->app_key, &mic );
 
             micRx |= ( uint32_t )LoRaMacRxPayload[size - LORAMAC_MFR_LEN];
             micRx |= ( ( uint32_t )LoRaMacRxPayload[size - LORAMAC_MFR_LEN + 1] << 8 );
@@ -1010,16 +997,16 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
 
             if( micRx == mic )
             {
-                LoRaMacJoinComputeSKeys( LoRaMacAppKey, LoRaMacRxPayload + 1, LoRaMacDevNonce, LoRaMacNwkSKey, LoRaMacAppSKey );
+                LoRaMacJoinComputeSKeys( dev->app_key, LoRaMacRxPayload + 1, LoRaMacDevNonce, dev->lorawan.nwk_skey, dev->lorawan.nwk_skey );
 
-                LoRaMacNetID = ( uint32_t )LoRaMacRxPayload[4];
-                LoRaMacNetID |= ( ( uint32_t )LoRaMacRxPayload[5] << 8 );
-                LoRaMacNetID |= ( ( uint32_t )LoRaMacRxPayload[6] << 16 );
+                dev->lorawan.net_id = ( uint32_t )LoRaMacRxPayload[4];
+                dev->lorawan.net_id |= ( ( uint32_t )LoRaMacRxPayload[5] << 8 );
+                dev->lorawan.net_id |= ( ( uint32_t )LoRaMacRxPayload[6] << 16 );
 
-                LoRaMacDevAddr = ( uint32_t )LoRaMacRxPayload[7];
-                LoRaMacDevAddr |= ( ( uint32_t )LoRaMacRxPayload[8] << 8 );
-                LoRaMacDevAddr |= ( ( uint32_t )LoRaMacRxPayload[9] << 16 );
-                LoRaMacDevAddr |= ( ( uint32_t )LoRaMacRxPayload[10] << 24 );
+                dev->lorawan.dev_addr = ( uint32_t )LoRaMacRxPayload[7];
+                dev->lorawan.dev_addr |= ( ( uint32_t )LoRaMacRxPayload[8] << 8 );
+                dev->lorawan.dev_addr |= ( ( uint32_t )LoRaMacRxPayload[9] << 16 );
+                dev->lorawan.dev_addr |= ( ( uint32_t )LoRaMacRxPayload[10] << 24 );
 
                 // DLSettings
                 LoRaMacParams.Rx1DrOffset = ( LoRaMacRxPayload[11] >> 4 ) & 0x07;
@@ -1076,7 +1063,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 address |= ( (uint32_t)payload[pktHeaderLen++] << 16 );
                 address |= ( (uint32_t)payload[pktHeaderLen++] << 24 );
 
-                if( address != LoRaMacDevAddr )
+                if( address != dev->lorawan.dev_addr )
                 {
                     curMulticastParams = MulticastChannels;
                     while( curMulticastParams != NULL )
@@ -1084,8 +1071,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                         if( address == curMulticastParams->Address )
                         {
                             multicast = 1;
-                            nwkSKey = curMulticastParams->NwkSKey;
-                            appSKey = curMulticastParams->AppSKey;
                             downLinkCounter = curMulticastParams->DownLinkCounter;
                             break;
                         }
@@ -1102,8 +1087,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 else
                 {
                     multicast = 0;
-                    nwkSKey = LoRaMacNwkSKey;
-                    appSKey = LoRaMacAppSKey;
                     downLinkCounter = DownLinkCounter;
                 }
 
@@ -1125,7 +1108,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 if( sequenceCounterDiff < ( 1 << 15 ) )
                 {
                     downLinkCounter += sequenceCounterDiff;
-                    LoRaMacComputeMic( payload, size - LORAMAC_MFR_LEN, nwkSKey, address, DOWN_LINK, downLinkCounter, &mic );
+                    LoRaMacComputeMic( payload, size - LORAMAC_MFR_LEN, dev->lorawan.nwk_skey, address, DOWN_LINK, downLinkCounter, &mic );
                     if( micRx == mic )
                     {
                         isMicOk = true;
@@ -1135,7 +1118,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 {
                     // check for sequence roll-over
                     uint32_t  downLinkCounterTmp = downLinkCounter + 0x10000 + ( int16_t )sequenceCounterDiff;
-                    LoRaMacComputeMic( payload, size - LORAMAC_MFR_LEN, nwkSKey, address, DOWN_LINK, downLinkCounterTmp, &mic );
+                    LoRaMacComputeMic( payload, size - LORAMAC_MFR_LEN, dev->lorawan.nwk_skey, address, DOWN_LINK, downLinkCounterTmp, &mic );
                     if( micRx == mic )
                     {
                         isMicOk = true;
@@ -1249,7 +1232,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                             {
                                 LoRaMacPayloadDecrypt( payload + appPayloadStartIndex,
                                                        frameLen,
-                                                       nwkSKey,
+                                                       dev->lorawan.nwk_skey,
                                                        address,
                                                        DOWN_LINK,
                                                        downLinkCounter,
@@ -1273,7 +1256,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
 
                             LoRaMacPayloadDecrypt( payload + appPayloadStartIndex,
                                                    frameLen,
-                                                   appSKey,
+                                                   dev->lorawan.app_skey,
                                                    address,
                                                    DOWN_LINK,
                                                    downLinkCounter,
@@ -3038,9 +3021,9 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
 
             LoRaMacBufferPktLen = pktHeaderLen;
 
-            memcpyr( LoRaMacBuffer + LoRaMacBufferPktLen, LoRaMacAppEui, 8 );
+            memcpyr( LoRaMacBuffer + LoRaMacBufferPktLen, dev->app_eui, 8 );
             LoRaMacBufferPktLen += 8;
-            memcpyr( LoRaMacBuffer + LoRaMacBufferPktLen, LoRaMacDevEui, 8 );
+            memcpyr( LoRaMacBuffer + LoRaMacBufferPktLen, dev->dev_eui, 8 );
             LoRaMacBufferPktLen += 8;
 
             netdev->driver->get(netdev, NETOPT_LORA_RANDOM, &random, sizeof(uint32_t));
@@ -3049,7 +3032,7 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
             LoRaMacBuffer[LoRaMacBufferPktLen++] = LoRaMacDevNonce & 0xFF;
             LoRaMacBuffer[LoRaMacBufferPktLen++] = ( LoRaMacDevNonce >> 8 ) & 0xFF;
 
-            LoRaMacJoinComputeMic( LoRaMacBuffer, LoRaMacBufferPktLen & 0xFF, LoRaMacAppKey, &mic );
+            LoRaMacJoinComputeMic( LoRaMacBuffer, LoRaMacBufferPktLen & 0xFF, dev->app_key, &mic );
 
             LoRaMacBuffer[LoRaMacBufferPktLen++] = mic & 0xFF;
             LoRaMacBuffer[LoRaMacBufferPktLen++] = ( mic >> 8 ) & 0xFF;
@@ -3082,10 +3065,10 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
                 fCtrl->Bits.Ack = 1;
             }
 
-            LoRaMacBuffer[pktHeaderLen++] = ( LoRaMacDevAddr ) & 0xFF;
-            LoRaMacBuffer[pktHeaderLen++] = ( LoRaMacDevAddr >> 8 ) & 0xFF;
-            LoRaMacBuffer[pktHeaderLen++] = ( LoRaMacDevAddr >> 16 ) & 0xFF;
-            LoRaMacBuffer[pktHeaderLen++] = ( LoRaMacDevAddr >> 24 ) & 0xFF;
+            LoRaMacBuffer[pktHeaderLen++] = ( dev->lorawan.dev_addr ) & 0xFF;
+            LoRaMacBuffer[pktHeaderLen++] = ( dev->lorawan.dev_addr >> 8 ) & 0xFF;
+            LoRaMacBuffer[pktHeaderLen++] = ( dev->lorawan.dev_addr >> 16 ) & 0xFF;
+            LoRaMacBuffer[pktHeaderLen++] = ( dev->lorawan.dev_addr >> 24 ) & 0xFF;
 
             LoRaMacBuffer[pktHeaderLen++] = fCtrl->Value;
 
@@ -3134,17 +3117,17 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
 
                 if( framePort == 0 )
                 {
-                    LoRaMacPayloadEncrypt( (uint8_t* ) payload, payloadSize, LoRaMacNwkSKey, LoRaMacDevAddr, UP_LINK, UpLinkCounter, LoRaMacPayload );
+                    LoRaMacPayloadEncrypt( (uint8_t* ) payload, payloadSize, dev->lorawan.nwk_skey, dev->lorawan.dev_addr, UP_LINK, UpLinkCounter, LoRaMacPayload );
                 }
                 else
                 {
-                    LoRaMacPayloadEncrypt( (uint8_t* ) payload, payloadSize, LoRaMacAppSKey, LoRaMacDevAddr, UP_LINK, UpLinkCounter, LoRaMacPayload );
+                    LoRaMacPayloadEncrypt( (uint8_t* ) payload, payloadSize, dev->lorawan.nwk_skey, dev->lorawan.dev_addr, UP_LINK, UpLinkCounter, LoRaMacPayload );
                 }
                 memcpy( LoRaMacBuffer + pktHeaderLen, LoRaMacPayload, payloadSize );
             }
             LoRaMacBufferPktLen = pktHeaderLen + payloadSize;
 
-            LoRaMacComputeMic( LoRaMacBuffer, LoRaMacBufferPktLen, LoRaMacNwkSKey, LoRaMacDevAddr, UP_LINK, UpLinkCounter, &mic );
+            LoRaMacComputeMic( LoRaMacBuffer, LoRaMacBufferPktLen, dev->lorawan.nwk_skey, dev->lorawan.dev_addr, UP_LINK, UpLinkCounter, &mic );
 
             LoRaMacBuffer[LoRaMacBufferPktLen + 0] = mic & 0xFF;
             LoRaMacBuffer[LoRaMacBufferPktLen + 1] = ( mic >> 8 ) & 0xFF;
@@ -3519,26 +3502,6 @@ LoRaMacStatus_t LoRaMacMibGetRequestConfirm( MibRequestConfirm_t *mibGet )
             mibGet->Param.AdrEnable = AdrCtrlOn;
             break;
         }
-        case MIB_NET_ID:
-        {
-            mibGet->Param.NetID = LoRaMacNetID;
-            break;
-        }
-        case MIB_DEV_ADDR:
-        {
-            mibGet->Param.DevAddr = LoRaMacDevAddr;
-            break;
-        }
-        case MIB_NWK_SKEY:
-        {
-            mibGet->Param.NwkSKey = LoRaMacNwkSKey;
-            break;
-        }
-        case MIB_APP_SKEY:
-        {
-            mibGet->Param.AppSKey = LoRaMacAppSKey;
-            break;
-        }
         case MIB_PUBLIC_NETWORK:
         {
             mibGet->Param.EnablePublicNetwork = PublicNetwork;
@@ -3684,42 +3647,6 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
         case MIB_ADR:
         {
             AdrCtrlOn = mibSet->Param.AdrEnable;
-            break;
-        }
-        case MIB_NET_ID:
-        {
-            LoRaMacNetID = mibSet->Param.NetID;
-            break;
-        }
-        case MIB_DEV_ADDR:
-        {
-            LoRaMacDevAddr = mibSet->Param.DevAddr;
-            break;
-        }
-        case MIB_NWK_SKEY:
-        {
-            if( mibSet->Param.NwkSKey != NULL )
-            {
-                memcpy( LoRaMacNwkSKey, mibSet->Param.NwkSKey,
-                               sizeof( LoRaMacNwkSKey ) );
-            }
-            else
-            {
-                status = LORAMAC_STATUS_PARAMETER_INVALID;
-            }
-            break;
-        }
-        case MIB_APP_SKEY:
-        {
-            if( mibSet->Param.AppSKey != NULL )
-            {
-                memcpy( LoRaMacAppSKey, mibSet->Param.AppSKey,
-                               sizeof( LoRaMacAppSKey ) );
-            }
-            else
-            {
-                status = LORAMAC_STATUS_PARAMETER_INVALID;
-            }
             break;
         }
         case MIB_PUBLIC_NETWORK:
@@ -4127,9 +4054,9 @@ LoRaMacStatus_t LoRaMacMlmeRequest( MlmeReq_t *mlmeRequest )
 
             LoRaMacFlags.Bits.MlmeReq = 1;
 
-            LoRaMacDevEui = mlmeRequest->Req.Join.DevEui;
-            LoRaMacAppEui = mlmeRequest->Req.Join.AppEui;
-            LoRaMacAppKey = mlmeRequest->Req.Join.AppKey;
+            dev->dev_eui = mlmeRequest->Req.Join.DevEui;
+            dev->app_eui = mlmeRequest->Req.Join.AppEui;
+            dev->app_key = mlmeRequest->Req.Join.AppKey;
 
             macHdr.Value = 0;
             macHdr.Bits.MType  = FRAME_TYPE_JOIN_REQ;
