@@ -200,54 +200,13 @@ void LoRaMacMulticastChannelRemove( MulticastParams_t *channelParam )
 uint8_t LoRaMacJoinReq( uint8_t *devEui, uint8_t *appEui, uint8_t *appKey )
 {
     MlmeReq_t mlmeRequest;
-    uint8_t status;
 
     mlmeRequest.Type = MLME_JOIN;
     mlmeRequest.Req.Join.AppEui = appEui;
     mlmeRequest.Req.Join.AppKey = appKey;
     mlmeRequest.Req.Join.DevEui = devEui;
 
-    switch( LoRaMacMlmeRequest( &mlmeRequest ) )
-    {
-        case LORAMAC_STATUS_OK:
-        {
-            status = 0;
-            break;
-        }
-        case LORAMAC_STATUS_BUSY:
-        {
-            status = 1;
-            break;
-        }
-        case LORAMAC_STATUS_NO_NETWORK_JOINED:
-        {
-            status = 2;
-            break;
-        }
-        case LORAMAC_STATUS_LENGTH_ERROR:
-        case LORAMAC_STATUS_MAC_CMD_LENGTH_ERROR:
-        {
-            status = 3;
-            break;
-        }
-        case LORAMAC_STATUS_SERVICE_UNKNOWN:
-        {
-            status = 4;
-            break;
-        }
-        case LORAMAC_STATUS_DEVICE_OFF:
-        {
-            status = 6;
-            break;
-        }
-        default:
-        {
-            status = 1;
-            break;
-        }
-    }
-
-    return status;
+    return LoRaMacMlmeRequest( &mlmeRequest );
 }
 
 uint8_t LoRaMacLinkCheckReq( void )
