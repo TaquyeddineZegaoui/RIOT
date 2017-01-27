@@ -192,16 +192,10 @@ void LoRaMacMulticastChannelRemove( MulticastParams_t *channelParam )
 {
     LoRaMacMulticastChannelUnlink( channelParam );
 }
+LoRaMacStatus_t join_request(void);
 uint8_t LoRaMacJoinReq( uint8_t *devEui, uint8_t *appEui, uint8_t *appKey )
 {
-    MlmeReq_t mlmeRequest;
-
-    mlmeRequest.Type = MLME_JOIN;
-    mlmeRequest.Req.Join.AppEui = appEui;
-    mlmeRequest.Req.Join.AppKey = appKey;
-    mlmeRequest.Req.Join.DevEui = devEui;
-
-    return LoRaMacMlmeRequest( &mlmeRequest );
+    return join_request();
 }
 
 uint8_t LoRaMacLinkCheckReq( void )
