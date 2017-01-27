@@ -237,13 +237,6 @@ void LoRaMacMulticastChannelRemove( MulticastParams_t *channelParam );
 
 
 /*!
- * Sends a LinkCheckReq MAC command on the next uplink frame
- *
- * \retval status Function status [0: OK, 1: Busy]
- */
-uint8_t LoRaMacLinkCheckReq( void );
-
-/*!
  * LoRaMAC layer send frame
  *
  * \param [IN] fPort       MAC payload port (must be > 0)

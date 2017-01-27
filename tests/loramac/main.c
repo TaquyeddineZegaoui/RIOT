@@ -209,6 +209,8 @@ static uint8_t PrepareTxFrame( uint8_t port, uint8_t* data, uint8_t size)
 
 static void ProcessRxFrame( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )
 {
+    kernel_pid_t pid = *((kernel_pid_t*) nd->context);
+    uint8_t res;
     switch( info->RxPort ) // Check Rx port number
     {
     case 1: // The application LED can be controlled on port 1 or 2
@@ -274,7 +276,7 @@ static void ProcessRxFrame( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info
                 }
                 break;
             case 5: // (viii)
-                LoRaMacLinkCheckReq( );
+                gnrc_netapi_get(pid, NETOPT_LORAWAN_LINK_CHECK,0, &res, sizeof(uint8_t));
                 break;
             default:
                 break;

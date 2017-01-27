@@ -193,35 +193,6 @@ void LoRaMacMulticastChannelRemove( MulticastParams_t *channelParam )
     LoRaMacMulticastChannelUnlink( channelParam );
 }
 
-uint8_t LoRaMacLinkCheckReq( void )
-{
-    MlmeReq_t mlmeRequest;
-    uint8_t status;
-
-    mlmeRequest.Type = MLME_LINK_CHECK;
-
-    switch( LoRaMacMlmeRequest( &mlmeRequest ) )
-    {
-        case LORAMAC_STATUS_OK:
-        {
-            status = 0;
-            break;
-        }
-        case LORAMAC_STATUS_SERVICE_UNKNOWN:
-        {
-            status = 1;
-            break;
-        }
-        default:
-        {
-            status = 1;
-            break;
-        }
-    }
-
-    return status;
-}
-
 
 uint8_t LoRaMacSendFrame( uint8_t fPort, void *fBuffer, uint16_t fBufferSize )
 {
