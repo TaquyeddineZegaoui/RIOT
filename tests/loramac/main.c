@@ -351,6 +351,9 @@ static void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )
 }
 
 int lorawan_setup(int argc, char **argv) {
+    netdev2_t *netdev = (netdev2_t*) &sx1276;
+
+
     if (argc < 4) {
         puts("ERROR: Not enough arguments");
         return -1;
@@ -383,6 +386,7 @@ int lorawan_setup(int argc, char **argv) {
             // Choose a random device address
             DevAddr = random_uint32_range( 0, 0x01FFFFFF+1 );
             // Get sesion Keys
+            gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_ADDRESS, 0, &DevAddr, sizeof(DevAddr));
             LoRaMacInitNwkIds( LORAWAN_NETWORK_ID, DevAddr, NwkSKey, AppSKey );
             IsNetworkJoined = true;
         }
@@ -427,7 +431,6 @@ int lorawan_setup(int argc, char **argv) {
         return -1;
     }
 
-    netdev2_t *netdev = (netdev2_t*) &sx1276;
     netdev->driver->set(netdev, NETOPT_LORA_SYNCWORD, &sw, sizeof(uint8_t));
 
     puts("lorawan_setup: configuration is set");

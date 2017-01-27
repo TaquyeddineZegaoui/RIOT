@@ -27,8 +27,25 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define KEY_SIZE		16	
+
+typedef struct lorawan_sesion
+{
+	uint8_t LoRaMacNwkSKey[KEY_SIZE];        /* AES encryption/decryption cipher network session key */
+	uint8_t LoRaMacAppSKey[KEY_SIZE];                /* AES encryption/decryption cipher application session key */
+	uint32_t dev_addr;                 /* Mote Address */
+	uint32_t net_id;              /* Network ID ( 3 bytes ) */	
+	//bool PublicNetwork;                      /* Indicates if the node is connected to a private or public network */
+	//bool RepeaterSupport;                    /* Indicates if the node supports repeaters*/
+	//LoRaMacPrimitives_t *LoRaMacPrimitives;  /* LoRaMac upper layer event functions*/
+	//LoRaMacCallback_t *LoRaMacCallbacks;     /* LoRaMac upper layer callback functions*/
+	//lorawan_tx_rx_config t tx_rx;            /* Transreception session info*/
+}lorawan_sesion_t;
+
 typedef struct {
     netdev2_t netdev;                       /**< @ref netdev2_t base class */
+    lorawan_sesion_t lorawan;
 } netdev2_lorawan_t;
 
 /**
@@ -46,7 +63,7 @@ typedef struct {
  * @return              number of bytes written to @p value
  * @return              <0 on error
  */
-int netdev2_lorawan_get(netdev2_t *dev, netopt_t opt, void *value, size_t max_len);
+int netdev2_lorawan_get(netdev2_lorawan_t*dev, netopt_t opt, void *value, size_t max_len);
 
 /**
  * @brief   Fallback function for netdev2 ethernet devices' _set function
@@ -59,7 +76,7 @@ int netdev2_lorawan_get(netdev2_t *dev, netopt_t opt, void *value, size_t max_le
  * @return              number of bytes used from @p value
  * @return              <0 on error
  */
-int netdev2_lorawan_set(netdev2_t *dev, netopt_t opt, void *value, size_t value_len);
+int netdev2_lorawan_set(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_t value_len);
 
 #ifdef __cplusplus
 }

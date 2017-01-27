@@ -158,17 +158,12 @@ void LoRaMacSetAdrOn( bool enable )
     LoRaMacMibSetRequestConfirm( &mibSet );
 }
 
-void LoRaMacInitNwkIds( uint32_t netID, uint32_t devAddr, uint8_t *nwkSKey, uint8_t *appSKey )
+void LoRaMacInitNwkIds(uint32_t netID, uint32_t devAddr, uint8_t *nwkSKey, uint8_t *appSKey )
 {
     MibRequestConfirm_t mibSet;
 
     mibSet.Type = MIB_NET_ID;
     mibSet.Param.NetID = netID;
-
-    LoRaMacMibSetRequestConfirm( &mibSet );
-
-    mibSet.Type = MIB_DEV_ADDR;
-    mibSet.Param.DevAddr = devAddr;
 
     LoRaMacMibSetRequestConfirm( &mibSet );
 
