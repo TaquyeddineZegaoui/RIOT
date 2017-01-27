@@ -394,7 +394,7 @@ int lorawan_setup(int argc, char **argv) {
             DevAddr = random_uint32_range( 0, 0x01FFFFFF+1 );
             // Get sesion Keys
             gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_ADDRESS, 0, &DevAddr, sizeof(DevAddr));
-            gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_LORAWAN_NWK_AKEY, 0, AppSKey, sizeof(AppKey)/sizeof(AppSKey[0]));
+            gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_LORAWAN_APP_SKEY, 0, AppSKey, sizeof(AppKey)/sizeof(AppSKey[0]));
             gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_LORAWAN_NWK_SKEY, 0, NwkSKey, sizeof(NwkSKey)/sizeof(NwkSKey[0]));
             gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_LORAWAN_NET_ID, 0, &(netid), sizeof(netid));
             IsNetworkJoined = true;
@@ -407,14 +407,17 @@ int lorawan_setup(int argc, char **argv) {
         return -1;
     }
 
+    uint8_t adr;
     if(strstr(argv[2], "on") != NULL)
     {
-        LoRaMacSetAdrOn( 1 );
+        adr = 1;
+        gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_LORA_SYNCWORD, 0, &(adr), sizeof(uint8_t));
         puts("Adaptative Data Rate: ON");
     }
     else if(strstr(argv[2], "off") != NULL)
     {
-        LoRaMacSetAdrOn( 0 );
+        adr = 0;
+        gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_LORA_SYNCWORD, 0, &(adr), sizeof(uint8_t));
         puts("Adaptative Data Rate: OFF");
     }
     else
@@ -426,12 +429,14 @@ int lorawan_setup(int argc, char **argv) {
     uint8_t sw;
     if(strstr(argv[3], "public") != NULL)
     {
-        sw = LORA_MAC_PUBLIC_SYNCWORD;
+        sw = true;
+        gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_LORAWAN_NWK_TYPE, 0, &(sw), sizeof(uint8_t));
         puts("Network: PUBLIC");
     }
     else if(strstr(argv[3], "private") != NULL)
     {
-        sw = LORA_MAC_PRIVATE_SYNCWORD;
+        sw = false;
+        gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_LORAWAN_NWK_TYPE, 0, &(sw), sizeof(uint8_t));
         puts("Network: PRIVATE");
     }
     else
@@ -439,8 +444,6 @@ int lorawan_setup(int argc, char **argv) {
         puts("ERROR: Invalid Network Type");
         return -1;
     }
-
-    netdev->driver->set(netdev, NETOPT_LORA_SYNCWORD, &sw, sizeof(uint8_t));
 
     puts("lorawan_setup: configuration is set");
 
