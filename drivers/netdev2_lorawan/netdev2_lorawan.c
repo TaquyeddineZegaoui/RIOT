@@ -27,12 +27,14 @@
 #define ENABLE_DEBUG (0)
 #include "debug.h"
 
+extern LoRaMacStatus_t join_request(void);
+
 int netdev2_lorawan_get(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_t max_len)
 {
     switch(opt)
     {
         case NETOPT_LORAWAN_JOIN:
-            *((uint8_t*) value) = LoRaMacJoinReq(dev->dev_eui, dev->app_eui, dev->app_key);
+            *((uint8_t*) value) = join_request();
             break;
         default:
             break;

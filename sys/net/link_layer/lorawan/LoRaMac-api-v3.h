@@ -235,16 +235,6 @@ void LoRaMacMulticastChannelAdd( MulticastParams_t *channelParam );
  */
 void LoRaMacMulticastChannelRemove( MulticastParams_t *channelParam );
 
-/*!
- * Initiates the Over-the-Air activation
- *
- * \param [IN] devEui Pointer to the device EUI array ( 8 bytes )
- * \param [IN] appEui Pointer to the application EUI array ( 8 bytes )
- * \param [IN] appKey Pointer to the application AES128 key array ( 16 bytes )
- *
- * \retval status [0: OK, 1: Tx error, 2: Already joined a network]
- */
-uint8_t LoRaMacJoinReq( uint8_t *devEui, uint8_t *appEui, uint8_t *appKey );
 
 /*!
  * Sends a LinkCheckReq MAC command on the next uplink frame

@@ -192,11 +192,6 @@ void LoRaMacMulticastChannelRemove( MulticastParams_t *channelParam )
 {
     LoRaMacMulticastChannelUnlink( channelParam );
 }
-LoRaMacStatus_t join_request(void);
-uint8_t LoRaMacJoinReq( uint8_t *devEui, uint8_t *appEui, uint8_t *appKey )
-{
-    return join_request();
-}
 
 uint8_t LoRaMacLinkCheckReq( void )
 {
