@@ -31,10 +31,12 @@ extern "C" {
 
 #define KEY_SIZE		16	
 
+
+
 typedef struct lorawan_tx_rx_config
 {
 	bool adr_ctrl;                            /* LoRaMac ADR control status*/
-
+	bool nwk_status;                       /* Boolean if network is joined*/
 }lorawan_tx_rx_config_t;
 
 typedef struct lorawan_sesion
@@ -43,7 +45,7 @@ typedef struct lorawan_sesion
 	uint8_t app_skey[KEY_SIZE];                /* AES encryption/decryption cipher application session key */
 	uint32_t dev_addr;                 		   /* Mote Address */
 	uint32_t net_id;              			   /* Network ID ( 3 bytes ) */	
-	bool public;                        /* Indicates if the node is connected to a private or public network */
+	bool public;                               /* Indicates if the node is connected to a private or public network */
 	bool RepeaterSupport;                      /* Indicates if the node supports repeaters*/
 	//LoRaMacPrimitives_t *LoRaMacPrimitives;  /* LoRaMac upper layer event functions*/
 	//LoRaMacCallback_t *LoRaMacCallbacks;     /* LoRaMac upper layer callback functions*/

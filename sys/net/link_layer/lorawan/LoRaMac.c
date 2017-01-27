@@ -168,11 +168,6 @@ static bool IsUpLinkCounterFixed = false;
 static bool IsRxWindowsEnabled = true;
 
 /*!
- * Indicates if the MAC layer has already joined a network.
- */
-static bool IsLoRaMacNetworkJoined = false;
-
-/*!
  * Counts the number of missed ADR acknowledgements
  */
 static uint32_t AdrAckCounter = 0;
@@ -965,7 +960,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
     switch( macHdr.Bits.MType )
     {
         case FRAME_TYPE_JOIN_ACCEPT:
-            if( IsLoRaMacNetworkJoined == true )
+            if( dev->lorawan.tx_rx.nwk_status == true )
             {
                 break;
             }
@@ -1032,7 +1027,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 }
 #endif
                 MlmeConfirm.Status = LORAMAC_EVENT_INFO_STATUS_OK;
-                IsLoRaMacNetworkJoined = true;
+                dev->lorawan.tx_rx.nwk_status = true;
                 LoRaMacParams.ChannelsDatarate = LoRaMacParamsDefaults.ChannelsDatarate;
             }
             else
@@ -1436,7 +1431,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
                     LoRaMacFlags.Bits.MacDone = 0;
                     #if defined HACK_OTA
                         /* Hack so retransmited package is re-built*/
-                        if(IsLoRaMacNetworkJoined == false)
+                        if(dev->lorawan.tx_rx.nwk_status == false)
                         {
                             LoRaMacHeader_t macHdr;
                             LoRaMacFrameCtrl_t fCtrl;
@@ -1834,7 +1829,7 @@ static bool SetNextChannel( TimerTime_t* time )
                         continue;
                     }
 #if defined( USE_BAND_868 ) || defined( USE_BAND_433 ) || defined( USE_BAND_780 )
-                    if( IsLoRaMacNetworkJoined == false )
+                    if( dev->lorawan.tx_rx.nwk_status == false )
                     {
                         if( ( JOIN_CHANNELS & ( 1 << j ) ) == 0 )
                         {
@@ -1989,7 +1984,7 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
 
         #if defined HACK_OTA
             /* Hack Begin*/
-            if(IsLoRaMacNetworkJoined == false)
+            if(dev->lorawan.tx_rx.nwk_status == false)
             {
                 (void) timeout;
                 _set_rx_config( modem, bandwidth, downlinkDatarate, 1, 0, 8, 128, false, 0, false, 0, 0, true, rxContinuous );
@@ -2824,7 +2819,7 @@ static void CalculateBackOff( uint8_t channel )
     uint16_t joinDutyCycle = 0;
     bool rndTimeOff = false;
 
-    if( IsLoRaMacNetworkJoined == false )
+    if( dev->lorawan.tx_rx.nwk_status == false )
     {
         joinDutyCycle = RetransmissionDutyCylce( );
         dutyCycle = MAX( dutyCycle, joinDutyCycle );
@@ -2908,7 +2903,7 @@ static int8_t AlternateDatarate( uint16_t nbTrials )
 
 static void ResetMacParameters( void )
 {
-    IsLoRaMacNetworkJoined = false;
+    dev->lorawan.tx_rx.nwk_status = false;
 
     // Counters
     UpLinkCounter = 1;
@@ -3019,7 +3014,7 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
             NodeAckRequested = true;
             //Intentional falltrough
         case FRAME_TYPE_DATA_UNCONFIRMED_UP:
-            if( IsLoRaMacNetworkJoined == false )
+            if( dev->lorawan.tx_rx.nwk_status == false )
             {
                 return LORAMAC_STATUS_NO_NETWORK_JOINED; // No network has been joined yet
             }
@@ -3468,7 +3463,7 @@ LoRaMacStatus_t LoRaMacMibGetRequestConfirm( MibRequestConfirm_t *mibGet )
         }
         case MIB_NETWORK_JOINED:
         {
-            mibGet->Param.IsNetworkJoined = IsLoRaMacNetworkJoined;
+            mibGet->Param.IsNetworkJoined = dev->lorawan.tx_rx.nwk_status;
             break;
         }
         case MIB_ADR:
@@ -3610,7 +3605,7 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
         }
         case MIB_NETWORK_JOINED:
         {
-            IsLoRaMacNetworkJoined = mibSet->Param.IsNetworkJoined;
+            dev->lorawan.tx_rx.nwk_status = mibSet->Param.IsNetworkJoined;
             break;
         }
         case MIB_ADR:
