@@ -4057,6 +4057,35 @@ LoRaMacStatus_t join_request(void)
 
     return status;
 }
+
+LoRaMacStatus_t check_link(void)
+{
+    LoRaMacStatus_t status = LORAMAC_STATUS_SERVICE_UNKNOWN;
+
+    if( ( LoRaMacState & MAC_TX_RUNNING ) == MAC_TX_RUNNING )
+    {
+        return LORAMAC_STATUS_BUSY;
+    }
+
+    memset( ( uint8_t* ) &MlmeConfirm, 0, sizeof( MlmeConfirm ) );
+
+    MlmeConfirm.Status = LORAMAC_EVENT_INFO_STATUS_ERROR;
+
+    LoRaMacFlags.Bits.MlmeReq = 1;
+    // LoRaMac will send this command piggy-pack
+    MlmeConfirm.MlmeRequest = MLME_LINK_CHECK;
+
+    status = AddMacCommand( MOTE_MAC_LINK_CHECK_REQ, 0, 0 );
+
+    if( status != LORAMAC_STATUS_OK )
+    {
+        NodeAckRequested = false;
+        LoRaMacFlags.Bits.MlmeReq = 0;
+    }
+
+    return status;
+}
+
 LoRaMacStatus_t LoRaMacMlmeRequest( MlmeReq_t *mlmeRequest )
 {
     LoRaMacStatus_t status = LORAMAC_STATUS_SERVICE_UNKNOWN;
