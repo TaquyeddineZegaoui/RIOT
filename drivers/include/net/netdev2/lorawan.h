@@ -27,8 +27,25 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define KEY_SIZE		16	
+
+typedef struct lorawan_sesion
+{
+	uint8_t nwk_skey[KEY_SIZE];        /* AES encryption/decryption cipher network session key */
+	uint8_t app_skey[KEY_SIZE];                /* AES encryption/decryption cipher application session key */
+	uint32_t dev_addr;                 /* Mote Address */
+	uint32_t net_id;              /* Network ID ( 3 bytes ) */	
+	//bool PublicNetwork;                      /* Indicates if the node is connected to a private or public network */
+	//bool RepeaterSupport;                    /* Indicates if the node supports repeaters*/
+	//LoRaMacPrimitives_t *LoRaMacPrimitives;  /* LoRaMac upper layer event functions*/
+	//LoRaMacCallback_t *LoRaMacCallbacks;     /* LoRaMac upper layer callback functions*/
+	//lorawan_tx_rx_config t tx_rx;            /* Transreception session info*/
+}lorawan_sesion_t;
+
 typedef struct {
     netdev2_t netdev;                       /**< @ref netdev2_t base class */
+    lorawan_sesion_t lorawan;
     uint8_t *dev_eui;
     uint8_t *app_key;
     uint8_t *app_eui;

@@ -351,6 +351,9 @@ static void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )
 }
 
 int lorawan_setup(int argc, char **argv) {
+    netdev2_t *netdev = (netdev2_t*) &sx1276;
+
+
     if (argc < 4) {
         puts("ERROR: Not enough arguments");
         return -1;
@@ -383,12 +386,17 @@ int lorawan_setup(int argc, char **argv) {
     {
         if( DevAddr == 0 )
         {
+            uint32_t netid = LORAWAN_NETWORK_ID;
+
             // Random seed initialization
             random_init( board_get_random_seed( ) );
             // Choose a random device address
             DevAddr = random_uint32_range( 0, 0x01FFFFFF+1 );
             // Get sesion Keys
-            LoRaMacInitNwkIds( LORAWAN_NETWORK_ID, DevAddr, NwkSKey, AppSKey );
+            gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_ADDRESS, 0, &DevAddr, sizeof(DevAddr));
+            gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_LORAWAN_NWK_AKEY, 0, AppSKey, sizeof(AppKey)/sizeof(AppSKey[0]));
+            gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_LORAWAN_NWK_SKEY, 0, NwkSKey, sizeof(NwkSKey)/sizeof(NwkSKey[0]));
+            gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_LORAWAN_NET_ID, 0, &(netid), sizeof(netid));
             IsNetworkJoined = true;
         }
         puts("Activation Type: ABP");
@@ -432,7 +440,6 @@ int lorawan_setup(int argc, char **argv) {
         return -1;
     }
 
-    netdev2_t *netdev = (netdev2_t*) &sx1276;
     netdev->driver->set(netdev, NETOPT_LORA_SYNCWORD, &sw, sizeof(uint8_t));
 
     puts("lorawan_setup: configuration is set");
