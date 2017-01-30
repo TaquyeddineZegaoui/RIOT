@@ -49,6 +49,8 @@ int netdev2_lorawan_get(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_
 
 int netdev2_lorawan_set(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_t value_len)
 {
+    netdev2_t *netdev = (netdev2_t*) dev;
+    uint8_t sw;
     switch (opt) {
         case NETOPT_ADDRESS:
         {
@@ -92,6 +94,9 @@ int netdev2_lorawan_set(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_
         case NETOPT_LORAWAN_CLASS:
             lorawan_set_class(dev, *((int*) value));
             return sizeof(int);
+        case NETOPT_LORAWAN_PUBLIC:
+            sw = *((bool*) value) ? 0x34 : 0x12;
+            netdev->driver->set(netdev, NETOPT_LORA_SYNCWORD, &sw, sizeof(uint8_t));
         default:
             break;
     }

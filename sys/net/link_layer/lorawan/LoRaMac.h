@@ -525,14 +525,6 @@ typedef enum eMib
      */
     MIB_APP_SKEY,
     /*!
-     * Set the network type to public or private
-     *
-     * LoRaWAN Specification V1.0.1, chapter 7
-     *
-     * [true: public network, false: private network]
-     */
-    MIB_PUBLIC_NETWORK,
-    /*!
      * Support the operation with repeaters
      *
      * LoRaWAN Specification V1.0.1, chapter 7

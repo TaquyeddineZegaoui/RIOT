@@ -251,17 +251,6 @@ uint8_t LoRaMacSendConfirmedFrame( uint8_t fPort, void *fBuffer, uint16_t fBuffe
 }
 
 
-
-void LoRaMacSetPublicNetwork( bool enable )
-{
-    MibRequestConfirm_t mibSet;
-
-    mibSet.Type = MIB_PUBLIC_NETWORK;
-    mibSet.Param.EnablePublicNetwork = enable;
-
-    LoRaMacMibSetRequestConfirm( &mibSet );
-}
-
 void LoRaMacSetDutyCycleOn( bool enable )
 {
     LoRaMacTestSetDutyCycleOn( enable );

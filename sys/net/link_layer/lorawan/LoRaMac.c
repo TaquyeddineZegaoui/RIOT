@@ -3387,11 +3387,6 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
             dev->lorawan.tx_rx.adr_ctrl = mibSet->Param.AdrEnable;
             break;
         }
-        case MIB_PUBLIC_NETWORK:
-        {
-            SetPublicNetwork( mibSet->Param.EnablePublicNetwork );
-            break;
-        }
         case MIB_REPEATER_SUPPORT:
         {
              dev->RepeaterSupport = mibSet->Param.EnableRepeaterSupport;
