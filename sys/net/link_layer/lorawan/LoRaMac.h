@@ -956,31 +956,6 @@ typedef enum eMlme
 }Mlme_t;
 
 /*!
- * LoRaMAC MLME-Request for the join service
- */
-typedef struct sMlmeReqJoin
-{
-    /*!
-     * Globally unique end-device identifier
-     *
-     * LoRaWAN Specification V1.0.1, chapter 6.2.1
-     */
-    uint8_t *DevEui;
-    /*!
-     * Application identifier
-     *
-     * LoRaWAN Specification V1.0.1, chapter 6.1.2
-     */
-    uint8_t *AppEui;
-    /*!
-     * AES-128 application key
-     *
-     * LoRaWAN Specification V1.0.1, chapter 6.2.2
-     */
-    uint8_t *AppKey;
-}MlmeReqJoin_t;
-
-/*!
  * LoRaMAC MLME-Confirm primitive
  */
 typedef struct sMlmeConfirm
