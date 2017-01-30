@@ -24,6 +24,7 @@
 
 #include "net/netdev2.h"
 #include "net/netopt.h"
+#include "net/lorawan/timer.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,6 +32,42 @@ extern "C" {
 
 #define KEY_SIZE		16	
 
+
+
+typedef enum eMlme
+{
+    MLME_JOIN,
+    MLME_LINK_CHECK,
+}Mlme_t;
+
+/*!
+ * Enumeration containing the status of the operation of a MAC service
+ */
+typedef enum eLoRaMacEventInfoStatus
+{
+    LORAMAC_EVENT_INFO_STATUS_OK = 0,
+    LORAMAC_EVENT_INFO_STATUS_ERROR,
+    LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT,
+    LORAMAC_EVENT_INFO_STATUS_RX2_TIMEOUT,
+    LORAMAC_EVENT_INFO_STATUS_RX2_ERROR,
+    LORAMAC_EVENT_INFO_STATUS_JOIN_FAIL,
+    LORAMAC_EVENT_INFO_STATUS_DOWNLINK_REPEATED,
+    LORAMAC_EVENT_INFO_STATUS_DOWNLINK_TOO_MANY_FRAMES_LOSS,
+    LORAMAC_EVENT_INFO_STATUS_ADDRESS_FAIL,
+    LORAMAC_EVENT_INFO_STATUS_MIC_FAIL,
+}LoRaMacEventInfoStatus_t;
+
+/*!
+ * LoRaMAC MLME-Confirm primitive
+ */
+typedef struct sMlmeConfirm
+{
+    Mlme_t MlmeRequest;
+    LoRaMacEventInfoStatus_t Status;
+    TimerTime_t TxTimeOnAir;
+    uint8_t DemodMargin;
+    uint8_t NbGateways;
+}MlmeConfirm_t;
 
 
 typedef struct lorawan_tx_rx_config

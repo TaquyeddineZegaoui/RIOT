@@ -48,7 +48,6 @@
 
 // Includes board dependent definitions such as channels frequencies
 #include "LoRaMac-definitions.h"
-#include "net/lorawan/timer.h"
 #include "thread.h"
 #include "net/netdev2/lorawan.h"
 
@@ -570,55 +569,6 @@ typedef union uLoRaMacFrameCtrl
 }LoRaMacFrameCtrl_t;
 
 /*!
- * Enumeration containing the status of the operation of a MAC service
- */
-typedef enum eLoRaMacEventInfoStatus
-{
-    /*!
-     * Service performed successfully
-     */
-    LORAMAC_EVENT_INFO_STATUS_OK = 0,
-    /*!
-     * An error occured during the execution of the service
-     */
-    LORAMAC_EVENT_INFO_STATUS_ERROR,
-    /*!
-     * A Tx timeouit occured
-     */
-    LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT,
-    /*!
-     * An Rx timeout occured on receive window 2
-     */
-    LORAMAC_EVENT_INFO_STATUS_RX2_TIMEOUT,
-    /*!
-     * An Rx error occured on receive window 2
-     */
-    LORAMAC_EVENT_INFO_STATUS_RX2_ERROR,
-    /*!
-     * An error occured in the join procedure
-     */
-    LORAMAC_EVENT_INFO_STATUS_JOIN_FAIL,
-    /*!
-     * A frame with an invalid downlink counter was received. The
-     * downlink counter of the frame was equal to the local copy
-     * of the downlink counter of the node.
-     */
-    LORAMAC_EVENT_INFO_STATUS_DOWNLINK_REPEATED,
-    /*!
-     * The node has lost MAX_FCNT_GAP or more frames.
-     */
-    LORAMAC_EVENT_INFO_STATUS_DOWNLINK_TOO_MANY_FRAMES_LOSS,
-    /*!
-     * An address error occured
-     */
-    LORAMAC_EVENT_INFO_STATUS_ADDRESS_FAIL,
-    /*!
-     * message integrity check failure
-     */
-    LORAMAC_EVENT_INFO_STATUS_MIC_FAIL,
-}LoRaMacEventInfoStatus_t;
-
-/*!
  * LoRaMac tx/rx operation state
  */
 typedef union eLoRaMacFlags_t
@@ -939,49 +889,6 @@ typedef struct sMcpsIndication
  * MLME-Request     | \ref LoRaMacMlmeRequest
  * MLME-Confirm     | MacMlmeConfirm in \ref LoRaMacPrimitives_t
  */
-typedef enum eMlme
-{
-    /*!
-     * Initiates the Over-the-Air activation
-     *
-     * LoRaWAN Specification V1.0.1, chapter 6.2
-     */
-    MLME_JOIN,
-    /*!
-     * LinkCheckReq - Connectivity validation
-     *
-     * LoRaWAN Specification V1.0.1, chapter 5, table 4
-     */
-    MLME_LINK_CHECK,
-}Mlme_t;
-
-/*!
- * LoRaMAC MLME-Confirm primitive
- */
-typedef struct sMlmeConfirm
-{
-    /*!
-     * Holds the previously performed MLME-Request
-     */
-    Mlme_t MlmeRequest;
-    /*!
-     * Status of the operation
-     */
-    LoRaMacEventInfoStatus_t Status;
-    /*!
-     * The transmission time on air of the frame
-     */
-    TimerTime_t TxTimeOnAir;
-    /*!
-     * Demodulation margin. Contains the link margin [dB] of the last
-     * successfully received LinkCheckReq
-     */
-    uint8_t DemodMargin;
-    /*!
-     * Number of gateways which received the last LinkCheckReq
-     */
-    uint8_t NbGateways;
-}MlmeConfirm_t;
 
 /*!
  * LoRa Mac Information Base (MIB)
