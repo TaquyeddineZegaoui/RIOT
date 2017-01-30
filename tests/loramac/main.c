@@ -241,7 +241,7 @@ static void ProcessRxFrame( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info
                 ComplianceTest.State = 1;
                 
                 bool adr = true;
-                gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_LORAWAN_ADR, 0, &(adr), sizeof(uint8_t));
+                gnrc_netapi_set(*((kernel_pid_t*)nd->context), NETOPT_LORAWAN_ADR, 0, &(adr), sizeof(uint8_t));
             }
         }
         else
@@ -256,7 +256,7 @@ static void ProcessRxFrame( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info
                 ComplianceTest.DownLinkCounter = 0;
                 ComplianceTest.Running = false;
                 bool adr = LORAWAN_ADR_ON;
-                gnrc_netapi_set(*((kernel_pid_t*)netdev->context), NETOPT_LORAWAN_ADR, 0, &(adr), sizeof(uint8_t));
+                gnrc_netapi_set(*((kernel_pid_t*)nd->context), NETOPT_LORAWAN_ADR, 0, &(adr), sizeof(uint8_t));
                 break;
             case 1: // (iii, iv)
                 AppDataSize = 2;
