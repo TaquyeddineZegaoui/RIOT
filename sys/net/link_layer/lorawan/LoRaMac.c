@@ -860,7 +860,7 @@ void OnRadioTxDone(netdev2_t *netdev)
     if( IsRxWindowsEnabled == true )
     {
         RxWindowTimer1.msg.type = LORAWAN_TIMER_RX_WINDOW1;
-        xtimer_set_msg(&(RxWindowTimer1.dev), xtimer_ticks_from_usec(RxWindow1Delay*1000-3000).ticks32, &(RxWindowTimer1.msg), RxWindowTimer1.pid);
+        xtimer_set_msg(&(RxWindowTimer1.dev), xtimer_ticks_from_usec(RxWindow1Delay*1000-4000).ticks32, &(RxWindowTimer1.msg), RxWindowTimer1.pid);
         //TimerSetValue( &RxWindowTimer1, RxWindow1Delay, LORAWAN_TIMER_RX_WINDOW1);
         //TimerStart( &RxWindowTimer1, 0 );
         if( LoRaMacDeviceClass != CLASS_C )
