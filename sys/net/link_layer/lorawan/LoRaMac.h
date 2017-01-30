@@ -1358,7 +1358,7 @@ typedef struct sLoRaMacPrimitives
      *
      * \param   [OUT] MLME-Confirm parameters
      */
-    void ( *MacMlmeConfirm )( MlmeConfirm_t *MlmeConfirm );
+    void ( *MacMlmeConfirm )( mlme_confirm_t *MlmeConfirm );
 }LoRaMacPrimitives_t;
 
 

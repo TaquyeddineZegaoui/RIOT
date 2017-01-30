@@ -97,7 +97,7 @@ static void McpsIndication( McpsIndication_t *mcpsIndication )
  * \param   [IN] mlmeConfirm - Pointer to the confirm structure,
  *               containing confirm attributes.
  */
-static void MlmeConfirm( MlmeConfirm_t *mlmeConfirm )
+static void MlmeConfirm( mlme_confirm_t *mlmeConfirm )
 {
     if( mlmeConfirm->Status == LORAMAC_EVENT_INFO_STATUS_OK )
     {

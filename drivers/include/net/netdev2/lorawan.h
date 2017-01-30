@@ -60,14 +60,14 @@ typedef enum eLoRaMacEventInfoStatus
 /*!
  * LoRaMAC MLME-Confirm primitive
  */
-typedef struct sMlmeConfirm
+typedef struct mlme_confirm
 {
     Mlme_t MlmeRequest;
     LoRaMacEventInfoStatus_t Status;
     TimerTime_t TxTimeOnAir;
     uint8_t DemodMargin;
     uint8_t NbGateways;
-}MlmeConfirm_t;
+} mlme_confirm_t;
 
 
 typedef struct lorawan_tx_rx_config
@@ -95,6 +95,8 @@ typedef struct {
     uint8_t *dev_eui;
     uint8_t *app_key;
     uint8_t *app_eui;
+    mlme_confirm_t mlme_confirm;
+
 } netdev2_lorawan_t;
 
 /**
