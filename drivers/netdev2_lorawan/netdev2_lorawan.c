@@ -29,6 +29,7 @@
 
 extern LoRaMacStatus_t join_request(void);
 extern LoRaMacStatus_t link_check(void);
+extern void lorawan_set_class(netdev2_lorawan_t *dev, int class);
 
 int netdev2_lorawan_get(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_t max_len)
 {
@@ -88,6 +89,9 @@ int netdev2_lorawan_set(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_
         case NETOPT_LORAWAN_APP_KEY:
             dev->app_key = (uint8_t*) value;
             return sizeof(uint8_t*);
+        case NETOPT_LORAWAN_CLASS:
+            lorawan_set_class(dev, *((int*) value));
+            return sizeof(int);
         default:
             break;
     }

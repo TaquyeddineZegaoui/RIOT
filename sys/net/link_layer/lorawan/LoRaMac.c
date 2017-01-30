@@ -3236,11 +3236,6 @@ LoRaMacStatus_t LoRaMacMibGetRequestConfirm( MibRequestConfirm_t *mibGet )
 
     switch( mibGet->Type )
     {
-        case MIB_DEVICE_CLASS:
-        {
-            mibGet->Param.Class = dev->LoRaMacDeviceClass;
-            break;
-        }
         case MIB_NETWORK_JOINED:
         {
             mibGet->Param.IsNetworkJoined = dev->lorawan.tx_rx.nwk_status;
@@ -3339,11 +3334,37 @@ LoRaMacStatus_t LoRaMacMibGetRequestConfirm( MibRequestConfirm_t *mibGet )
     return status;
 }
 
+void lorawan_set_class(netdev2_lorawan_t *dev, int class)
+{
+    netdev2_t *netdev = (netdev2_t*) dev;
+    netopt_state_t state = NETOPT_STATE_SLEEP;
+    dev->LoRaMacDeviceClass = class;
+    switch(class)
+    {
+        case CLASS_A:
+        {
+            // Set the radio into sleep to setup a defined state
+            netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
+            break;
+        }
+        case CLASS_B:
+        {
+            break;
+        }
+        case CLASS_C:
+        {
+            // Set the dev->NodeAckRequested indicator to default
+            dev->NodeAckRequested = false;
+            /* Currently there's no netdev pointer here... it should be fixed later. Let's put an assert for now */
+            assert(false);
+            //OnRxWindow2TimerEvent(netdev);
+            break;
+        }
+    }
+}
 LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
 {
     LoRaMacStatus_t status = LORAMAC_STATUS_OK;
-    netdev2_t *netdev = (netdev2_t*) dev;
-    netopt_state_t state = NETOPT_STATE_SLEEP;
 
     if( mibSet == NULL )
     {
@@ -3356,33 +3377,6 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
 
     switch( mibSet->Type )
     {
-        case MIB_DEVICE_CLASS:
-        {
-            dev->LoRaMacDeviceClass = mibSet->Param.Class;
-            switch( dev->LoRaMacDeviceClass )
-            {
-                case CLASS_A:
-                {
-                    // Set the radio into sleep to setup a defined state
-                    netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
-                    break;
-                }
-                case CLASS_B:
-                {
-                    break;
-                }
-                case CLASS_C:
-                {
-                    // Set the dev->NodeAckRequested indicator to default
-                    dev->NodeAckRequested = false;
-                    /* Currently there's no netdev pointer here... it should be fixed later. Let's put an assert for now */
-                    assert(false);
-                    //OnRxWindow2TimerEvent(netdev);
-                    break;
-                }
-            }
-            break;
-        }
         case MIB_NETWORK_JOINED:
         {
             dev->lorawan.tx_rx.nwk_status = mibSet->Param.IsNetworkJoined;

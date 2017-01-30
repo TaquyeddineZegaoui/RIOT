@@ -487,12 +487,6 @@ typedef union uLoRaMacFrameCtrl
 typedef enum eMib
 {
     /*!
-     * LoRaWAN device class
-     *
-     * LoRaWAN Specification V1.0.1
-     */
-    MIB_DEVICE_CLASS,
-    /*!
      * LoRaWAN Network joined attribute
      *
      * LoRaWAN Specification V1.0.1

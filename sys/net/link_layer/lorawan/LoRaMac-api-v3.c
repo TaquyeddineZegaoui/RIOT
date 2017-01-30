@@ -251,15 +251,6 @@ uint8_t LoRaMacSendConfirmedFrame( uint8_t fPort, void *fBuffer, uint16_t fBuffe
 }
 
 
-void LoRaMacSetDeviceClass( DeviceClass_t deviceClass )
-{
-    MibRequestConfirm_t mibSet;
-
-    mibSet.Type = MIB_DEVICE_CLASS;
-    mibSet.Param.Class = deviceClass;
-
-    LoRaMacMibSetRequestConfirm( &mibSet );
-}
 
 void LoRaMacSetPublicNetwork( bool enable )
 {
