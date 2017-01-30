@@ -96,6 +96,7 @@ typedef struct {
     uint8_t *app_key;
     uint8_t *app_eui;
     mlme_confirm_t mlme_confirm;
+    uint16_t dev_nonce;
 
 } netdev2_lorawan_t;
 

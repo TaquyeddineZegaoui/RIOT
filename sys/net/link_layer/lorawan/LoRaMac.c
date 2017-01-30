@@ -107,11 +107,6 @@ typedef enum
 }RadioState_t;
 static netdev2_lorawan_t *dev;
 
-/*!
- * Device nonce is a random value extracted by issuing a sequence of RSSI
- * measurements
- */
-static uint16_t LoRaMacDevNonce;
 
 /*!
  * Multicast channels linked list
@@ -972,7 +967,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
 
             if( micRx == mic )
             {
-                LoRaMacJoinComputeSKeys( dev->app_key, LoRaMacRxPayload + 1, LoRaMacDevNonce, dev->lorawan.nwk_skey, dev->lorawan.nwk_skey );
+                LoRaMacJoinComputeSKeys( dev->app_key, LoRaMacRxPayload + 1, dev->dev_nonce, dev->lorawan.nwk_skey, dev->lorawan.nwk_skey );
 
                 dev->lorawan.net_id = ( uint32_t )LoRaMacRxPayload[4];
                 dev->lorawan.net_id |= ( ( uint32_t )LoRaMacRxPayload[5] << 8 );
@@ -1439,7 +1434,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
 
                             /* In case of a join request retransmission, the stack must prepare
                              * the frame again, because the network server keeps track of the random
-                             * LoRaMacDevNonce values to prevent reply attacks. */
+                             * dev->dev_nonce values to prevent reply attacks. */
                             PrepareFrame( &macHdr, &fCtrl, 0, NULL, 0 );
                             /* End of*/
                         }
@@ -1573,7 +1568,7 @@ void OnTxDelayedTimerEvent(netdev2_t *netdev)
 
         /* In case of a join request retransmission, the stack must prepare
          * the frame again, because the network server keeps track of the random
-         * LoRaMacDevNonce values to prevent reply attacks. */
+         * dev->dev_nonce values to prevent reply attacks. */
         PrepareFrame( &macHdr, &fCtrl, 0, NULL, 0 );
     }
 
@@ -2992,10 +2987,10 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
             LoRaMacBufferPktLen += 8;
 
             netdev->driver->get(netdev, NETOPT_LORA_RANDOM, &random, sizeof(uint32_t));
-            LoRaMacDevNonce = random;
+            dev->dev_nonce = random;
 
-            LoRaMacBuffer[LoRaMacBufferPktLen++] = LoRaMacDevNonce & 0xFF;
-            LoRaMacBuffer[LoRaMacBufferPktLen++] = ( LoRaMacDevNonce >> 8 ) & 0xFF;
+            LoRaMacBuffer[LoRaMacBufferPktLen++] = dev->dev_nonce & 0xFF;
+            LoRaMacBuffer[LoRaMacBufferPktLen++] = ( dev->dev_nonce >> 8 ) & 0xFF;
 
             LoRaMacJoinComputeMic( LoRaMacBuffer, LoRaMacBufferPktLen & 0xFF, dev->app_key, &mic );
 
