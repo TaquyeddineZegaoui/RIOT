@@ -97,6 +97,10 @@ int netdev2_lorawan_set(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_
         case NETOPT_LORAWAN_PUBLIC:
             sw = *((bool*) value) ? 0x34 : 0x12;
             netdev->driver->set(netdev, NETOPT_LORA_SYNCWORD, &sw, sizeof(uint8_t));
+            return sizeof(bool);
+        case NETOPT_LORAWAN_DUTY_CYCLE:
+            dev->DutyCycleOn = *((bool*) value);
+            return sizeof(bool);
         default:
             break;
     }

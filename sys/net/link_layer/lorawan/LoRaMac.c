@@ -3925,8 +3925,3 @@ void LoRaMacTestSetMic( uint16_t txPacketCounter )
     dev->IsUpLinkCounterFixed = true;
 }
 
-void LoRaMacTestSetDutyCycleOn( bool enable )
-{
-    dev->DutyCycleOn = enable;
-}
-
