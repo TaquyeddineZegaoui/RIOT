@@ -1454,21 +1454,6 @@ typedef struct sLoRaMacPrimitives
     void ( *MacMlmeConfirm )( MlmeConfirm_t *MlmeConfirm );
 }LoRaMacPrimitives_t;
 
-typedef struct sLoRaMacCallback
-{
-    /*!
-     * \brief   Measures the battery level
-     *
-     * \retval  Battery level [0: node is connected to an external
-     *          power source, 1..254: battery level, where 1 is the minimum
-     *          and 254 is the maximum value, 255: the node was not able
-     *          to measure the battery level]
-     */
-    uint8_t ( *GetBatteryLevel )( void );
-}LoRaMacCallback_t;
-
-
-
 
 /*!
  * \brief   LoRaMAC layer initialization
@@ -1489,7 +1474,7 @@ typedef struct sLoRaMacCallback
  *          \ref LORAMAC_STATUS_OK,
  *          \ref LORAMAC_STATUS_PARAMETER_INVALID.
  */
-LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacCallback_t *callbacks , kernel_pid_t mac_pid);
+LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, kernel_pid_t mac_pid);
 
 /*!
  * \brief   Queries the LoRaMAC if it is possible to send the next frame with

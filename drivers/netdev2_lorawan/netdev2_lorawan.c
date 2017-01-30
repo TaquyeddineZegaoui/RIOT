@@ -53,9 +53,6 @@ int netdev2_lorawan_set(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_
         {
             assert(value_len == sizeof(uint32_t));
             uint32_t dev_addr = *((uint32_t *)value);
-            /* real validity needs to be checked by device, since sub-GHz and
-             * 2.4 GHz band radios have different legal values. Here we only
-             * check that it fits in an 8-bit variabl*/
             assert(dev_addr <= UINT32_MAX);
             dev->lorawan.dev_addr = dev_addr;
             return sizeof(uint16_t);
@@ -66,7 +63,7 @@ int netdev2_lorawan_set(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_
             memcpy(dev->lorawan.nwk_skey, value, value_len);
             return sizeof(uint16_t);
         }
-        case NETOPT_LORAWAN_NWK_AKEY:
+        case NETOPT_LORAWAN_APP_SKEY:
         {
             assert(value_len == KEY_SIZE);
             memcpy(dev->lorawan.app_skey, value, value_len);
@@ -76,13 +73,12 @@ int netdev2_lorawan_set(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_
         {
             assert(value_len == sizeof(uint32_t));
             uint32_t net_id = *((uint32_t *)value);
-            /* real validity needs to be checked by device, since sub-GHz and
-             * 2.4 GHz band radios have different legal values. Here we only
-             * check that it fits in an 8-bit variabl*/
             assert(net_id <= UINT32_MAX);
             dev->lorawan.net_id  = net_id ;
             return sizeof(uint16_t);
         }
+        case NETOPT_LORAWAN_ADR:
+            dev->lorawan.tx_rx.adr_ctrl = *(uint8_t *) value;
         case NETOPT_LORAWAN_DEV_EUI:
             dev->dev_eui = (uint8_t*) value;
             return sizeof(uint8_t*);

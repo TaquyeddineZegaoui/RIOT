@@ -124,11 +124,6 @@ static MulticastParams_t *MulticastChannels = NULL;
 static DeviceClass_t LoRaMacDeviceClass;
 
 /*!
- * Indicates if the node is connected to a private or public network
- */
-static bool PublicNetwork;
-
-/*!
  * Indicates if the node supports repeaters
  */
 static bool RepeaterSupport;
@@ -171,16 +166,6 @@ static bool IsUpLinkCounterFixed = false;
  * Used for test purposes. Disables the opening of the reception windows.
  */
 static bool IsRxWindowsEnabled = true;
-
-/*!
- * Indicates if the MAC layer has already joined a network.
- */
-static bool IsLoRaMacNetworkJoined = false;
-
-/*!
- * LoRaMac ADR control status
- */
-static bool AdrCtrlOn = false;
 
 /*!
  * Counts the number of missed ADR acknowledgements
@@ -484,11 +469,6 @@ static TimerEvent_t MacStateCheckTimer;
  * LoRaMac upper layer event functions
  */
 static LoRaMacPrimitives_t *LoRaMacPrimitives;
-
-/*!
- * LoRaMac upper layer callback functions
- */
-static LoRaMacCallback_t *LoRaMacCallbacks;
 
 /*!
  * LoRaMac duty cycle delayed Tx timer
@@ -980,7 +960,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
     switch( macHdr.Bits.MType )
     {
         case FRAME_TYPE_JOIN_ACCEPT:
-            if( IsLoRaMacNetworkJoined == true )
+            if( dev->lorawan.tx_rx.nwk_status == true )
             {
                 break;
             }
@@ -1047,7 +1027,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 }
 #endif
                 MlmeConfirm.Status = LORAMAC_EVENT_INFO_STATUS_OK;
-                IsLoRaMacNetworkJoined = true;
+                dev->lorawan.tx_rx.nwk_status = true;
                 LoRaMacParams.ChannelsDatarate = LoRaMacParamsDefaults.ChannelsDatarate;
             }
             else
@@ -1451,7 +1431,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
                     LoRaMacFlags.Bits.MacDone = 0;
                     #if defined HACK_OTA
                         /* Hack so retransmited package is re-built*/
-                        if(IsLoRaMacNetworkJoined == false)
+                        if(dev->lorawan.tx_rx.nwk_status == false)
                         {
                             LoRaMacHeader_t macHdr;
                             LoRaMacFrameCtrl_t fCtrl;
@@ -1460,7 +1440,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
                             macHdr.Bits.MType = FRAME_TYPE_JOIN_REQ;
 
                             fCtrl.Value = 0;
-                            fCtrl.Bits.Adr = AdrCtrlOn;
+                            fCtrl.Bits.Adr = dev->lorawan.tx_rx.adr_ctrl;
 
                             /* In case of a join request retransmission, the stack must prepare
                              * the frame again, because the network server keeps track of the random
@@ -1594,7 +1574,7 @@ void OnTxDelayedTimerEvent(netdev2_t *netdev)
         macHdr.Bits.MType = FRAME_TYPE_JOIN_REQ;
 
         fCtrl.Value = 0;
-        fCtrl.Bits.Adr = AdrCtrlOn;
+        fCtrl.Bits.Adr = dev->lorawan.tx_rx.adr_ctrl;
 
         /* In case of a join request retransmission, the stack must prepare
          * the frame again, because the network server keeps track of the random
@@ -1849,7 +1829,7 @@ static bool SetNextChannel( TimerTime_t* time )
                         continue;
                     }
 #if defined( USE_BAND_868 ) || defined( USE_BAND_433 ) || defined( USE_BAND_780 )
-                    if( IsLoRaMacNetworkJoined == false )
+                    if( dev->lorawan.tx_rx.nwk_status == false )
                     {
                         if( ( JOIN_CHANNELS & ( 1 << j ) ) == 0 )
                         {
@@ -1907,11 +1887,11 @@ static bool SetNextChannel( TimerTime_t* time )
 static void SetPublicNetwork( bool enable )
 {
     netdev2_t *netdev = (netdev2_t*) dev;
-    PublicNetwork = enable;
+    dev->lorawan.public = enable;
     netopt_enable_t lm = NETOPT_ENABLE;
     netdev->driver->set(netdev, NETOPT_LORA_MODE, &lm, sizeof(netopt_enable_t));
     uint8_t sw;
-    if( PublicNetwork == true )
+    if( dev->lorawan.public == true )
     {
         // Change LoRa modem SyncWord
         sw = LORA_MAC_PUBLIC_SYNCWORD;
@@ -2004,7 +1984,7 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
 
         #if defined HACK_OTA
             /* Hack Begin*/
-            if(IsLoRaMacNetworkJoined == false)
+            if(dev->lorawan.tx_rx.nwk_status == false)
             {
                 (void) timeout;
                 _set_rx_config( modem, bandwidth, downlinkDatarate, 1, 0, 8, 128, false, 0, false, 0, 0, true, rxContinuous );
@@ -2455,7 +2435,7 @@ static void ProcessMacCommands( uint8_t *payload, uint8_t macIndex, uint8_t comm
                     txPower = datarate & 0x0F;
                     datarate = ( datarate >> 4 ) & 0x0F;
 
-                    if( ( AdrCtrlOn == false ) &&
+                    if( ( dev->lorawan.tx_rx.adr_ctrl == false ) &&
                         ( ( LoRaMacParams.ChannelsDatarate != datarate ) || ( LoRaMacParams.ChannelsTxPower != txPower ) ) )
                     { // ADR disabled don't handle ADR requests if server tries to change datarate or txpower
                         // Answer the server with fail status
@@ -2644,16 +2624,6 @@ static void ProcessMacCommands( uint8_t *payload, uint8_t macIndex, uint8_t comm
                     AddMacCommand( MOTE_MAC_RX_PARAM_SETUP_ANS, status, 0 );
                 }
                 break;
-            case SRV_MAC_DEV_STATUS_REQ:
-                {
-                    uint8_t batteryLevel = BAT_LEVEL_NO_MEASURE;
-                    if( ( LoRaMacCallbacks != NULL ) && ( LoRaMacCallbacks->GetBatteryLevel != NULL ) )
-                    {
-                        batteryLevel = LoRaMacCallbacks->GetBatteryLevel( );
-                    }
-                    AddMacCommand( MOTE_MAC_DEV_STATUS_ANS, batteryLevel, snr );
-                    break;
-                }
             case SRV_MAC_NEW_CHANNEL_REQ:
                 {
                     uint8_t status = 0x03;
@@ -2752,7 +2722,7 @@ LoRaMacStatus_t Send( LoRaMacHeader_t *macHdr, uint8_t fPort, void *fBuffer, uin
     fCtrl.Bits.FPending      = 0;
     fCtrl.Bits.Ack           = false;
     fCtrl.Bits.AdrAckReq     = false;
-    fCtrl.Bits.Adr           = AdrCtrlOn;
+    fCtrl.Bits.Adr           = dev->lorawan.tx_rx.adr_ctrl;
 
     // Prepare the frame
     status = PrepareFrame( macHdr, &fCtrl, fPort, fBuffer, fBufferSize );
@@ -2849,7 +2819,7 @@ static void CalculateBackOff( uint8_t channel )
     uint16_t joinDutyCycle = 0;
     bool rndTimeOff = false;
 
-    if( IsLoRaMacNetworkJoined == false )
+    if( dev->lorawan.tx_rx.nwk_status == false )
     {
         joinDutyCycle = RetransmissionDutyCylce( );
         dutyCycle = MAX( dutyCycle, joinDutyCycle );
@@ -2933,7 +2903,7 @@ static int8_t AlternateDatarate( uint16_t nbTrials )
 
 static void ResetMacParameters( void )
 {
-    IsLoRaMacNetworkJoined = false;
+    dev->lorawan.tx_rx.nwk_status = false;
 
     // Counters
     UpLinkCounter = 1;
@@ -3044,7 +3014,7 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
             NodeAckRequested = true;
             //Intentional falltrough
         case FRAME_TYPE_DATA_UNCONFIRMED_UP:
-            if( IsLoRaMacNetworkJoined == false )
+            if( dev->lorawan.tx_rx.nwk_status == false )
             {
                 return LORAMAC_STATUS_NO_NETWORK_JOINED; // No network has been joined yet
             }
@@ -3288,7 +3258,7 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     return LORAMAC_STATUS_OK;
 }
 
-LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacCallback_t *callbacks, kernel_pid_t mac_pid)
+LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, kernel_pid_t mac_pid)
 {
     if( primitives == NULL )
     {
@@ -3303,7 +3273,6 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacC
     }
 
     LoRaMacPrimitives = primitives;
-    LoRaMacCallbacks = callbacks;
 
     LoRaMacFlags.Value = 0;
 
@@ -3425,8 +3394,8 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, LoRaMacC
     netdev->driver->get(netdev, NETOPT_LORA_RANDOM, &random, sizeof(uint32_t));
     random_init(random);
 
-    PublicNetwork = true;
-    SetPublicNetwork( PublicNetwork );
+    dev->lorawan.public = true;
+    SetPublicNetwork( dev->lorawan.public );
     netopt_state_t state = NETOPT_STATE_SLEEP;
     netdev->driver->set(netdev, NETOPT_STATE, &state, sizeof(netopt_state_t));
 
@@ -3443,7 +3412,7 @@ LoRaMacStatus_t LoRaMacQueryTxPossible( uint8_t size, LoRaMacTxInfo_t* txInfo )
         return LORAMAC_STATUS_PARAMETER_INVALID;
     }
 
-    AdrNextDr( AdrCtrlOn, false, &datarate );
+    AdrNextDr( dev->lorawan.tx_rx.adr_ctrl, false, &datarate );
 
     if( RepeaterSupport == true )
     {
@@ -3494,17 +3463,12 @@ LoRaMacStatus_t LoRaMacMibGetRequestConfirm( MibRequestConfirm_t *mibGet )
         }
         case MIB_NETWORK_JOINED:
         {
-            mibGet->Param.IsNetworkJoined = IsLoRaMacNetworkJoined;
+            mibGet->Param.IsNetworkJoined = dev->lorawan.tx_rx.nwk_status;
             break;
         }
         case MIB_ADR:
         {
-            mibGet->Param.AdrEnable = AdrCtrlOn;
-            break;
-        }
-        case MIB_PUBLIC_NETWORK:
-        {
-            mibGet->Param.EnablePublicNetwork = PublicNetwork;
+            mibGet->Param.AdrEnable = dev->lorawan.tx_rx.adr_ctrl;
             break;
         }
         case MIB_REPEATER_SUPPORT:
@@ -3641,12 +3605,12 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
         }
         case MIB_NETWORK_JOINED:
         {
-            IsLoRaMacNetworkJoined = mibSet->Param.IsNetworkJoined;
+            dev->lorawan.tx_rx.nwk_status = mibSet->Param.IsNetworkJoined;
             break;
         }
         case MIB_ADR:
         {
-            AdrCtrlOn = mibSet->Param.AdrEnable;
+            dev->lorawan.tx_rx.adr_ctrl = mibSet->Param.AdrEnable;
             break;
         }
         case MIB_PUBLIC_NETWORK:
@@ -4154,7 +4118,7 @@ LoRaMacStatus_t LoRaMacMcpsRequest( McpsReq_t *mcpsRequest )
 
     if( readyToSend == true )
     {
-        if( AdrCtrlOn == false )
+        if( dev->lorawan.tx_rx.adr_ctrl == false )
         {
             if( ValueInRange( datarate, LORAMAC_TX_MIN_DATARATE, LORAMAC_TX_MAX_DATARATE ) == true )
             {
