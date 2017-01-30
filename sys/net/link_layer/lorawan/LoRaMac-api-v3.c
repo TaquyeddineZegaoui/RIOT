@@ -31,8 +31,7 @@ extern LoRaMacStatus_t Send( LoRaMacHeader_t *macHdr, uint8_t fPort,
 extern LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl,
                                      uint8_t fPort, void *fBuffer, uint16_t fBufferSize );
 extern LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel );
-extern uint32_t LoRaMacState;
-extern LoRaMacFlags_t LoRaMacFlags;
+extern netdev2_lorawan_t *get_dev_ptr(void);
 
 /*!
  * Static variables
@@ -50,6 +49,7 @@ static LoRaMacCallbacks_t LoRaMacCallbacks;
  */
 static void McpsConfirm( McpsConfirm_t *mcpsConfirm )
 {
+    netdev2_lorawan_t *netdev = get_dev_ptr();
     LoRaMacEventInfo.Status = mcpsConfirm->Status;
     LoRaMacEventFlags.Bits.Tx = 1;
 
@@ -57,7 +57,7 @@ static void McpsConfirm( McpsConfirm_t *mcpsConfirm )
     LoRaMacEventInfo.TxNbRetries = mcpsConfirm->NbRetries;
     LoRaMacEventInfo.TxAckReceived = mcpsConfirm->AckReceived;
 
-     if( ( LoRaMacFlags.Bits.McpsInd != 1 ) && ( LoRaMacFlags.Bits.MlmeReq != 1 ) )
+     if( ( netdev->LoRaMacFlags.Bits.McpsInd != 1 ) && ( netdev->LoRaMacFlags.Bits.MlmeReq != 1 ) )
     {
         LoRaMacCallbacks.MacEvent( &LoRaMacEventFlags, &LoRaMacEventInfo );
         LoRaMacEventFlags.Value = 0;
@@ -127,7 +127,8 @@ static void MlmeConfirm( mlme_confirm_t *mlmeConfirm )
     }
     LoRaMacEventInfo.Status = mlmeConfirm->Status;
 
-    if( LoRaMacFlags.Bits.McpsInd != 1 )
+    netdev2_lorawan_t *netdev = get_dev_ptr();
+    if( netdev->LoRaMacFlags.Bits.McpsInd != 1 )
     {
         LoRaMacCallbacks.MacEvent( &LoRaMacEventFlags, &LoRaMacEventInfo );
         LoRaMacEventFlags.Value = 0;
@@ -328,7 +329,8 @@ uint8_t LoRaMacSendOnChannel( ChannelParams_t channel, LoRaMacHeader_t *macHdr, 
 {
     uint8_t status = 0;
 
-    if( ( LoRaMacState & 0x00000001 ) == 0x00000001 )
+    netdev2_lorawan_t *netdev = get_dev_ptr();
+    if( ( netdev->LoRaMacState & 0x00000001 ) == 0x00000001 )
     {
         return 1; // MAC is busy transmitting a previous frame
     }

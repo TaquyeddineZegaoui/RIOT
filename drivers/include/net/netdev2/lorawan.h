@@ -25,6 +25,7 @@
 #include "net/netdev2.h"
 #include "net/netopt.h"
 #include "net/lorawan/timer.h"
+#include "LoRaMac-definitions.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,6 +33,8 @@ extern "C" {
 
 #define KEY_SIZE		16	
 
+#define LORAMAC_PHY_MAXPAYLOAD                      255
+#define LORA_MAC_COMMAND_MAX_LENGTH                 15
 
 
 typedef enum eMlme
@@ -69,6 +72,26 @@ typedef struct mlme_confirm
     uint8_t NbGateways;
 } mlme_confirm_t;
 
+/*!
+ * LoRaMAC channels parameters definition
+ */
+typedef union uDrRange
+{
+    int8_t Value;
+    struct sFields
+    {
+        int8_t Min : 4;
+        int8_t Max : 4;
+    }Fields;
+}DrRange_t;
+
+typedef struct sChannelParams
+{
+    uint32_t Frequency;
+    DrRange_t DrRange;
+    uint8_t Band;
+}ChannelParams_t;
+
 
 typedef struct lorawan_tx_rx_config
 {
@@ -89,6 +112,136 @@ typedef struct lorawan_sesion
 	lorawan_tx_rx_config_t tx_rx;              /* Transreception session info*/
 }lorawan_sesion_t;
 
+typedef struct sMulticastParams
+{
+    uint32_t Address;
+    uint8_t NwkSKey[16];
+    uint8_t AppSKey[16];
+    uint32_t DownLinkCounter;
+    struct sMulticastParams *Next;
+}MulticastParams_t;
+
+typedef enum eDeviceClass
+{
+    CLASS_A,
+    CLASS_B,
+    CLASS_C,
+}DeviceClass_t;
+
+typedef struct sRx2ChannelParams
+{
+    uint32_t Frequency;
+    uint8_t  Datarate;
+}Rx2ChannelParams_t;
+
+typedef struct sLoRaMacParams
+{
+    int8_t ChannelsTxPower;
+    int8_t ChannelsDatarate;
+    uint32_t MaxRxWindow;
+    uint32_t ReceiveDelay1;
+    uint32_t ReceiveDelay2;
+    uint32_t JoinAcceptDelay1;
+    uint32_t JoinAcceptDelay2;
+    uint8_t ChannelsNbRep;
+    uint8_t Rx1DrOffset;
+    Rx2ChannelParams_t Rx2Channel;
+    uint16_t ChannelsMask[6];
+}LoRaMacParams_t;
+
+
+typedef enum eMcps
+{
+    MCPS_UNCONFIRMED,
+    MCPS_CONFIRMED,
+    MCPS_MULTICAST,
+    MCPS_PROPRIETARY,
+}Mcps_t;
+
+typedef struct sMcpsReqUnconfirmed
+{
+    uint8_t fPort;
+    void *fBuffer;
+    uint16_t fBufferSize;
+    int8_t Datarate;
+}McpsReqUnconfirmed_t;
+
+typedef struct sMcpsReqConfirmed
+{
+    uint8_t fPort;
+    void *fBuffer;
+    uint16_t fBufferSize;
+    int8_t Datarate;
+    uint8_t NbTrials;
+}McpsReqConfirmed_t;
+
+typedef struct sMcpsReqProprietary
+{
+    void *fBuffer;
+    uint16_t fBufferSize;
+    int8_t Datarate;
+}McpsReqProprietary_t;
+
+typedef struct sMcpsReq
+{
+    Mcps_t Type;
+    union uMcpsParam
+    {
+        McpsReqUnconfirmed_t Unconfirmed;
+        McpsReqConfirmed_t Confirmed;
+        McpsReqProprietary_t Proprietary;
+    }Req;
+}McpsReq_t;
+
+typedef struct sMcpsConfirm
+{
+    Mcps_t McpsRequest;
+    LoRaMacEventInfoStatus_t Status;
+    uint8_t Datarate;
+    int8_t TxPower;
+    bool AckReceived;
+    uint8_t NbRetries;
+    TimerTime_t TxTimeOnAir;
+    uint32_t UpLinkCounter;
+}McpsConfirm_t;
+
+typedef struct sMcpsIndication
+{
+    Mcps_t McpsIndication;
+    LoRaMacEventInfoStatus_t Status;
+    uint8_t Multicast;
+    uint8_t Port;
+    uint8_t RxDatarate;
+    uint8_t FramePending;
+    uint8_t *Buffer;
+    uint8_t BufferSize;
+    bool RxData;
+    int16_t Rssi;
+    uint8_t Snr;
+    uint8_t RxSlot;
+    bool AckReceived;
+    uint32_t DownLinkCounter;
+}McpsIndication_t;
+
+typedef struct sLoRaMacPrimitives
+{
+    void ( *MacMcpsConfirm )( McpsConfirm_t *McpsConfirm );
+    void ( *MacMcpsIndication )( McpsIndication_t *McpsIndication );
+    void ( *MacMlmeConfirm )( mlme_confirm_t *MlmeConfirm );
+}LoRaMacPrimitives_t;
+
+typedef union eLoRaMacFlags_t
+{
+    uint8_t Value;
+    struct sMacFlagBits
+    {
+        uint8_t McpsReq         : 1;
+        uint8_t McpsInd         : 1;
+        uint8_t MlmeReq         : 1;
+        uint8_t MacDone         : 1;
+    }Bits;
+}LoRaMacFlags_t;
+
 typedef struct {
     netdev2_t netdev;                       /**< @ref netdev2_t base class */
     lorawan_sesion_t lorawan;
@@ -97,7 +250,54 @@ typedef struct {
     uint8_t *app_eui;
     mlme_confirm_t mlme_confirm;
     uint16_t dev_nonce;
-
+    MulticastParams_t *MulticastChannels;
+    DeviceClass_t LoRaMacDeviceClass;
+    bool RepeaterSupport;
+    uint8_t LoRaMacBuffer[LORAMAC_PHY_MAXPAYLOAD];
+    uint16_t LoRaMacBufferPktLen;
+    uint8_t LoRaMacPayload[LORAMAC_PHY_MAXPAYLOAD];
+    uint8_t LoRaMacRxPayload[LORAMAC_PHY_MAXPAYLOAD];
+    uint32_t UpLinkCounter;
+    uint32_t DownLinkCounter;
+    bool IsUpLinkCounterFixed;
+    bool IsRxWindowsEnabled;
+    uint32_t AdrAckCounter;
+    bool NodeAckRequested;
+    bool SrvAckRequested;
+    bool MacCommandsInNextTx;
+    uint8_t MacCommandsBufferIndex;
+    uint8_t MacCommandsBufferToRepeatIndex;
+    uint8_t MacCommandsBuffer[LORA_MAC_COMMAND_MAX_LENGTH];
+    uint8_t MacCommandsBufferToRepeat[LORA_MAC_COMMAND_MAX_LENGTH];
+    uint16_t ChannelsMaskRemaining[6];
+    LoRaMacParams_t LoRaMacParams;
+    LoRaMacParams_t LoRaMacParamsDefaults;
+    uint8_t ChannelsNbRepCounter;
+    uint8_t MaxDCycle;
+    uint16_t AggregatedDCycle;
+    TimerTime_t AggregatedLastTxDoneTime;
+    TimerTime_t AggregatedTimeOff;
+    bool DutyCycleOn;
+    uint8_t Channel;
+    uint8_t LastTxChannel;
+    uint32_t LoRaMacState;
+    TimerEvent_t MacStateCheckTimer;
+    LoRaMacPrimitives_t *LoRaMacPrimitives;
+    TimerEvent_t TxDelayedTimer;
+    TimerEvent_t RxWindowTimer1;
+    TimerEvent_t RxWindowTimer2;
+    uint32_t RxWindow1Delay;
+    uint32_t RxWindow2Delay;
+    TimerEvent_t AckTimeoutTimer;
+    uint8_t AckTimeoutRetries;
+    uint8_t AckTimeoutRetriesCounter;
+    bool AckTimeoutRetry;
+    TimerTime_t TxTimeOnAir;
+    uint16_t JoinRequestTrials;
+    McpsIndication_t McpsIndication;
+    McpsConfirm_t McpsConfirm;
+    LoRaMacFlags_t LoRaMacFlags;
+    uint8_t RxSlot;
 } netdev2_lorawan_t;
 
 /**
