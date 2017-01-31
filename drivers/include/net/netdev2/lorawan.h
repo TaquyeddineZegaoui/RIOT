@@ -193,7 +193,7 @@ typedef struct sMcpsIndication
     //uint8_t BufferSize;
     //bool RxData;
     //int16_t Rssi;
-    uint8_t Snr;
+    //uint8_t Snr;
     //uint8_t RxSlot;
     //bool AckReceived;
     //uint32_t DownLinkCounter;
@@ -290,6 +290,7 @@ typedef struct {
     uint8_t BufferSize;
     bool RxData;
     int16_t Rssi;
+    uint8_t Snr;
 } netdev2_lorawan_t;
 
 /**

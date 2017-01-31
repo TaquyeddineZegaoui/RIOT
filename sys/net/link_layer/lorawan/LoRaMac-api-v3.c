@@ -86,7 +86,7 @@ static void McpsIndication( McpsIndication_t *mcpsIndication )
     LoRaMacEventInfo.RxBuffer = netdev->Buffer;
     LoRaMacEventInfo.RxBufferSize = netdev->BufferSize;
     LoRaMacEventInfo.RxRssi = netdev->Rssi;
-    LoRaMacEventInfo.RxSnr = mcpsIndication->Snr;
+    LoRaMacEventInfo.RxSnr = netdev->Snr;
 
     LoRaMacCallbacks.MacEvent( &LoRaMacEventFlags, &LoRaMacEventInfo );
     LoRaMacEventFlags.Value = 0;

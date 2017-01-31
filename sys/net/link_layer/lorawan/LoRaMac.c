@@ -696,7 +696,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
     netopt_state_t state = NETOPT_STATE_SLEEP;
     dev->ack_received = false;
     dev->Rssi = rssi;
-    dev->McpsIndication.Snr = snr;
+    dev->Snr = snr;
     //dev->McpsIndication.RxSlot = dev->RxSlot;
     dev->Port = 0;
     dev->Multicast = 0;
