@@ -97,12 +97,13 @@ static void McpsIndication( McpsIndication_t *mcpsIndication )
  * \param   [IN] mlmeConfirm - Pointer to the confirm structure,
  *               containing confirm attributes.
  */
-static void MlmeConfirm( mlme_confirm_t *mlmeConfirm )
+
+void MlmeConfirm(uint8_t mlme_req)
 {
     netdev2_lorawan_t *netdev = get_dev_ptr();
     if( netdev->frame_status == LORAMAC_EVENT_INFO_STATUS_OK )
     {
-        switch( mlmeConfirm->MlmeRequest )
+        switch( mlme_req )
         {
             case MLME_JOIN:
             {

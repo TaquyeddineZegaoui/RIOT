@@ -65,7 +65,7 @@ typedef enum eLoRaMacEventInfoStatus
  */
 typedef struct mlme_confirm
 {
-    Mlme_t MlmeRequest;
+    //Mlme_t MlmeRequest;
     //LoRaMacEventInfoStatus_t Status;
     //TimerTime_t TxTimeOnAir;
     //uint8_t DemodMargin;
@@ -227,7 +227,7 @@ typedef struct sLoRaMacPrimitives
 {
     void ( *MacMcpsConfirm )( McpsConfirm_t *McpsConfirm );
     void ( *MacMcpsIndication )( McpsIndication_t *McpsIndication );
-    void ( *MacMlmeConfirm )( mlme_confirm_t *MlmeConfirm );
+    void ( *MacMlmeConfirm )(uint8_t mlme_req);
 }LoRaMacPrimitives_t;
 
 typedef union eLoRaMacFlags_t
@@ -301,6 +301,8 @@ typedef struct {
     uint8_t frame_status;
     uint8_t demod_margin;
     uint8_t number_of_gateways;
+    uint8_t last_command;
+    uint8_t last_frame;
 } netdev2_lorawan_t;
 
 /**

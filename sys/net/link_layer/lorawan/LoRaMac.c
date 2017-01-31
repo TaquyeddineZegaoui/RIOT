@@ -1164,7 +1164,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
         {
             if( dev->LoRaMacFlags.Bits.MlmeReq == 1 )
             {
-                if( dev->mlme_confirm.MlmeRequest == MLME_JOIN )
+                if( dev->last_frame == FRAME_TYPE_JOIN_REQ )
                 {
                     // Retransmit only if the answer is not OK
                     dev->ChannelsNbRepCounter = 0;
@@ -1302,7 +1302,11 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
 
         if( dev->LoRaMacFlags.Bits.MlmeReq == 1 )
         {
-            dev->LoRaMacPrimitives->MacMlmeConfirm( &dev->mlme_confirm );
+            if(dev->last_frame == FRAME_TYPE_JOIN_REQ)
+                dev->LoRaMacPrimitives->MacMlmeConfirm( MLME_JOIN );
+            else if (dev->last_command == MOTE_MAC_LINK_CHECK_REQ)
+                dev->LoRaMacPrimitives->MacMlmeConfirm(MLME_LINK_CHECK);
+
             dev->LoRaMacFlags.Bits.MlmeReq = 0;
         }
 
@@ -1333,7 +1337,7 @@ void OnTxDelayedTimerEvent(netdev2_t *netdev)
     xtimer_remove(&dev->TxDelayedTimer.dev);
     dev->LoRaMacState &= ~MAC_TX_DELAYED;
 
-    if( ( dev->LoRaMacFlags.Bits.MlmeReq == 1 ) && ( dev->mlme_confirm.MlmeRequest == MLME_JOIN ) )
+    if( ( dev->LoRaMacFlags.Bits.MlmeReq == 1 ) && ( dev->last_frame == FRAME_TYPE_JOIN_REQ ) )
     {
         macHdr.Value = 0;
         macHdr.Bits.MType = FRAME_TYPE_JOIN_REQ;
@@ -3772,8 +3776,8 @@ LoRaMacStatus_t join_request(void)
         return LORAMAC_STATUS_BUSY;
     }
 
-    dev->mlme_confirm.MlmeRequest = MLME_JOIN;
-
+    //dev->mlme_confirm.MlmeRequest = MLME_JOIN;
+    dev->last_frame = FRAME_TYPE_JOIN_REQ;
     dev->LoRaMacFlags.Bits.MlmeReq = 1;
 
     macHdr.Value = 0;
@@ -3810,7 +3814,8 @@ LoRaMacStatus_t link_check(void)
 
     dev->LoRaMacFlags.Bits.MlmeReq = 1;
     // LoRaMac will send this command piggy-pack
-    dev->mlme_confirm.MlmeRequest = MLME_LINK_CHECK;
+    //dev->mlme_confirm.MlmeRequest = MLME_LINK_CHECK;
+    dev->last_command = MOTE_MAC_LINK_CHECK_REQ;
 
     status = AddMacCommand( MOTE_MAC_LINK_CHECK_REQ, 0, 0 );
 
