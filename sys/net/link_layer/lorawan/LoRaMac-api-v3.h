@@ -360,14 +360,6 @@ void LoRaMacSetChannel( uint8_t id, ChannelParams_t params );
  */
 void LoRaMacSetChannelsTxPower( int8_t txPower );
 
-/*!
- * Sets channels datarate
- *
- * \param [IN] datarate eu868 - [DR_0, DR_1, DR_2, DR_3, DR_4, DR_5, DR_6, DR_7]
- *                      us915 - [DR_0, DR_1, DR_2, DR_3, DR_4]
- */
-void LoRaMacSetChannelsDatarate( int8_t datarate );
-
 /*
  * Wrapper function which calls \ref LoRaMacMibGetRequestConfirm to
  * get the up-link counter.

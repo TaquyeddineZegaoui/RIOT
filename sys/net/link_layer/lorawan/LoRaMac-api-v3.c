@@ -257,16 +257,6 @@ void LoRaMacSetChannel( uint8_t id, ChannelParams_t params )
 }
 
 
-void LoRaMacSetChannelsDatarate( int8_t datarate )
-{
-    MibRequestConfirm_t mibSet;
-
-    mibSet.Type = MIB_CHANNELS_DATARATE;
-    mibSet.Param.ChannelsDatarate = datarate;
-
-    LoRaMacMibSetRequestConfirm( &mibSet );
-}
-
 void LoRaMacSetChannelsTxPower( int8_t txPower )
 {
     MibRequestConfirm_t mibSet;

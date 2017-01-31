@@ -464,7 +464,7 @@ static int8_t LimitTxPower( int8_t txPower );
  *
  * \retval Returns the maximum valid tx power
  */
-static bool ValueInRange( int8_t value, int8_t min, int8_t max );
+bool ValueInRange( int8_t value, int8_t min, int8_t max );
 
 /*!
  * \brief Calculates the next datarate to set, when ADR is on or off
@@ -1946,7 +1946,7 @@ static int8_t LimitTxPower( int8_t txPower )
     return resultTxPower;
 }
 
-static bool ValueInRange( int8_t value, int8_t min, int8_t max )
+bool ValueInRange( int8_t value, int8_t min, int8_t max )
 {
     if( ( value >= min ) && ( value <= max ) )
     {
@@ -3441,19 +3441,6 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
                               LORAMAC_TX_MIN_DATARATE, LORAMAC_TX_MAX_DATARATE ) )
             {
                 dev->LoRaMacParamsDefaults.ChannelsDatarate = mibSet->Param.ChannelsDefaultDatarate;
-            }
-            else
-            {
-                status = LORAMAC_STATUS_PARAMETER_INVALID;
-            }
-            break;
-        }
-        case MIB_CHANNELS_DATARATE:
-        {
-            if( ValueInRange( mibSet->Param.ChannelsDatarate,
-                              LORAMAC_TX_MIN_DATARATE, LORAMAC_TX_MAX_DATARATE ) )
-            {
-                dev->LoRaMacParams.ChannelsDatarate = mibSet->Param.ChannelsDatarate;
             }
             else
             {

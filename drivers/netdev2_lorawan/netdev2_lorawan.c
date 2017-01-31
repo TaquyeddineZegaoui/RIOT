@@ -31,6 +31,7 @@ extern LoRaMacStatus_t join_request(void);
 extern LoRaMacStatus_t link_check(void);
 extern void lorawan_set_class(netdev2_lorawan_t *dev, int class);
 extern void _set_channel_mask(uint16_t *mask);
+extern bool ValueInRange( int8_t value, int8_t min, int8_t max );
 
 int netdev2_lorawan_get(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_t max_len)
 {
@@ -134,6 +135,13 @@ int netdev2_lorawan_set(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_
         case NETOPT_LORAWAN_JOIN_ACCEPT_DELAY2:
             dev->LoRaMacParams.JoinAcceptDelay2 = *((uint32_t*) value);
             return sizeof(uint32_t);
+        case NETOPT_LORAWAN_CHANNELS_DATARATE:
+            tmp = *((int8_t*) value);
+            if( ValueInRange( tmp, LORAMAC_TX_MIN_DATARATE, LORAMAC_TX_MAX_DATARATE ) )
+            {
+                dev->LoRaMacParams.ChannelsDatarate = tmp;
+            }
+            return sizeof(int8_t);
         default:
             break;
     }
