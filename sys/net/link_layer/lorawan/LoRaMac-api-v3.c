@@ -77,7 +77,7 @@ static void McpsIndication( McpsIndication_t *mcpsIndication )
     LoRaMacEventFlags.Bits.Rx = 1;
     LoRaMacEventFlags.Bits.RxSlot = netdev->RxSlot;
     LoRaMacEventFlags.Bits.Multicast = netdev->Multicast;
-    if( mcpsIndication->RxData == true )
+    if( netdev->RxData == true )
     {
         LoRaMacEventFlags.Bits.RxData = 1;
     }

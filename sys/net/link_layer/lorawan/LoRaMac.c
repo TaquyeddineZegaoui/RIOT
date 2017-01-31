@@ -703,7 +703,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
     dev->FramePending = 0;
     dev->Buffer = NULL;
     dev->BufferSize = 0;
-    dev->McpsIndication.RxData = false;
+    dev->RxData = false;
     dev->received_downlink = 0;
     dev->McpsIndication.McpsIndication = MCPS_UNCONFIRMED;
 
@@ -1005,7 +1005,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                             {
                                 dev->Buffer = dev->LoRaMacRxPayload;
                                 dev->BufferSize = frameLen;
-                                dev->McpsIndication.RxData = true;
+                                dev->RxData = true;
                             }
                         }
                     }
