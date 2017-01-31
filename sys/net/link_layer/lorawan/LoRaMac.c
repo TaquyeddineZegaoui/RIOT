@@ -737,7 +737,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
 
             if( micRx == mic )
             {
-                LoRaMacJoinComputeSKeys( dev->app_key, dev->LoRaMacRxPayload + 1, dev->dev_nonce, dev->lorawan.nwk_skey, dev->lorawan.nwk_skey );
+                LoRaMacJoinComputeSKeys( dev->app_key, dev->LoRaMacRxPayload + 1, dev->dev_nonce, dev->lorawan.nwk_skey, dev->lorawan.app_skey );
 
                 dev->lorawan.net_id = ( uint32_t )dev->LoRaMacRxPayload[4];
                 dev->lorawan.net_id |= ( ( uint32_t )dev->LoRaMacRxPayload[5] << 8 );
