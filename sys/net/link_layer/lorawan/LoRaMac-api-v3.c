@@ -72,7 +72,8 @@ static void McpsConfirm(void)
  */
 static void McpsIndication( McpsIndication_t *mcpsIndication )
 {
-    LoRaMacEventInfo.Status = mcpsIndication->Status;
+    netdev2_lorawan_t *netdev = get_dev_ptr();
+    LoRaMacEventInfo.Status = netdev->frame_status;
     LoRaMacEventFlags.Bits.Rx = 1;
     LoRaMacEventFlags.Bits.RxSlot = mcpsIndication->RxSlot;
     LoRaMacEventFlags.Bits.Multicast = mcpsIndication->Multicast;

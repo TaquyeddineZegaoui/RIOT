@@ -819,7 +819,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                     if( multicast == 0 )
                     {
                         // We are not the destination of this frame.
-                        dev->McpsIndication.Status = LORAMAC_EVENT_INFO_STATUS_ADDRESS_FAIL;
+                        dev->frame_status = LORAMAC_EVENT_INFO_STATUS_ADDRESS_FAIL;
                         PrepareRxDoneAbort(netdev);
                         return;
                     }
@@ -869,7 +869,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 // Check for a the maximum allowed counter difference
                 if( sequenceCounterDiff >= MAX_FCNT_GAP )
                 {
-                    dev->McpsIndication.Status = LORAMAC_EVENT_INFO_STATUS_DOWNLINK_TOO_MANY_FRAMES_LOSS;
+                    dev->frame_status = LORAMAC_EVENT_INFO_STATUS_DOWNLINK_TOO_MANY_FRAMES_LOSS;
                     dev->McpsIndication.DownLinkCounter = downLinkCounter;
                     PrepareRxDoneAbort(netdev);
                     return;
@@ -877,7 +877,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
 
                 if( isMicOk == true )
                 {
-                    dev->McpsIndication.Status = LORAMAC_EVENT_INFO_STATUS_OK;
+                    dev->frame_status = LORAMAC_EVENT_INFO_STATUS_OK;
                     dev->McpsIndication.Multicast = multicast;
                     dev->McpsIndication.FramePending = fCtrl.Bits.FPending;
                     dev->McpsIndication.Buffer = NULL;
@@ -897,7 +897,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                         if( ( curMulticastParams->DownLinkCounter == downLinkCounter ) &&
                             ( curMulticastParams->DownLinkCounter != 0 ) )
                         {
-                            dev->McpsIndication.Status = LORAMAC_EVENT_INFO_STATUS_DOWNLINK_REPEATED;
+                            dev->frame_status = LORAMAC_EVENT_INFO_STATUS_DOWNLINK_REPEATED;
                             dev->McpsIndication.DownLinkCounter = downLinkCounter;
                             PrepareRxDoneAbort(netdev);
                             return;
@@ -926,7 +926,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                             if( ( dev->DownLinkCounter == downLinkCounter ) &&
                                 ( dev->DownLinkCounter != 0 ) )
                             {
-                                dev->McpsIndication.Status = LORAMAC_EVENT_INFO_STATUS_DOWNLINK_REPEATED;
+                                dev->frame_status = LORAMAC_EVENT_INFO_STATUS_DOWNLINK_REPEATED;
                                 dev->McpsIndication.DownLinkCounter = downLinkCounter;
                                 PrepareRxDoneAbort(netdev);
                                 return;
@@ -1025,7 +1025,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 }
                 else
                 {
-                    dev->McpsIndication.Status = LORAMAC_EVENT_INFO_STATUS_MIC_FAIL;
+                    dev->frame_status = LORAMAC_EVENT_INFO_STATUS_MIC_FAIL;
 
                     PrepareRxDoneAbort(netdev);
                     return;
@@ -1037,7 +1037,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 memcpy( dev->LoRaMacRxPayload, &payload[pktHeaderLen], size );
 
                 dev->McpsIndication.McpsIndication = MCPS_PROPRIETARY;
-                dev->McpsIndication.Status = LORAMAC_EVENT_INFO_STATUS_OK;
+                dev->frame_status = LORAMAC_EVENT_INFO_STATUS_OK;
                 dev->McpsIndication.Buffer = dev->LoRaMacRxPayload;
                 dev->McpsIndication.BufferSize = size - pktHeaderLen;
 
@@ -1045,7 +1045,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 break;
             }
         default:
-            dev->McpsIndication.Status = LORAMAC_EVENT_INFO_STATUS_ERROR;
+            dev->frame_status = LORAMAC_EVENT_INFO_STATUS_ERROR;
             PrepareRxDoneAbort(netdev);
             break;
     }
