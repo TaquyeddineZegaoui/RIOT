@@ -3440,11 +3440,6 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
             dev->LoRaMacParams.MaxRxWindow = mibSet->Param.MaxRxWindow;
             break;
         }
-        case MIB_JOIN_ACCEPT_DELAY_1:
-        {
-            dev->LoRaMacParams.JoinAcceptDelay1 = mibSet->Param.JoinAcceptDelay1;
-            break;
-        }
         case MIB_JOIN_ACCEPT_DELAY_2:
         {
             dev->LoRaMacParams.JoinAcceptDelay2 = mibSet->Param.JoinAcceptDelay2;
