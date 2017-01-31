@@ -2947,7 +2947,7 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
 
     dev->frame_status = LORAMAC_EVENT_INFO_STATUS_ERROR;
     dev->McpsConfirm.Datarate = dev->LoRaMacParams.ChannelsDatarate;
-    dev->McpsConfirm.TxPower = txPowerIndex;
+    dev->tx_power = txPowerIndex;
 
     netdev->driver->set(netdev, NETOPT_CHANNEL, &channel.Frequency, sizeof(uint32_t));
     netopt_enable_t lm;
