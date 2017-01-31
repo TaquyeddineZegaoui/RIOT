@@ -256,16 +256,6 @@ void LoRaMacSetChannel( uint8_t id, ChannelParams_t params )
     LoRaMacChannelAdd( id, params );
 }
 
-void LoRaMacSetChannelsMask( uint16_t *mask )
-{
-    MibRequestConfirm_t mibSet;
-
-    mibSet.Type = MIB_CHANNELS_MASK;
-    mibSet.Param.ChannelsMask = mask;
-
-    LoRaMacMibSetRequestConfirm( &mibSet );
-}
-
 void LoRaMacSetChannelsNbRep( uint8_t nbRep )
 {
     MibRequestConfirm_t mibSet;

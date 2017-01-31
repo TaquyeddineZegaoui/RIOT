@@ -3368,6 +3368,43 @@ void lorawan_set_class(netdev2_lorawan_t *dev, int class)
         }
     }
 }
+void _set_channel_mask(uint16_t *mask)
+{
+    uint8_t status;
+    (void) status;
+#if defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
+    bool chanMaskState = true;
+
+#if defined( USE_BAND_915_HYBRID )
+    chanMaskState = ValidateChannelMask(mask);
+#endif
+    if( chanMaskState == true )
+    {
+        if( ( CountNbEnabled125kHzChannels(mask) < 6 ) &&
+            ( CountNbEnabled125kHzChannels(mask) > 0 ) )
+        {
+            status = LORAMAC_STATUS_PARAMETER_INVALID;
+        }
+        else
+        {
+            memcpy( ( uint8_t* ) dev->LoRaMacParams.ChannelsMask,
+                     ( uint8_t* ) mask, sizeof(mask) );
+            for ( uint8_t i = 0; i < sizeof( dev->LoRaMacParams.ChannelsMask ) / 2; i++ )
+            {
+                // Disable channels which are no longer available
+                dev->ChannelsMaskRemaining[i] &= dev->LoRaMacParams.ChannelsMask[i];
+            }
+        }
+    }
+    else
+    {
+        status = LORAMAC_STATUS_PARAMETER_INVALID;
+    }
+#else
+    memcpy( ( uint8_t* ) dev->LoRaMacParams.ChannelsMask,
+             ( uint8_t* ) mibSet->Param.ChannelsMask, 2 );
+#endif
+}
 LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
 {
     LoRaMacStatus_t status = LORAMAC_STATUS_OK;
@@ -3396,54 +3433,6 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
         case MIB_REPEATER_SUPPORT:
         {
              dev->RepeaterSupport = mibSet->Param.EnableRepeaterSupport;
-            break;
-        }
-        case MIB_RX2_CHANNEL:
-        {
-            dev->LoRaMacParams.Rx2Channel = mibSet->Param.Rx2Channel;
-            break;
-        }
-        case MIB_CHANNELS_MASK:
-        {
-            if( mibSet->Param.ChannelsMask )
-            {
-#if defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
-                bool chanMaskState = true;
-
-#if defined( USE_BAND_915_HYBRID )
-                chanMaskState = ValidateChannelMask( mibSet->Param.ChannelsMask );
-#endif
-                if( chanMaskState == true )
-                {
-                    if( ( CountNbEnabled125kHzChannels( mibSet->Param.ChannelsMask ) < 6 ) &&
-                        ( CountNbEnabled125kHzChannels( mibSet->Param.ChannelsMask ) > 0 ) )
-                    {
-                        status = LORAMAC_STATUS_PARAMETER_INVALID;
-                    }
-                    else
-                    {
-                        memcpy( ( uint8_t* ) dev->LoRaMacParams.ChannelsMask,
-                                 ( uint8_t* ) mibSet->Param.ChannelsMask, sizeof( dev->LoRaMacParams.ChannelsMask ) );
-                        for ( uint8_t i = 0; i < sizeof( dev->LoRaMacParams.ChannelsMask ) / 2; i++ )
-                        {
-                            // Disable channels which are no longer available
-                            dev->ChannelsMaskRemaining[i] &= dev->LoRaMacParams.ChannelsMask[i];
-                        }
-                    }
-                }
-                else
-                {
-                    status = LORAMAC_STATUS_PARAMETER_INVALID;
-                }
-#else
-                memcpy( ( uint8_t* ) dev->LoRaMacParams.ChannelsMask,
-                         ( uint8_t* ) mibSet->Param.ChannelsMask, 2 );
-#endif
-            }
-            else
-            {
-                status = LORAMAC_STATUS_PARAMETER_INVALID;
-            }
             break;
         }
         case MIB_CHANNELS_NB_REP:

@@ -30,6 +30,7 @@
 extern LoRaMacStatus_t join_request(void);
 extern LoRaMacStatus_t link_check(void);
 extern void lorawan_set_class(netdev2_lorawan_t *dev, int class);
+extern void _set_channel_mask(uint16_t *mask);
 
 int netdev2_lorawan_get(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_t max_len)
 {
@@ -104,6 +105,9 @@ int netdev2_lorawan_set(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_
         case NETOPT_LORAWAN_RX2_PARAMS:
             dev->LoRaMacParams.Rx2Channel = *((Rx2ChannelParams_t*) value);
             return sizeof(Rx2ChannelParams_t);
+        case NETOPT_LORAWAN_CHANNEL_MASK:
+            _set_channel_mask((uint16_t*) value); 
+            return sizeof(uint16_t*);
         default:
             break;
     }

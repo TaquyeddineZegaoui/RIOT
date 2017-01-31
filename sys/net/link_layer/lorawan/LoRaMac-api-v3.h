@@ -370,12 +370,6 @@ void LoRaMacSetChannelsDatarate( int8_t datarate );
 
 /*
  * Wrapper function which calls \ref LoRaMacMibSetRequestConfirm to
- * set the channels mask.
- */
-void LoRaMacSetChannelsMask( uint16_t *mask );
-
-/*
- * Wrapper function which calls \ref LoRaMacMibSetRequestConfirm to
  * set the number of repetitions on a channel.
  */
 void LoRaMacSetChannelsNbRep( uint8_t nbRep );
