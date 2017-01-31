@@ -701,7 +701,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
     dev->Port = 0;
     dev->Multicast = 0;
     dev->FramePending = 0;
-    dev->McpsIndication.Buffer = NULL;
+    dev->Buffer = NULL;
     dev->McpsIndication.BufferSize = 0;
     dev->McpsIndication.RxData = false;
     dev->received_downlink = 0;
@@ -880,7 +880,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                     dev->frame_status = LORAMAC_EVENT_INFO_STATUS_OK;
                     dev->Multicast = multicast;
                     dev->FramePending = fCtrl.Bits.FPending;
-                    dev->McpsIndication.Buffer = NULL;
+                    dev->Buffer = NULL;
                     dev->McpsIndication.BufferSize = 0;
                     dev->received_downlink = downLinkCounter;
 
@@ -1003,7 +1003,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
 
                             if( skipIndication == false )
                             {
-                                dev->McpsIndication.Buffer = dev->LoRaMacRxPayload;
+                                dev->Buffer = dev->LoRaMacRxPayload;
                                 dev->McpsIndication.BufferSize = frameLen;
                                 dev->McpsIndication.RxData = true;
                             }
@@ -1038,7 +1038,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
 
                 dev->McpsIndication.McpsIndication = MCPS_PROPRIETARY;
                 dev->frame_status = LORAMAC_EVENT_INFO_STATUS_OK;
-                dev->McpsIndication.Buffer = dev->LoRaMacRxPayload;
+                dev->Buffer = dev->LoRaMacRxPayload;
                 dev->McpsIndication.BufferSize = size - pktHeaderLen;
 
                 dev->LoRaMacFlags.Bits.McpsInd = 1;

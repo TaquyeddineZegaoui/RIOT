@@ -189,7 +189,7 @@ typedef struct sMcpsIndication
     //uint8_t Port;
     //uint8_t RxDatarate;
     //uint8_t FramePending;
-    uint8_t *Buffer;
+    //uint8_t *Buffer;
     uint8_t BufferSize;
     bool RxData;
     int16_t Rssi;
@@ -286,6 +286,7 @@ typedef struct {
     uint8_t Port;
     uint8_t RxDatarate;
     uint8_t FramePending;
+    uint8_t *Buffer;
 } netdev2_lorawan_t;
 
 /**
