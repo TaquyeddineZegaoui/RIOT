@@ -70,7 +70,7 @@ static void McpsConfirm(void)
  * \param   [IN] mcpsIndication - Pointer to the indication structure,
  *               containing indication attributes.
  */
-static void McpsIndication( McpsIndication_t *mcpsIndication )
+static void McpsIndication(void)
 {
     netdev2_lorawan_t *netdev = get_dev_ptr();
     LoRaMacEventInfo.Status = netdev->frame_status;

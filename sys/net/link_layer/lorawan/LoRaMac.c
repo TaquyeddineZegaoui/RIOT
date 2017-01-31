@@ -1321,7 +1321,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
 
     if( dev->LoRaMacFlags.Bits.McpsInd == 1 )
     {
-        dev->LoRaMacPrimitives->MacMcpsIndication( &dev->McpsIndication );
+        dev->LoRaMacPrimitives->MacMcpsIndication();
         dev->LoRaMacFlags.Bits.McpsInd = 0;
     }
 }

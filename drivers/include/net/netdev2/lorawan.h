@@ -181,28 +181,10 @@ typedef struct sMcpsReq
     }Req;
 }McpsReq_t;
 
-typedef struct sMcpsIndication
-{
-    //Mcps_t McpsIndication;
-    //LoRaMacEventInfoStatus_t Status;
-    //uint8_t Multicast;
-    //uint8_t Port;
-    //uint8_t RxDatarate;
-    //uint8_t FramePending;
-    //uint8_t *Buffer;
-    //uint8_t BufferSize;
-    //bool RxData;
-    //int16_t Rssi;
-    //uint8_t Snr;
-    //uint8_t RxSlot;
-    //bool AckReceived;
-    //uint32_t DownLinkCounter;
-}McpsIndication_t;
-
 typedef struct sLoRaMacPrimitives
 {
     void ( *MacMcpsConfirm )(void);
-    void ( *MacMcpsIndication )( McpsIndication_t *McpsIndication );
+    void ( *MacMcpsIndication )(void);
     void ( *MacMlmeConfirm )(uint8_t mlme_req);
 }LoRaMacPrimitives_t;
 
@@ -269,7 +251,6 @@ typedef struct {
     bool AckTimeoutRetry;
     TimerTime_t TxTimeOnAir;
     uint16_t JoinRequestTrials;
-    McpsIndication_t McpsIndication;
     LoRaMacFlags_t LoRaMacFlags;
     uint8_t RxSlot;
     uint8_t frame_status;
