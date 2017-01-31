@@ -183,7 +183,7 @@ typedef struct sMcpsReq
 
 typedef struct sMcpsIndication
 {
-    Mcps_t McpsIndication;
+    //Mcps_t McpsIndication;
     //LoRaMacEventInfoStatus_t Status;
     //uint8_t Multicast;
     //uint8_t Port;

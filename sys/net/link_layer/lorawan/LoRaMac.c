@@ -705,7 +705,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
     dev->BufferSize = 0;
     dev->RxData = false;
     dev->received_downlink = 0;
-    dev->McpsIndication.McpsIndication = MCPS_UNCONFIRMED;
+    //dev->McpsIndication.McpsIndication = MCPS_UNCONFIRMED;
 
     if( dev->LoRaMacDeviceClass != CLASS_C )
     {
@@ -892,7 +892,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                     // Update 32 bits downlink counter
                     if( multicast == 1 )
                     {
-                        dev->McpsIndication.McpsIndication = MCPS_MULTICAST;
+                        //dev->McpsIndication.McpsIndication = MCPS_MULTICAST;
 
                         if( ( curMulticastParams->DownLinkCounter == downLinkCounter ) &&
                             ( curMulticastParams->DownLinkCounter != 0 ) )
@@ -902,14 +902,14 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                             PrepareRxDoneAbort(netdev);
                             return;
                         }
-                        curMulticastParams->DownLinkCounter = downLinkCounter;
+                        //curMulticastParams->DownLinkCounter = downLinkCounter;
                     }
                     else
                     {
                         if( macHdr.Bits.MType == FRAME_TYPE_DATA_CONFIRMED_DOWN )
                         {
                             dev->SrvAckRequested = true;
-                            dev->McpsIndication.McpsIndication = MCPS_CONFIRMED;
+                            //dev->McpsIndication.McpsIndication = MCPS_CONFIRMED;
 
                             if( ( dev->DownLinkCounter == downLinkCounter ) &&
                                 ( dev->DownLinkCounter != 0 ) )
@@ -921,7 +921,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                         else
                         {
                             dev->SrvAckRequested = false;
-                            dev->McpsIndication.McpsIndication = MCPS_UNCONFIRMED;
+                            //dev->McpsIndication.McpsIndication = MCPS_UNCONFIRMED;
 
                             if( ( dev->DownLinkCounter == downLinkCounter ) &&
                                 ( dev->DownLinkCounter != 0 ) )
@@ -1036,7 +1036,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
             {
                 memcpy( dev->LoRaMacRxPayload, &payload[pktHeaderLen], size );
 
-                dev->McpsIndication.McpsIndication = MCPS_PROPRIETARY;
+                //dev->McpsIndication.McpsIndication = MCPS_PROPRIETARY;
                 dev->frame_status = LORAMAC_EVENT_INFO_STATUS_OK;
                 dev->Buffer = dev->LoRaMacRxPayload;
                 dev->BufferSize = size - pktHeaderLen;
