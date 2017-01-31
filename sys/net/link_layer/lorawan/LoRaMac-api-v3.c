@@ -53,8 +53,8 @@ static void McpsConfirm( McpsConfirm_t *mcpsConfirm )
     LoRaMacEventInfo.Status = netdev->frame_status;
     LoRaMacEventFlags.Bits.Tx = 1;
 
-    LoRaMacEventInfo.TxDatarate = mcpsConfirm->Datarate;
-    LoRaMacEventInfo.TxNbRetries = mcpsConfirm->NbRetries;
+    LoRaMacEventInfo.TxDatarate = netdev->datarate;
+    LoRaMacEventInfo.TxNbRetries = netdev->n_retries;
     LoRaMacEventInfo.TxAckReceived = netdev->ack_received;
 
      if( ( netdev->LoRaMacFlags.Bits.McpsInd != 1 ) && ( netdev->LoRaMacFlags.Bits.MlmeReq != 1 ) )

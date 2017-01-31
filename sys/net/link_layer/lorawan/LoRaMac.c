@@ -1151,7 +1151,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
             {
                 // Stop transmit cycle due to tx timeout.
                 dev->LoRaMacState &= ~MAC_TX_RUNNING;
-                dev->McpsConfirm.NbRetries = dev->AckTimeoutRetriesCounter;
+                dev->n_retries = dev->AckTimeoutRetriesCounter;
                 dev->ack_received = false;
                 //dev->McpsConfirm.TxTimeOnAir = 0;
                 txTimeout = true;
@@ -1171,7 +1171,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
                     {
                         // Stop retransmission
                         dev->ChannelsNbRepCounter = dev->LoRaMacParams.ChannelsNbRep;
-                        dev->UpLinkCounter = 0;
+                        dev->uplink_counter = 0;
                     }
                 }
             }
@@ -1184,7 +1184,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
                     dev->AdrAckCounter++;
                     if( dev->IsUpLinkCounterFixed == false )
                     {
-                        dev->UpLinkCounter++;
+                        dev->uplink_counter++;
                     }
 
                     dev->LoRaMacState &= ~MAC_TX_RUNNING;
@@ -1225,9 +1225,9 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
                 dev->NodeAckRequested = false;
                 if( dev->IsUpLinkCounterFixed == false )
                 {
-                    dev->UpLinkCounter++;
+                    dev->uplink_counter++;
                 }
-                dev->McpsConfirm.NbRetries = dev->AckTimeoutRetriesCounter;
+                dev->n_retries = dev->AckTimeoutRetriesCounter;
 
                 dev->LoRaMacState &= ~MAC_TX_RUNNING;
             }
@@ -1277,10 +1277,10 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
 
                 dev->NodeAckRequested = false;
                 dev->ack_received = false;
-                dev->McpsConfirm.NbRetries = dev->AckTimeoutRetriesCounter;
+                dev->n_retries = dev->AckTimeoutRetriesCounter;
                 if( dev->IsUpLinkCounterFixed == false )
                 {
-                    dev->UpLinkCounter++;
+                    dev->uplink_counter++;
                 }
             }
         }
@@ -2501,9 +2501,9 @@ LoRaMacStatus_t Send( LoRaMacHeader_t *macHdr, uint8_t fPort, void *fBuffer, uin
     }
 
     // Reset confirm parameters
-    dev->McpsConfirm.NbRetries = 0;
+    dev->n_retries = 0;
     dev->ack_received = false;
-    dev->McpsConfirm.UpLinkCounter = dev->UpLinkCounter;
+    //dev->McpsConfirm.uplink_counter = dev->UpLinkCounter;
 
     status = ScheduleTx( );
 
@@ -2673,7 +2673,7 @@ static void ResetMacParameters( void )
     dev->lorawan.tx_rx.nwk_status = false;
 
     // Counters
-    dev->UpLinkCounter = 1;
+    dev->uplink_counter = 1;
     dev->DownLinkCounter = 0;
     dev->AdrAckCounter = 0;
 
@@ -2809,8 +2809,8 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
 
             dev->LoRaMacBuffer[pktHeaderLen++] = fCtrl->Value;
 
-            dev->LoRaMacBuffer[pktHeaderLen++] = dev->UpLinkCounter & 0xFF;
-            dev->LoRaMacBuffer[pktHeaderLen++] = ( dev->UpLinkCounter >> 8 ) & 0xFF;
+            dev->LoRaMacBuffer[pktHeaderLen++] = dev->uplink_counter & 0xFF;
+            dev->LoRaMacBuffer[pktHeaderLen++] = ( dev->uplink_counter >> 8 ) & 0xFF;
 
             // Copy the MAC commands which must be re-send into the MAC command buffer
             memcpy( &dev->MacCommandsBuffer[dev->MacCommandsBufferIndex], dev->MacCommandsBufferToRepeat, dev->MacCommandsBufferToRepeatIndex );
@@ -2854,17 +2854,17 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
 
                 if( framePort == 0 )
                 {
-                     LoRaMacPayloadEncrypt( (uint8_t* ) payload, payloadSize, dev->lorawan.nwk_skey, dev->lorawan.dev_addr, UP_LINK, dev->UpLinkCounter, dev->LoRaMacPayload );
+                     LoRaMacPayloadEncrypt( (uint8_t* ) payload, payloadSize, dev->lorawan.nwk_skey, dev->lorawan.dev_addr, UP_LINK, dev->uplink_counter, dev->LoRaMacPayload );
                 }
                 else
                 {
-                     LoRaMacPayloadEncrypt( (uint8_t* ) payload, payloadSize, dev->lorawan.nwk_skey, dev->lorawan.dev_addr, UP_LINK, dev->UpLinkCounter, dev->LoRaMacPayload );
+                     LoRaMacPayloadEncrypt( (uint8_t* ) payload, payloadSize, dev->lorawan.nwk_skey, dev->lorawan.dev_addr, UP_LINK, dev->uplink_counter, dev->LoRaMacPayload );
                 }
                 memcpy( dev->LoRaMacBuffer + pktHeaderLen,  dev->LoRaMacPayload, payloadSize );
             }
             dev->LoRaMacBufferPktLen = pktHeaderLen + payloadSize;
 
-            LoRaMacComputeMic( dev->LoRaMacBuffer, dev->LoRaMacBufferPktLen, dev->lorawan.nwk_skey, dev->lorawan.dev_addr, UP_LINK, dev->UpLinkCounter, &mic );
+            LoRaMacComputeMic( dev->LoRaMacBuffer, dev->LoRaMacBufferPktLen, dev->lorawan.nwk_skey, dev->lorawan.dev_addr, UP_LINK, dev->uplink_counter, &mic );
 
             dev->LoRaMacBuffer[dev->LoRaMacBufferPktLen + 0] = mic & 0xFF;
             dev->LoRaMacBuffer[dev->LoRaMacBufferPktLen + 1] = ( mic >> 8 ) & 0xFF;
@@ -2944,7 +2944,7 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     txPower = TxPowers[txPowerIndex];
 
     dev->frame_status = LORAMAC_EVENT_INFO_STATUS_ERROR;
-    dev->McpsConfirm.Datarate = dev->LoRaMacParams.ChannelsDatarate;
+    dev->datarate = dev->LoRaMacParams.ChannelsDatarate;
     dev->tx_power = txPowerIndex;
 
     netdev->driver->set(netdev, NETOPT_CHANNEL, &channel.Frequency, sizeof(uint32_t));
@@ -3040,7 +3040,7 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, kernel_p
 
     dev->MulticastChannels = NULL;
     dev->LoRaMacBufferPktLen = 0;
-    dev->UpLinkCounter = 0;
+    dev->uplink_counter = 0;
     dev->DownLinkCounter = 0;
     dev->IsUpLinkCounterFixed = false;
     dev->IsRxWindowsEnabled = true;
@@ -3319,7 +3319,7 @@ LoRaMacStatus_t LoRaMacMibGetRequestConfirm( MibRequestConfirm_t *mibGet )
         }
         case MIB_UPLINK_COUNTER:
         {
-            mibGet->Param.UpLinkCounter = dev->UpLinkCounter;
+            mibGet->Param.UpLinkCounter = dev->uplink_counter;
             break;
         }
         case MIB_DOWNLINK_COUNTER:
@@ -3525,7 +3525,7 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
         }
         case MIB_UPLINK_COUNTER:
         {
-            dev->UpLinkCounter = mibSet->Param.UpLinkCounter;
+            dev->uplink_counter = mibSet->Param.UpLinkCounter;
             break;
         }
         case MIB_DOWNLINK_COUNTER:
@@ -3924,7 +3924,7 @@ void LoRaMacTestRxWindowsOn( bool enable )
 
 void LoRaMacTestSetMic( uint16_t txPacketCounter )
 {
-    dev->UpLinkCounter = txPacketCounter;
+    dev->uplink_counter = txPacketCounter;
     dev->IsUpLinkCounterFixed = true;
 }
 
