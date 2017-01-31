@@ -256,16 +256,6 @@ void LoRaMacSetChannel( uint8_t id, ChannelParams_t params )
     LoRaMacChannelAdd( id, params );
 }
 
-void LoRaMacSetChannelsNbRep( uint8_t nbRep )
-{
-    MibRequestConfirm_t mibSet;
-
-    mibSet.Type = MIB_CHANNELS_NB_REP;
-    mibSet.Param.ChannelNbRep = nbRep;
-
-    LoRaMacMibSetRequestConfirm( &mibSet );
-}
-
 void LoRaMacSetMaxRxWindow( uint32_t delay )
 {
     MibRequestConfirm_t mibSet;

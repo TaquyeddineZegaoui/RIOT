@@ -370,12 +370,6 @@ void LoRaMacSetChannelsDatarate( int8_t datarate );
 
 /*
  * Wrapper function which calls \ref LoRaMacMibSetRequestConfirm to
- * set the number of repetitions on a channel.
- */
-void LoRaMacSetChannelsNbRep( uint8_t nbRep );
-
-/*
- * Wrapper function which calls \ref LoRaMacMibSetRequestConfirm to
  * set the maximum receive window duration in [ms].
  */
 void LoRaMacSetMaxRxWindow( uint32_t delay );

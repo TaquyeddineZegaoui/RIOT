@@ -3435,19 +3435,6 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
              dev->RepeaterSupport = mibSet->Param.EnableRepeaterSupport;
             break;
         }
-        case MIB_CHANNELS_NB_REP:
-        {
-            if( ( mibSet->Param.ChannelNbRep >= 1 ) &&
-                ( mibSet->Param.ChannelNbRep <= 15 ) )
-            {
-                dev->LoRaMacParams.ChannelsNbRep = mibSet->Param.ChannelNbRep;
-            }
-            else
-            {
-                status = LORAMAC_STATUS_PARAMETER_INVALID;
-            }
-            break;
-        }
         case MIB_MAX_RX_WINDOW_DURATION:
         {
             dev->LoRaMacParams.MaxRxWindow = mibSet->Param.MaxRxWindow;
