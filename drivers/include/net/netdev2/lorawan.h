@@ -187,7 +187,7 @@ typedef struct sMcpsIndication
     //LoRaMacEventInfoStatus_t Status;
     //uint8_t Multicast;
     //uint8_t Port;
-    uint8_t RxDatarate;
+    //uint8_t RxDatarate;
     uint8_t FramePending;
     uint8_t *Buffer;
     uint8_t BufferSize;
@@ -284,6 +284,7 @@ typedef struct {
     uint32_t received_downlink;
     uint8_t Multicast;
     uint8_t Port;
+    uint8_t RxDatarate;
 } netdev2_lorawan_t;
 
 /**

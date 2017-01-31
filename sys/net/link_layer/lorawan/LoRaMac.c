@@ -1733,7 +1733,7 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
         netdev->driver->set(netdev, NETOPT_CHANNEL, &freq, sizeof(uint32_t));
 
         // Store downlink datarate
-        dev->McpsIndication.RxDatarate = ( uint8_t ) datarate;
+        dev->RxDatarate = ( uint8_t ) datarate;
 
 #if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
         if( datarate == DR_7 )
