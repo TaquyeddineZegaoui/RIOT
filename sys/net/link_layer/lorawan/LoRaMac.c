@@ -3435,16 +3435,6 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
              dev->RepeaterSupport = mibSet->Param.EnableRepeaterSupport;
             break;
         }
-        case MIB_MAX_RX_WINDOW_DURATION:
-        {
-            dev->LoRaMacParams.MaxRxWindow = mibSet->Param.MaxRxWindow;
-            break;
-        }
-        case MIB_JOIN_ACCEPT_DELAY_2:
-        {
-            dev->LoRaMacParams.JoinAcceptDelay2 = mibSet->Param.JoinAcceptDelay2;
-            break;
-        }
         case MIB_CHANNELS_DEFAULT_DATARATE:
         {
             if( ValueInRange( mibSet->Param.ChannelsDefaultDatarate,

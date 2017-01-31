@@ -369,12 +369,6 @@ void LoRaMacSetChannelsTxPower( int8_t txPower );
 void LoRaMacSetChannelsDatarate( int8_t datarate );
 
 /*
- * Wrapper function which calls \ref LoRaMacMibSetRequestConfirm to
- * set the join accept delay 2 in [ms].
- */
-void LoRaMacSetJoinAcceptDelay2( uint32_t delay );
-
-/*
  * Wrapper function which calls \ref LoRaMacMibGetRequestConfirm to
  * get the up-link counter.
  */

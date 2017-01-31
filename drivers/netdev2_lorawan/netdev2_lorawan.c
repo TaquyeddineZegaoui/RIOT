@@ -131,6 +131,9 @@ int netdev2_lorawan_set(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_
         case NETOPT_LORAWAN_JOIN_ACCEPT_DELAY1:
             dev->LoRaMacParams.JoinAcceptDelay1 = *((uint32_t*) value);
             return sizeof(uint32_t);
+        case NETOPT_LORAWAN_JOIN_ACCEPT_DELAY2:
+            dev->LoRaMacParams.JoinAcceptDelay2 = *((uint32_t*) value);
+            return sizeof(uint32_t);
         default:
             break;
     }
