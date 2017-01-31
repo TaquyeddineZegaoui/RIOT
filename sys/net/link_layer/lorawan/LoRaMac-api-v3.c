@@ -256,30 +256,3 @@ void LoRaMacSetChannel( uint8_t id, ChannelParams_t params )
     LoRaMacChannelAdd( id, params );
 }
 
-
-uint32_t LoRaMacGetUpLinkCounter( void )
-{
-    MibRequestConfirm_t mibGet;
-
-    mibGet.Type = MIB_UPLINK_COUNTER;
-
-    LoRaMacMibGetRequestConfirm( &mibGet );
-
-    return mibGet.Param.UpLinkCounter;
-}
-
-uint32_t LoRaMacGetDownLinkCounter( void )
-{
-    MibRequestConfirm_t mibGet;
-
-    mibGet.Type = MIB_DOWNLINK_COUNTER;
-
-    LoRaMacMibGetRequestConfirm( &mibGet );
-
-    return mibGet.Param.DownLinkCounter;
-}
-
-void LoRaMacSetMicTest( uint16_t txPacketCounter )
-{
-    LoRaMacTestSetMic( txPacketCounter );
-}
