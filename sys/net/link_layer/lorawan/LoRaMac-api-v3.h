@@ -351,12 +351,6 @@ void LoRaMacSetPublicNetwork( bool enable );
  */
 void LoRaMacSetChannel( uint8_t id, ChannelParams_t params );
 
-/*
- * Wrapper function which calls \ref LoRaMacMibSetRequestConfirm to
- * set the receive window 2 channel.
- */
-void LoRaMacSetRx2Channel( Rx2ChannelParams_t param );
-
 /*!
  * Sets channels tx output power
  *

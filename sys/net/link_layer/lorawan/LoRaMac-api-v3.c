@@ -256,16 +256,6 @@ void LoRaMacSetChannel( uint8_t id, ChannelParams_t params )
     LoRaMacChannelAdd( id, params );
 }
 
-void LoRaMacSetRx2Channel( Rx2ChannelParams_t param )
-{
-    MibRequestConfirm_t mibSet;
-
-    mibSet.Type = MIB_RX2_CHANNEL;
-    mibSet.Param.Rx2Channel = param;
-
-    LoRaMacMibSetRequestConfirm( &mibSet );
-}
-
 void LoRaMacSetChannelsMask( uint16_t *mask )
 {
     MibRequestConfirm_t mibSet;

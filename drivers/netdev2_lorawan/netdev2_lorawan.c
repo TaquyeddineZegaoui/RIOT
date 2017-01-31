@@ -101,6 +101,9 @@ int netdev2_lorawan_set(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_
         case NETOPT_LORAWAN_DUTY_CYCLE:
             dev->DutyCycleOn = *((bool*) value);
             return sizeof(bool);
+        case NETOPT_LORAWAN_RX2_PARAMS:
+            dev->LoRaMacParams.Rx2Channel = *((Rx2ChannelParams_t*) value);
+            return sizeof(Rx2ChannelParams_t);
         default:
             break;
     }
