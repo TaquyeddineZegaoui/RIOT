@@ -1155,7 +1155,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
                 dev->LoRaMacState &= ~MAC_TX_RUNNING;
                 dev->McpsConfirm.NbRetries = dev->AckTimeoutRetriesCounter;
                 dev->McpsConfirm.AckReceived = false;
-                dev->McpsConfirm.TxTimeOnAir = 0;
+                //dev->McpsConfirm.TxTimeOnAir = 0;
                 txTimeout = true;
             }
         }
@@ -2942,7 +2942,6 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     txPower = TxPowers[txPowerIndex];
 
     dev->frame_status = LORAMAC_EVENT_INFO_STATUS_ERROR;
-    dev->frame_status = LORAMAC_EVENT_INFO_STATUS_ERROR;
     dev->McpsConfirm.Datarate = dev->LoRaMacParams.ChannelsDatarate;
     dev->McpsConfirm.TxPower = txPowerIndex;
 
@@ -3003,8 +3002,8 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
 #endif
 
     // Store the time on air
-    dev->McpsConfirm.TxTimeOnAir = dev->TxTimeOnAir;
-    dev->mlme_confirm.TxTimeOnAir = dev->TxTimeOnAir;
+    //dev->McpsConfirm.TxTimeOnAir = dev->TxTimeOnAir;
+    //dev->mlme_confirm.TxTimeOnAir = dev->TxTimeOnAir;
 
     // Starts the MAC layer status check timer
     dev->MacStateCheckTimer.msg.type = LORAWAN_TIMER_MAC_STATE;

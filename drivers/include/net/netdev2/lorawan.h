@@ -67,7 +67,7 @@ typedef struct mlme_confirm
 {
     Mlme_t MlmeRequest;
     //LoRaMacEventInfoStatus_t Status;
-    TimerTime_t TxTimeOnAir;
+    //TimerTime_t TxTimeOnAir;
     uint8_t DemodMargin;
     uint8_t NbGateways;
 } mlme_confirm_t;
@@ -201,7 +201,7 @@ typedef struct sMcpsConfirm
     int8_t TxPower;
     bool AckReceived;
     uint8_t NbRetries;
-    TimerTime_t TxTimeOnAir;
+    //TimerTime_t TxTimeOnAir;
     uint32_t UpLinkCounter;
 }McpsConfirm_t;
 
