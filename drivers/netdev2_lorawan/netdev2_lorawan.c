@@ -142,6 +142,13 @@ int netdev2_lorawan_set(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_
                 dev->LoRaMacParams.ChannelsDatarate = tmp;
             }
             return sizeof(int8_t);
+        case NETOPT_LORAWAN_CHANNELS_TX_POWER:
+            tmp = *((int8_t*) value);
+            if( ValueInRange(tmp, LORAMAC_MAX_TX_POWER, LORAMAC_MIN_TX_POWER ) )
+            {
+                dev->LoRaMacParams.ChannelsTxPower = tmp;
+            }
+            return sizeof(int8_t);
         default:
             break;
     }

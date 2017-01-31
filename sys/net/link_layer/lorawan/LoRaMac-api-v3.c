@@ -257,16 +257,6 @@ void LoRaMacSetChannel( uint8_t id, ChannelParams_t params )
 }
 
 
-void LoRaMacSetChannelsTxPower( int8_t txPower )
-{
-    MibRequestConfirm_t mibSet;
-
-    mibSet.Type = MIB_CHANNELS_TX_POWER;
-    mibSet.Param.ChannelsTxPower = txPower;
-
-    LoRaMacMibSetRequestConfirm( &mibSet );
-}
-
 uint32_t LoRaMacGetUpLinkCounter( void )
 {
     MibRequestConfirm_t mibGet;

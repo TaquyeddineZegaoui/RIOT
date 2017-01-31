@@ -3448,19 +3448,6 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
             }
             break;
         }
-        case MIB_CHANNELS_TX_POWER:
-        {
-            if( ValueInRange( mibSet->Param.ChannelsTxPower,
-                              LORAMAC_MAX_TX_POWER, LORAMAC_MIN_TX_POWER ) )
-            {
-                dev->LoRaMacParams.ChannelsTxPower = mibSet->Param.ChannelsTxPower;
-            }
-            else
-            {
-                status = LORAMAC_STATUS_PARAMETER_INVALID;
-            }
-            break;
-        }
         case MIB_UPLINK_COUNTER:
         {
             dev->uplink_counter = mibSet->Param.UpLinkCounter;

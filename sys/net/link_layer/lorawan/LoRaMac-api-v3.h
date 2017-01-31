@@ -351,15 +351,6 @@ void LoRaMacSetPublicNetwork( bool enable );
  */
 void LoRaMacSetChannel( uint8_t id, ChannelParams_t params );
 
-/*!
- * Sets channels tx output power
- *
- * \param [IN] txPower [TX_POWER_20_DBM, TX_POWER_14_DBM,
-                        TX_POWER_11_DBM, TX_POWER_08_DBM,
-                        TX_POWER_05_DBM, TX_POWER_02_DBM]
- */
-void LoRaMacSetChannelsTxPower( int8_t txPower );
-
 /*
  * Wrapper function which calls \ref LoRaMacMibGetRequestConfirm to
  * get the up-link counter.
