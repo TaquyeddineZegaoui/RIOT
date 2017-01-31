@@ -161,6 +161,7 @@ void LoRaMacMulticastChannelRemove( MulticastParams_t *channelParam )
 
 uint8_t LoRaMacSendFrame( uint8_t fPort, void *fBuffer, uint16_t fBufferSize )
 {
+    netdev2_lorawan_t *netdev = get_dev_ptr();
     MibRequestConfirm_t mibGet;
     McpsReq_t mcpsRequest;
     uint8_t retStatus;
@@ -171,10 +172,10 @@ uint8_t LoRaMacSendFrame( uint8_t fPort, void *fBuffer, uint16_t fBufferSize )
     LoRaMacMibGetRequestConfirm( &mibGet );
 
     mcpsRequest.Type = MCPS_UNCONFIRMED;
-    mcpsRequest.Req.Unconfirmed.fBuffer = fBuffer;
-    mcpsRequest.Req.Unconfirmed.fBufferSize = fBufferSize;
-    mcpsRequest.Req.Unconfirmed.fPort = fPort;
-    mcpsRequest.Req.Unconfirmed.Datarate = mibGet.Param.ChannelsDatarate;
+    netdev->fBuffer = fBuffer;
+    netdev->fBufferSize = fBufferSize;
+    netdev->fPort = fPort;
+    netdev->Datarate = mibGet.Param.ChannelsDatarate;
 
     switch( LoRaMacMcpsRequest( &mcpsRequest ) )
     {

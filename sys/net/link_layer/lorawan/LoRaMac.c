@@ -3853,10 +3853,10 @@ LoRaMacStatus_t LoRaMacMcpsRequest( McpsReq_t *mcpsRequest )
             dev->AckTimeoutRetries = 1;
 
             macHdr.Bits.MType = FRAME_TYPE_DATA_UNCONFIRMED_UP;
-            fPort = mcpsRequest->Req.Unconfirmed.fPort;
-            fBuffer = mcpsRequest->Req.Unconfirmed.fBuffer;
-            fBufferSize = mcpsRequest->Req.Unconfirmed.fBufferSize;
-            datarate = mcpsRequest->Req.Unconfirmed.Datarate;
+            fPort = dev->fPort;
+            fBuffer = dev->fBuffer;
+            fBufferSize = dev->fBufferSize;
+            datarate = dev->Datarate;
             break;
         }
         case MCPS_CONFIRMED:
