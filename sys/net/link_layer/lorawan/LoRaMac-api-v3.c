@@ -82,7 +82,7 @@ static void McpsIndication( McpsIndication_t *mcpsIndication )
         LoRaMacEventFlags.Bits.RxData = 1;
     }
 
-    LoRaMacEventInfo.RxPort = mcpsIndication->Port;
+    LoRaMacEventInfo.RxPort = netdev->Port;
     LoRaMacEventInfo.RxBuffer = mcpsIndication->Buffer;
     LoRaMacEventInfo.RxBufferSize = mcpsIndication->BufferSize;
     LoRaMacEventInfo.RxRssi = mcpsIndication->Rssi;

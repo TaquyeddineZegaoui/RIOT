@@ -698,7 +698,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
     dev->McpsIndication.Rssi = rssi;
     dev->McpsIndication.Snr = snr;
     //dev->McpsIndication.RxSlot = dev->RxSlot;
-    dev->McpsIndication.Port = 0;
+    dev->Port = 0;
     dev->Multicast = 0;
     dev->McpsIndication.FramePending = 0;
     dev->McpsIndication.Buffer = NULL;
@@ -963,7 +963,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                         port = payload[appPayloadStartIndex++];
                         frameLen = ( size - 4 ) - appPayloadStartIndex;
 
-                        dev->McpsIndication.Port = port;
+                        dev->Port = port;
 
                         if( port == 0 )
                         {
