@@ -3767,8 +3767,6 @@ LoRaMacStatus_t join_request(void)
         return LORAMAC_STATUS_BUSY;
     }
 
-    memset( ( uint8_t* ) &dev->mlme_confirm, 0, sizeof( mlme_confirm_t ) );
-
     dev->frame_status = LORAMAC_EVENT_INFO_STATUS_ERROR;
 
     if( ( dev->LoRaMacState & MAC_TX_DELAYED ) == MAC_TX_DELAYED )
@@ -3807,8 +3805,6 @@ LoRaMacStatus_t link_check(void)
     {
         return LORAMAC_STATUS_BUSY;
     }
-
-    memset( ( uint8_t* ) &dev->mlme_confirm, 0, sizeof( mlme_confirm_t ) );
 
     dev->frame_status = LORAMAC_EVENT_INFO_STATUS_ERROR;
 

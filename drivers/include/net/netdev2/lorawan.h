@@ -61,18 +61,6 @@ typedef enum eLoRaMacEventInfoStatus
 }LoRaMacEventInfoStatus_t;
 
 /*!
- * LoRaMAC MLME-Confirm primitive
- */
-typedef struct mlme_confirm
-{
-    //Mlme_t MlmeRequest;
-    //LoRaMacEventInfoStatus_t Status;
-    //TimerTime_t TxTimeOnAir;
-    //uint8_t DemodMargin;
-    //uint8_t NbGateways;
-} mlme_confirm_t;
-
-/*!
  * LoRaMAC channels parameters definition
  */
 typedef union uDrRange
@@ -248,7 +236,6 @@ typedef struct {
     uint8_t *dev_eui;
     uint8_t *app_key;
     uint8_t *app_eui;
-    mlme_confirm_t mlme_confirm;
     uint16_t dev_nonce;
     MulticastParams_t *MulticastChannels;
     DeviceClass_t LoRaMacDeviceClass;
