@@ -700,7 +700,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
     //dev->McpsIndication.RxSlot = dev->RxSlot;
     dev->Port = 0;
     dev->Multicast = 0;
-    dev->McpsIndication.FramePending = 0;
+    dev->FramePending = 0;
     dev->McpsIndication.Buffer = NULL;
     dev->McpsIndication.BufferSize = 0;
     dev->McpsIndication.RxData = false;
@@ -879,7 +879,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 {
                     dev->frame_status = LORAMAC_EVENT_INFO_STATUS_OK;
                     dev->Multicast = multicast;
-                    dev->McpsIndication.FramePending = fCtrl.Bits.FPending;
+                    dev->FramePending = fCtrl.Bits.FPending;
                     dev->McpsIndication.Buffer = NULL;
                     dev->McpsIndication.BufferSize = 0;
                     dev->received_downlink = downLinkCounter;
