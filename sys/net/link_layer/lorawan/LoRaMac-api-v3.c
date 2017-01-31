@@ -50,7 +50,7 @@ static LoRaMacCallbacks_t LoRaMacCallbacks;
 static void McpsConfirm( McpsConfirm_t *mcpsConfirm )
 {
     netdev2_lorawan_t *netdev = get_dev_ptr();
-    LoRaMacEventInfo.Status = mcpsConfirm->Status;
+    LoRaMacEventInfo.Status = netdev->frame_status;
     LoRaMacEventFlags.Bits.Tx = 1;
 
     LoRaMacEventInfo.TxDatarate = mcpsConfirm->Datarate;
@@ -99,7 +99,8 @@ static void McpsIndication( McpsIndication_t *mcpsIndication )
  */
 static void MlmeConfirm( mlme_confirm_t *mlmeConfirm )
 {
-    if( mlmeConfirm->Status == LORAMAC_EVENT_INFO_STATUS_OK )
+    netdev2_lorawan_t *netdev = get_dev_ptr();
+    if( netdev->frame_status == LORAMAC_EVENT_INFO_STATUS_OK )
     {
         switch( mlmeConfirm->MlmeRequest )
         {
@@ -125,9 +126,8 @@ static void MlmeConfirm( mlme_confirm_t *mlmeConfirm )
                 break;
         }
     }
-    LoRaMacEventInfo.Status = mlmeConfirm->Status;
+    LoRaMacEventInfo.Status = netdev->frame_status;
 
-    netdev2_lorawan_t *netdev = get_dev_ptr();
     if( netdev->LoRaMacFlags.Bits.McpsInd != 1 )
     {
         LoRaMacCallbacks.MacEvent( &LoRaMacEventFlags, &LoRaMacEventInfo );
