@@ -3822,7 +3822,7 @@ LoRaMacStatus_t link_check(void)
     return status;
 }
 
-LoRaMacStatus_t LoRaMacMcpsRequest( McpsReq_t *mcpsRequest )
+LoRaMacStatus_t LoRaMacMcpsRequest(uint8_t mcps_req)
 {
     LoRaMacStatus_t status = LORAMAC_STATUS_SERVICE_UNKNOWN;
     LoRaMacHeader_t macHdr;
@@ -3832,10 +3832,6 @@ LoRaMacStatus_t LoRaMacMcpsRequest( McpsReq_t *mcpsRequest )
     int8_t datarate;
     bool readyToSend = false;
 
-    if( mcpsRequest == NULL )
-    {
-        return LORAMAC_STATUS_PARAMETER_INVALID;
-    }
     if( ( ( dev->LoRaMacState & MAC_TX_RUNNING ) == MAC_TX_RUNNING ) ||
         ( ( dev->LoRaMacState & MAC_TX_DELAYED ) == MAC_TX_DELAYED ) )
     {
@@ -3845,7 +3841,7 @@ LoRaMacStatus_t LoRaMacMcpsRequest( McpsReq_t *mcpsRequest )
     macHdr.Value = 0;
     dev->frame_status = LORAMAC_EVENT_INFO_STATUS_ERROR;
 
-    switch( mcpsRequest->Type )
+    switch(mcps_req)
     {
         case MCPS_UNCONFIRMED:
         {

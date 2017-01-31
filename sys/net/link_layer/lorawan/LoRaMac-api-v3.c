@@ -163,7 +163,6 @@ uint8_t LoRaMacSendFrame( uint8_t fPort, void *fBuffer, uint16_t fBufferSize )
 {
     netdev2_lorawan_t *netdev = get_dev_ptr();
     MibRequestConfirm_t mibGet;
-    McpsReq_t mcpsRequest;
     uint8_t retStatus;
 
     memset( ( uint8_t* )&LoRaMacEventInfo, 0, sizeof( LoRaMacEventInfo ) );
@@ -171,13 +170,12 @@ uint8_t LoRaMacSendFrame( uint8_t fPort, void *fBuffer, uint16_t fBufferSize )
     mibGet.Type = MIB_CHANNELS_DATARATE;
     LoRaMacMibGetRequestConfirm( &mibGet );
 
-    mcpsRequest.Type = MCPS_UNCONFIRMED;
     netdev->fBuffer = fBuffer;
     netdev->fBufferSize = fBufferSize;
     netdev->fPort = fPort;
     netdev->Datarate = mibGet.Param.ChannelsDatarate;
 
-    switch( LoRaMacMcpsRequest( &mcpsRequest ) )
+    switch( LoRaMacMcpsRequest(MCPS_UNCONFIRMED) )
     {
         case LORAMAC_STATUS_OK:
             retStatus = 0U;
@@ -210,7 +208,6 @@ uint8_t LoRaMacSendConfirmedFrame( uint8_t fPort, void *fBuffer, uint16_t fBuffe
 {
     netdev2_lorawan_t *netdev = get_dev_ptr();
     MibRequestConfirm_t mibGet;
-    McpsReq_t mcpsRequest;
     uint8_t retStatus;
 
     memset( ( uint8_t* )&LoRaMacEventInfo, 0, sizeof( LoRaMacEventInfo ) );
@@ -218,14 +215,13 @@ uint8_t LoRaMacSendConfirmedFrame( uint8_t fPort, void *fBuffer, uint16_t fBuffe
     mibGet.Type = MIB_CHANNELS_DATARATE;
     LoRaMacMibGetRequestConfirm( &mibGet );
 
-    mcpsRequest.Type = MCPS_CONFIRMED;
     netdev->fBuffer = fBuffer;
     netdev->fBufferSize = fBufferSize;
     netdev->fPort = fPort;
     netdev->NbTrials = nbRetries;
     netdev->Datarate = mibGet.Param.ChannelsDatarate;
 
-    switch( LoRaMacMcpsRequest( &mcpsRequest ) )
+    switch( LoRaMacMcpsRequest(MCPS_CONFIRMED) )
     {
         case LORAMAC_STATUS_OK:
             retStatus = 0U;

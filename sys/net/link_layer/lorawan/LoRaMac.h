@@ -1123,7 +1123,7 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet );
  *          \ref LORAMAC_STATUS_LENGTH_ERROR,
  *          \ref LORAMAC_STATUS_DEVICE_OFF.
  */
-LoRaMacStatus_t LoRaMacMcpsRequest( McpsReq_t *mcpsRequest );
+LoRaMacStatus_t LoRaMacMcpsRequest(uint8_t mcps_req);
 
 
 /*!

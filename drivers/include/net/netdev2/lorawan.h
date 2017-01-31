@@ -146,17 +146,6 @@ typedef enum eMcps
     MCPS_PROPRIETARY,
 }Mcps_t;
 
-typedef struct sMcpsReq
-{
-    Mcps_t Type;
-    union uMcpsParam
-    {
-        //McpsReqUnconfirmed_t Unconfirmed;
-        //McpsReqConfirmed_t Confirmed;
-        //McpsReqProprietary_t Proprietary;
-    }Req;
-}McpsReq_t;
-
 typedef struct sLoRaMacPrimitives
 {
     void ( *MacMcpsConfirm )(void);
