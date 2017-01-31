@@ -272,6 +272,12 @@ typedef struct {
     bool RxData;
     int16_t Rssi;
     uint8_t Snr;
+    //Frame variables
+    uint8_t fPort;
+    void *fBuffer;
+    uint16_t fBufferSize;
+    int8_t Datarate;
+    uint8_t NbTrials;
 } netdev2_lorawan_t;
 
 /**
