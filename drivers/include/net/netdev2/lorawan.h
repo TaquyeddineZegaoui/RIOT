@@ -194,7 +194,7 @@ typedef struct sMcpsIndication
     bool RxData;
     int16_t Rssi;
     uint8_t Snr;
-    uint8_t RxSlot;
+    //uint8_t RxSlot;
     //bool AckReceived;
     //uint32_t DownLinkCounter;
 }McpsIndication_t;
