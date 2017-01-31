@@ -368,11 +368,6 @@ void LoRaMacSetChannelsTxPower( int8_t txPower );
  */
 void LoRaMacSetChannelsDatarate( int8_t datarate );
 
-/*
- * Wrapper function which calls \ref LoRaMacMibSetRequestConfirm to
- * set the receive delay 2 in [ms].
- */
-void LoRaMacSetReceiveDelay2( uint32_t delay );
 
 /*
  * Wrapper function which calls \ref LoRaMacMibSetRequestConfirm to

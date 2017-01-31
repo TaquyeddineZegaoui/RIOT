@@ -256,16 +256,6 @@ void LoRaMacSetChannel( uint8_t id, ChannelParams_t params )
     LoRaMacChannelAdd( id, params );
 }
 
-void LoRaMacSetReceiveDelay2( uint32_t delay )
-{
-    MibRequestConfirm_t mibSet;
-
-    mibSet.Type = MIB_RECEIVE_DELAY_2;
-    mibSet.Param.ReceiveDelay2 = delay;
-
-    LoRaMacMibSetRequestConfirm( &mibSet );
-}
-
 void LoRaMacSetJoinAcceptDelay1( uint32_t delay )
 {
     MibRequestConfirm_t mibSet;

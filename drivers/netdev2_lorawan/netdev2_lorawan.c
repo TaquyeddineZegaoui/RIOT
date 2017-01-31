@@ -125,6 +125,9 @@ int netdev2_lorawan_set(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_
         case NETOPT_LORAWAN_RX_DELAY_1:
             dev->LoRaMacParams.ReceiveDelay1 = *((uint32_t*) value);
             return sizeof(uint32_t);
+        case NETOPT_LORAWAN_RX_DELAY_2:
+            dev->LoRaMacParams.ReceiveDelay2 = *((uint32_t*) value);
+            return sizeof(uint32_t);
         default:
             break;
     }
