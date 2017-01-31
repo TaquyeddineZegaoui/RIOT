@@ -3863,13 +3863,13 @@ LoRaMacStatus_t LoRaMacMcpsRequest( McpsReq_t *mcpsRequest )
         {
             readyToSend = true;
             dev->AckTimeoutRetriesCounter = 1;
-            dev->AckTimeoutRetries = mcpsRequest->Req.Confirmed.NbTrials;
+            dev->AckTimeoutRetries = dev->NbTrials;
 
             macHdr.Bits.MType = FRAME_TYPE_DATA_CONFIRMED_UP;
-            fPort = mcpsRequest->Req.Confirmed.fPort;
-            fBuffer = mcpsRequest->Req.Confirmed.fBuffer;
-            fBufferSize = mcpsRequest->Req.Confirmed.fBufferSize;
-            datarate = mcpsRequest->Req.Confirmed.Datarate;
+            fPort = dev->fPort;
+            fBuffer = dev->fBuffer;
+            fBufferSize = dev->fBufferSize;
+            datarate = dev->Datarate;
             break;
         }
         case MCPS_PROPRIETARY:

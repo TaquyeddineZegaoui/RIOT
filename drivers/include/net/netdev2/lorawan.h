@@ -146,15 +146,6 @@ typedef enum eMcps
     MCPS_PROPRIETARY,
 }Mcps_t;
 
-typedef struct sMcpsReqConfirmed
-{
-    uint8_t fPort;
-    void *fBuffer;
-    uint16_t fBufferSize;
-    int8_t Datarate;
-    uint8_t NbTrials;
-}McpsReqConfirmed_t;
-
 typedef struct sMcpsReqProprietary
 {
     void *fBuffer;
@@ -168,7 +159,7 @@ typedef struct sMcpsReq
     union uMcpsParam
     {
         //McpsReqUnconfirmed_t Unconfirmed;
-        McpsReqConfirmed_t Confirmed;
+        //McpsReqConfirmed_t Confirmed;
         McpsReqProprietary_t Proprietary;
     }Req;
 }McpsReq_t;
