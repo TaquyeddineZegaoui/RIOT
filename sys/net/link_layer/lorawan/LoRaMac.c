@@ -3905,7 +3905,7 @@ LoRaMacStatus_t LoRaMacMcpsRequest( McpsReq_t *mcpsRequest )
         status = Send( &macHdr, fPort, fBuffer, fBufferSize );
         if( status == LORAMAC_STATUS_OK )
         {
-            dev->McpsConfirm.McpsRequest = mcpsRequest->Type;
+            //dev->McpsConfirm.McpsRequest = mcpsRequest->Type;
             dev->LoRaMacFlags.Bits.McpsReq = 1;
         }
         else

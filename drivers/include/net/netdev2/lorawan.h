@@ -183,7 +183,7 @@ typedef struct sMcpsReq
 
 typedef struct sMcpsConfirm
 {
-    Mcps_t McpsRequest;
+    //Mcps_t McpsRequest;
     //LoRaMacEventInfoStatus_t Status;
     //uint8_t Datarate;
     //int8_t TxPower;
