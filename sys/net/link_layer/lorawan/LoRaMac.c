@@ -1294,7 +1294,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
     {
         if( dev->LoRaMacFlags.Bits.McpsReq == 1 )
         {
-            dev->LoRaMacPrimitives->MacMcpsConfirm( &dev->McpsConfirm );
+            dev->LoRaMacPrimitives->MacMcpsConfirm();
             dev->LoRaMacFlags.Bits.McpsReq = 0;
         }
 
@@ -3843,7 +3843,6 @@ LoRaMacStatus_t LoRaMacMcpsRequest( McpsReq_t *mcpsRequest )
     }
 
     macHdr.Value = 0;
-    memset ( ( uint8_t* ) &dev->McpsConfirm, 0, sizeof( dev->McpsConfirm ) );
     dev->frame_status = LORAMAC_EVENT_INFO_STATUS_ERROR;
 
     switch( mcpsRequest->Type )

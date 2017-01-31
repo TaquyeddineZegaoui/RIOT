@@ -47,7 +47,7 @@ static LoRaMacCallbacks_t LoRaMacCallbacks;
  * \param   [IN] mcpsConfirm - Pointer to the confirm structure,
  *               containing confirm attributes.
  */
-static void McpsConfirm( McpsConfirm_t *mcpsConfirm )
+static void McpsConfirm(void)
 {
     netdev2_lorawan_t *netdev = get_dev_ptr();
     LoRaMacEventInfo.Status = netdev->frame_status;
