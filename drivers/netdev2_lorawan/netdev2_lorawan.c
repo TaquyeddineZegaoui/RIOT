@@ -118,6 +118,10 @@ int netdev2_lorawan_set(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_
                 dev->LoRaMacParams.ChannelsNbRep = tmp;
             }
             return sizeof(uint8_t);
+        case NETOPT_LORAWAN_MAX_RX_WINDOW:
+
+            dev->LoRaMacParams.MaxRxWindow = *((uint32_t*) value);
+            return sizeof(uint32_t);
         default:
             break;
     }
