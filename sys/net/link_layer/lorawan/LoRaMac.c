@@ -2177,8 +2177,8 @@ static void ProcessMacCommands( uint8_t *payload, uint8_t macIndex, uint8_t comm
         {
             case SRV_MAC_LINK_CHECK_ANS:
                 dev->frame_status = LORAMAC_EVENT_INFO_STATUS_OK;
-                dev->mlme_confirm.DemodMargin = payload[macIndex++];
-                dev->mlme_confirm.NbGateways = payload[macIndex++];
+                dev->demod_margin = payload[macIndex++];
+                dev->number_of_gateways = payload[macIndex++];
                 break;
             case SRV_MAC_LINK_ADR_REQ:
                 {

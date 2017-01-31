@@ -68,8 +68,8 @@ typedef struct mlme_confirm
     Mlme_t MlmeRequest;
     //LoRaMacEventInfoStatus_t Status;
     //TimerTime_t TxTimeOnAir;
-    uint8_t DemodMargin;
-    uint8_t NbGateways;
+    //uint8_t DemodMargin;
+    //uint8_t NbGateways;
 } mlme_confirm_t;
 
 /*!
@@ -299,6 +299,8 @@ typedef struct {
     LoRaMacFlags_t LoRaMacFlags;
     uint8_t RxSlot;
     uint8_t frame_status;
+    uint8_t demod_margin;
+    uint8_t number_of_gateways;
 } netdev2_lorawan_t;
 
 /**

@@ -118,8 +118,8 @@ static void MlmeConfirm( mlme_confirm_t *mlmeConfirm )
                 LoRaMacEventFlags.Bits.Rx = 1;
                 LoRaMacEventFlags.Bits.LinkCheck = 1;
 
-                LoRaMacEventInfo.DemodMargin = mlmeConfirm->DemodMargin;
-                LoRaMacEventInfo.NbGateways = mlmeConfirm->NbGateways;
+                LoRaMacEventInfo.DemodMargin = netdev->demod_margin;
+                LoRaMacEventInfo.NbGateways = netdev->number_of_gateways;
                 break;
             }
             default:
