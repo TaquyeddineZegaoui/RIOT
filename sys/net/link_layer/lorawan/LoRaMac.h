@@ -306,28 +306,6 @@ typedef enum eLoRaMacSrvCmd
     SRV_MAC_RX_TIMING_SETUP_REQ      = 0x08,
 }LoRaMacSrvCmd_t;
 
-/*!
- * LoRaMAC Battery level indicator
- */
-typedef enum eLoRaMacBatteryLevel
-{
-    /*!
-     * External power source
-     */
-    BAT_LEVEL_EXT_SRC                = 0x00,
-    /*!
-     * Battery level empty
-     */
-    BAT_LEVEL_EMPTY                  = 0x01,
-    /*!
-     * Battery level full
-     */
-    BAT_LEVEL_FULL                   = 0xFE,
-    /*!
-     * Battery level - no measurement available
-     */
-    BAT_LEVEL_NO_MEASURE             = 0xFF,
-}LoRaMacBatteryLevel_t;
 
 /*!
  * LoRaMAC header field definition (MHDR field)
