@@ -187,7 +187,7 @@ typedef struct sMcpsConfirm
     //LoRaMacEventInfoStatus_t Status;
     uint8_t Datarate;
     //int8_t TxPower;
-    bool AckReceived;
+    //bool AckReceived;
     uint8_t NbRetries;
     //TimerTime_t TxTimeOnAir;
     uint32_t UpLinkCounter;
@@ -207,7 +207,7 @@ typedef struct sMcpsIndication
     int16_t Rssi;
     uint8_t Snr;
     uint8_t RxSlot;
-    bool AckReceived;
+    //bool AckReceived;
     uint32_t DownLinkCounter;
 }McpsIndication_t;
 
@@ -291,6 +291,7 @@ typedef struct {
     uint8_t last_command;
     uint8_t last_frame;
     int8_t tx_power;
+    bool ack_received;
 } netdev2_lorawan_t;
 
 /**

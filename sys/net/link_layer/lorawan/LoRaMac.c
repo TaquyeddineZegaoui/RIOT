@@ -694,7 +694,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
     bool isMicOk = false;
 
     netopt_state_t state = NETOPT_STATE_SLEEP;
-    dev->McpsConfirm.AckReceived = false;
+    dev->ack_received = false;
     dev->McpsIndication.Rssi = rssi;
     dev->McpsIndication.Snr = snr;
     dev->McpsIndication.RxSlot = dev->RxSlot;
@@ -704,7 +704,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
     dev->McpsIndication.Buffer = NULL;
     dev->McpsIndication.BufferSize = 0;
     dev->McpsIndication.RxData = false;
-    dev->McpsIndication.AckReceived = false;
     dev->McpsIndication.DownLinkCounter = 0;
     dev->McpsIndication.McpsIndication = MCPS_UNCONFIRMED;
 
@@ -939,8 +938,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                     // Check if the frame is an acknowledgement
                     if( fCtrl.Bits.Ack == 1 )
                     {
-                        dev->McpsConfirm.AckReceived = true;
-                        dev->McpsIndication.AckReceived = true;
+                        dev->ack_received = true;
 
                         // Stop the AckTimeout timer as no more retransmissions
                         // are needed.
@@ -949,7 +947,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                     }
                     else
                     {
-                        dev->McpsConfirm.AckReceived = false;
+                        dev->ack_received = false;
 
                         if( dev->AckTimeoutRetriesCounter > dev->AckTimeoutRetries )
                         {
@@ -1154,7 +1152,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
                 // Stop transmit cycle due to tx timeout.
                 dev->LoRaMacState &= ~MAC_TX_RUNNING;
                 dev->McpsConfirm.NbRetries = dev->AckTimeoutRetriesCounter;
-                dev->McpsConfirm.AckReceived = false;
+                dev->ack_received = false;
                 //dev->McpsConfirm.TxTimeOnAir = 0;
                 txTimeout = true;
             }
@@ -1221,7 +1219,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
 
         if( dev->LoRaMacFlags.Bits.McpsInd == 1 )
         {
-            if( ( dev->McpsConfirm.AckReceived == true ) || ( dev->AckTimeoutRetriesCounter > dev->AckTimeoutRetries ) )
+            if( ( dev->ack_received == true ) || ( dev->AckTimeoutRetriesCounter > dev->AckTimeoutRetries ) )
             {
                 dev->AckTimeoutRetry = false;
                 dev->NodeAckRequested = false;
@@ -1278,7 +1276,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
                 dev->LoRaMacState &= ~MAC_TX_RUNNING;
 
                 dev->NodeAckRequested = false;
-                dev->McpsConfirm.AckReceived = false;
+                dev->ack_received = false;
                 dev->McpsConfirm.NbRetries = dev->AckTimeoutRetriesCounter;
                 if( dev->IsUpLinkCounterFixed == false )
                 {
@@ -2504,7 +2502,7 @@ LoRaMacStatus_t Send( LoRaMacHeader_t *macHdr, uint8_t fPort, void *fBuffer, uin
 
     // Reset confirm parameters
     dev->McpsConfirm.NbRetries = 0;
-    dev->McpsConfirm.AckReceived = false;
+    dev->ack_received = false;
     dev->McpsConfirm.UpLinkCounter = dev->UpLinkCounter;
 
     status = ScheduleTx( );
