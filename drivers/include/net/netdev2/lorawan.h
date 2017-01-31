@@ -196,7 +196,7 @@ typedef struct sMcpsIndication
     uint8_t Snr;
     uint8_t RxSlot;
     //bool AckReceived;
-    uint32_t DownLinkCounter;
+    //uint32_t DownLinkCounter;
 }McpsIndication_t;
 
 typedef struct sLoRaMacPrimitives
@@ -281,6 +281,7 @@ typedef struct {
     bool ack_received;
     uint8_t datarate;
     uint8_t n_retries;
+    uint32_t received_downlink;
 } netdev2_lorawan_t;
 
 /**

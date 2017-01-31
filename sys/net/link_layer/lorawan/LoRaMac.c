@@ -600,7 +600,7 @@ void OnRadioTxDone(netdev2_t *netdev)
     if( dev->IsRxWindowsEnabled == true )
     {
         dev->RxWindowTimer1.msg.type = LORAWAN_TIMER_RX_WINDOW1;
-        xtimer_set_msg(&(dev->RxWindowTimer1.dev), xtimer_ticks_from_usec(dev->RxWindow1Delay*1000-4000).ticks32, &(dev->RxWindowTimer1.msg), dev->RxWindowTimer1.pid);
+        xtimer_set_msg(&(dev->RxWindowTimer1.dev), xtimer_ticks_from_usec(dev->RxWindow1Delay*1000-5000).ticks32, &(dev->RxWindowTimer1.msg), dev->RxWindowTimer1.pid);
         //TimerSetValue( &RxWindowTimer1, dev->RxWindow1Delay, LORAWAN_TIMER_RX_WINDOW1);
         //TimerStart( &RxWindowTimer1, 0 );
         if( dev->LoRaMacDeviceClass != CLASS_C )
@@ -704,7 +704,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
     dev->McpsIndication.Buffer = NULL;
     dev->McpsIndication.BufferSize = 0;
     dev->McpsIndication.RxData = false;
-    dev->McpsIndication.DownLinkCounter = 0;
+    dev->received_downlink = 0;
     dev->McpsIndication.McpsIndication = MCPS_UNCONFIRMED;
 
     if( dev->LoRaMacDeviceClass != CLASS_C )
@@ -870,7 +870,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 if( sequenceCounterDiff >= MAX_FCNT_GAP )
                 {
                     dev->frame_status = LORAMAC_EVENT_INFO_STATUS_DOWNLINK_TOO_MANY_FRAMES_LOSS;
-                    dev->McpsIndication.DownLinkCounter = downLinkCounter;
+                    dev->received_downlink = downLinkCounter;
                     PrepareRxDoneAbort(netdev);
                     return;
                 }
@@ -882,7 +882,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                     dev->McpsIndication.FramePending = fCtrl.Bits.FPending;
                     dev->McpsIndication.Buffer = NULL;
                     dev->McpsIndication.BufferSize = 0;
-                    dev->McpsIndication.DownLinkCounter = downLinkCounter;
+                    dev->received_downlink = downLinkCounter;
 
                     dev->frame_status = LORAMAC_EVENT_INFO_STATUS_OK;
 
@@ -898,7 +898,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                             ( curMulticastParams->DownLinkCounter != 0 ) )
                         {
                             dev->frame_status = LORAMAC_EVENT_INFO_STATUS_DOWNLINK_REPEATED;
-                            dev->McpsIndication.DownLinkCounter = downLinkCounter;
+                            dev->received_downlink = downLinkCounter;
                             PrepareRxDoneAbort(netdev);
                             return;
                         }
@@ -927,7 +927,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                                 ( dev->DownLinkCounter != 0 ) )
                             {
                                 dev->frame_status = LORAMAC_EVENT_INFO_STATUS_DOWNLINK_REPEATED;
-                                dev->McpsIndication.DownLinkCounter = downLinkCounter;
+                                dev->received_downlink = downLinkCounter;
                                 PrepareRxDoneAbort(netdev);
                                 return;
                             }
