@@ -36,7 +36,6 @@ extern netdev2_lorawan_t *get_dev_ptr(void);
 /*!
  * Static variables
  */
-static LoRaMacEventInfo_t LoRaMacEventInfo;
 static LoRaMacPrimitives_t LoRaMacPrimitives;
 static LoRaMacCallbacks_t LoRaMacCallbacks;
 
@@ -54,7 +53,7 @@ static void McpsConfirm(void)
 
      if( ( netdev->LoRaMacFlags.Bits.McpsInd != 1 ) && ( netdev->LoRaMacFlags.Bits.MlmeReq != 1 ) )
     {
-        LoRaMacCallbacks.MacEvent(&LoRaMacEventInfo );
+        LoRaMacCallbacks.MacEvent();
     }
 }
 
@@ -70,7 +69,7 @@ static void McpsIndication(void)
     netdev->b_rx = 1;
 
 
-    LoRaMacCallbacks.MacEvent( &LoRaMacEventInfo );
+    LoRaMacCallbacks.MacEvent();
 }
 
 /*!
@@ -110,7 +109,7 @@ void MlmeConfirm(uint8_t mlme_req)
 
     if( netdev->LoRaMacFlags.Bits.McpsInd != 1 )
     {
-        LoRaMacCallbacks.MacEvent(&LoRaMacEventInfo );
+        LoRaMacCallbacks.MacEvent();
     }
 }
 

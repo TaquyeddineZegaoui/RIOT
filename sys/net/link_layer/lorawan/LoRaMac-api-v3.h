@@ -136,25 +136,6 @@
 #define LORA_MAC_PUBLIC_SYNCWORD                    0x34
 
 /*!
- * LoRaMAC event information
- */
-typedef struct
-{
-    //LoRaMacEventInfoStatus_t Status;
-    //bool TxAckReceived;
-    //uint8_t TxNbRetries;
-    //uint8_t TxDatarate;
-    //uint8_t RxPort;
-    //uint8_t *RxBuffer;
-    //uint8_t RxBufferSize;
-    //int16_t RxRssi;
-    //uint8_t RxSnr;
-    //uint16_t Energy;
-    //uint8_t DemodMargin;
-    //uint8_t NbGateways;
-}LoRaMacEventInfo_t;
-
-/*!
  * LoRaMAC events structure
  * Used to notify upper layers of MAC events
  */
@@ -166,7 +147,7 @@ typedef struct sLoRaMacCallbacks
      * \param [IN] flags Bit field indicating the MAC events occurred
      * \param [IN] info  Details about MAC events occurred
      */
-    void ( *MacEvent )(LoRaMacEventInfo_t *info );
+    void ( *MacEvent )(void);
     /*!
      * Function callback to get the current battery level
      *
