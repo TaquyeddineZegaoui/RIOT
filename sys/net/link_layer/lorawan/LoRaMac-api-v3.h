@@ -242,20 +242,6 @@ void LoRaMacMulticastChannelRemove( MulticastParams_t *channelParam );
  * \param [IN] fPort       MAC payload port (must be > 0)
  * \param [IN] fBuffer     MAC data buffer to be sent
  * \param [IN] fBufferSize MAC data buffer size
- *
- * \retval status          [0: OK, 1: Busy, 2: No network joined,
- *                          3: Length or port error, 4: Unknown MAC command
- *                          5: Unable to find a free channel
- *                          6: Device switched off]
- */
-uint8_t LoRaMacSendFrame( uint8_t fPort, void *fBuffer, uint16_t fBufferSize );
-
-/*!
- * LoRaMAC layer send frame
- *
- * \param [IN] fPort       MAC payload port (must be > 0)
- * \param [IN] fBuffer     MAC data buffer to be sent
- * \param [IN] fBufferSize MAC data buffer size
  * \param [IN] fBufferSize MAC data buffer size
  * \param [IN] nbRetries   Number of retries to receive the acknowledgement
  *

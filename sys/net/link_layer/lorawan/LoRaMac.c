@@ -289,22 +289,6 @@ static ChannelParams_t Channels[LORA_MAX_NB_CHANNELS];
 #endif
 
 /*!
- * LoRaMac internal states
- */
-enum eLoRaMacState
-{
-    MAC_IDLE          = 0x00000000,
-    MAC_TX_RUNNING    = 0x00000001,
-    MAC_RX            = 0x00000002,
-    MAC_ACK_REQ       = 0x00000004,
-    MAC_ACK_RETRY     = 0x00000008,
-    MAC_TX_DELAYED    = 0x00000010,
-    MAC_TX_CONFIG     = 0x00000020,
-    MAC_RX_ABORT      = 0x00000040,
-};
-
-
-/*!
  * \brief This function prepares the MAC to abort the execution of function
  *        OnRadioRxDone in case of a reception error.
  */

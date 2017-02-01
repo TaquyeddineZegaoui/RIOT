@@ -38,6 +38,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 #include "net/netdev2.h"
 #include "sx1276_params.h"
 #include "sx1276_netdev.h"
+#include "LoRaMac.h"
 
 #define GNRC_LORA_MSG_QUEUE 16
 
@@ -88,6 +89,8 @@ static netdev2_t *nd;
 #endif
 
 
+extern LoRaMacStatus_t Send( LoRaMacHeader_t *macHdr, uint8_t fPort,
+                             void *fBuffer, uint16_t fBufferSize );
 static uint8_t DevEui[] = LORAWAN_DEVICE_EUI;
 static uint8_t AppEui[] = LORAWAN_APPLICATION_EUI;
 static uint8_t AppKey[] = LORAWAN_APPLICATION_KEY;
@@ -299,6 +302,7 @@ static bool SendFrame( void )
     lws.port = AppPort;
     lws.buffer = AppData;
     lws.size = AppDataSize;
+    lws.type = 0;
     msg.type = GNRC_NETAPI_MSG_TYPE_SND;
     msg.content.ptr = &lws;
     kernel_pid_t pid = *((kernel_pid_t*) nd->context);
@@ -317,7 +321,8 @@ static bool SendFrame( void )
     {
     case 3: // LENGTH_ERROR
         // Send empty frame in order to flush MAC commands
-        LoRaMacSendFrame( 0, NULL, 0 );
+        //TODO: Fix this
+        //LoRaMacSendFrame( 0, NULL, 0 );
         return false;
     case 5: // NO_FREE_CHANNEL
         // Try again later
@@ -515,7 +520,72 @@ int send(int argc, char **argv)
     return 0;
 }
 
+static int _send(lorawan_send_t *lws)
+{
+    //LoRaMacSendFrame(lws->port, lws->buffer, lws->size);
+    netdev2_lorawan_t *dev = (netdev2_lorawan_t*) &sx1276;
+    LoRaMacStatus_t status = LORAMAC_STATUS_SERVICE_UNKNOWN;
+    LoRaMacHeader_t macHdr;
 
+    if( ( ( dev->LoRaMacState & MAC_TX_RUNNING ) == MAC_TX_RUNNING ) ||
+        ( ( dev->LoRaMacState & MAC_TX_DELAYED ) == MAC_TX_DELAYED ) )
+    {
+        return LORAMAC_STATUS_BUSY;
+    }
+
+    macHdr.Value = 0;
+    dev->frame_status = LORAMAC_EVENT_INFO_STATUS_ERROR;
+
+    switch(lws->type)
+    {
+        case 0:
+        {
+            dev->AckTimeoutRetries = 1;
+
+            macHdr.Bits.MType = FRAME_TYPE_DATA_UNCONFIRMED_UP;
+            break;
+        }
+        /*
+        case MCPS_CONFIRMED:
+        {
+            readyToSend = true;
+            dev->AckTimeoutRetriesCounter = 1;
+            dev->AckTimeoutRetries = dev->NbTrials;
+
+            macHdr.Bits.MType = FRAME_TYPE_DATA_CONFIRMED_UP;
+            fPort = dev->fPort;
+            fBuffer = dev->fBuffer;
+            fBufferSize = dev->fBufferSize;
+            break;
+        }
+        case MCPS_PROPRIETARY:
+        {
+            readyToSend = true;
+            dev->AckTimeoutRetries = 1;
+
+            macHdr.Bits.MType = FRAME_TYPE_PROPRIETARY;
+            fBuffer = dev->fBuffer;
+            fBufferSize = dev->fBufferSize;
+            break;
+        }
+        */
+        default:
+            break;
+    }
+
+    status = Send( &macHdr, lws->port, lws->buffer, lws->size );
+    if( status == LORAMAC_STATUS_OK )
+    {
+        //dev->McpsConfirm.McpsRequest = mcpsRequest->Type;
+        dev->LoRaMacFlags.Bits.McpsReq = 1;
+    }
+    else
+    {
+        dev->NodeAckRequested = false;
+    }
+
+    return status;
+}
 
 static const shell_command_t shell_commands[] = {
     { "lorawan_setup", "<ActivationType (ota, abp)> <ADR (on, off)> <NetworkType (public, private)> - sets up LoRaWAN settings", lorawan_setup},
@@ -541,7 +611,7 @@ void *_event_loop(void *arg)
                 break;
             case GNRC_NETAPI_MSG_TYPE_SND:
                 lws = msg.content.ptr;
-                LoRaMacSendFrame(lws->port, lws->buffer, lws->size);
+                _send(lws);
                 break;
             case GNRC_NETAPI_MSG_TYPE_SET:
                 /* read incoming options */

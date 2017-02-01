@@ -159,47 +159,6 @@ void LoRaMacMulticastChannelRemove( MulticastParams_t *channelParam )
 }
 
 
-uint8_t LoRaMacSendFrame( uint8_t fPort, void *fBuffer, uint16_t fBufferSize )
-{
-    netdev2_lorawan_t *netdev = get_dev_ptr();
-    uint8_t retStatus;
-
-    memset( ( uint8_t* )&LoRaMacEventInfo, 0, sizeof( LoRaMacEventInfo ) );
-
-
-    netdev->fBuffer = fBuffer;
-    netdev->fBufferSize = fBufferSize;
-    netdev->fPort = fPort;
-
-    switch( LoRaMacMcpsRequest(MCPS_UNCONFIRMED) )
-    {
-        case LORAMAC_STATUS_OK:
-            retStatus = 0U;
-            break;
-        case LORAMAC_STATUS_BUSY:
-            retStatus = 1U;
-            break;
-        case LORAMAC_STATUS_NO_NETWORK_JOINED:
-            retStatus = 2U;
-            break;
-        case LORAMAC_STATUS_LENGTH_ERROR:
-        case LORAMAC_STATUS_MAC_CMD_LENGTH_ERROR:
-            retStatus = 3U;
-            break;
-        case LORAMAC_STATUS_SERVICE_UNKNOWN:
-            retStatus = 4U;
-            break;
-        case LORAMAC_STATUS_DEVICE_OFF:
-            retStatus = 6U;
-            break;
-        default:
-            retStatus = 1U;
-            break;
-    }
-
-    return retStatus;
-}
-
 uint8_t LoRaMacSendConfirmedFrame( uint8_t fPort, void *fBuffer, uint16_t fBufferSize, uint8_t nbRetries )
 {
     netdev2_lorawan_t *netdev = get_dev_ptr();
