@@ -630,7 +630,7 @@ typedef union uMibParam
      *
      * Related MIB type: \ref MIB_DEVICE_CLASS
      */
-    DeviceClass_t Class;
+    //DeviceClass_t Class;
     /*!
      * LoRaWAN network joined attribute
      *
