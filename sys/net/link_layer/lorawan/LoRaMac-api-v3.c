@@ -74,7 +74,7 @@ static void McpsIndication(void)
 {
     netdev2_lorawan_t *netdev = get_dev_ptr();
     LoRaMacEventInfo.Status = netdev->frame_status;
-    LoRaMacEventFlags.Bits.Rx = 1;
+    netdev->b_rx = 1;
     LoRaMacEventFlags.Bits.RxSlot = netdev->RxSlot;
     LoRaMacEventFlags.Bits.Multicast = netdev->Multicast;
     if( netdev->RxData == true )
@@ -110,14 +110,14 @@ void MlmeConfirm(uint8_t mlme_req)
             {
                 // Status is OK, node has joined the network
                 netdev->b_tx = 1;
-                LoRaMacEventFlags.Bits.Rx = 1;
+                netdev->b_rx = 1;
                 LoRaMacEventFlags.Bits.JoinAccept = 1;
                 break;
             }
             case MLME_LINK_CHECK:
             {
                 netdev->b_tx = 1;
-                LoRaMacEventFlags.Bits.Rx = 1;
+                netdev->b_rx = 1;
                 LoRaMacEventFlags.Bits.LinkCheck = 1;
 
                 LoRaMacEventInfo.DemodMargin = netdev->demod_margin;

@@ -348,7 +348,7 @@ static void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )
         {
         }
 
-        if( flags->Bits.Rx == 1 )
+        if( dev->b_rx == 1 )
         {
             if( ComplianceTest.Running == true )
             {
