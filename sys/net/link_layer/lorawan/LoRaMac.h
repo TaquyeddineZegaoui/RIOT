@@ -1142,6 +1142,15 @@ typedef struct netopt_channel_params
     ChannelParams_t params;
 } netopt_channel_params_t;
 
+typedef struct lorawan_send
+{
+    uint8_t type;
+    uint8_t port;
+    uint8_t *buffer;
+    size_t size;
+    uint8_t retries;
+} lorawan_send_t;
+
 /*! \} defgroup LORAMAC */
 
 #endif // __LORAMAC_H__
