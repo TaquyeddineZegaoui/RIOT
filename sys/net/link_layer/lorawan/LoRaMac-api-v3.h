@@ -143,7 +143,7 @@ typedef union
     uint8_t Value;
     struct
     {
-        uint8_t Tx              : 1;
+        //uint8_t Tx              : 1;
         uint8_t Rx              : 1;
         uint8_t RxData          : 1;
         uint8_t Multicast       : 1;

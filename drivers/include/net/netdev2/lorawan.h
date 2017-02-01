@@ -243,6 +243,11 @@ typedef struct {
     uint16_t fBufferSize;
     int8_t Datarate;
     uint8_t NbTrials;
+
+    bool b_tx;
+    bool b_rx;
+    bool link_check;
+    bool join_req;
 } netdev2_lorawan_t;
 
 /**
