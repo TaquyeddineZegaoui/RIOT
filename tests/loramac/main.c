@@ -360,7 +360,7 @@ static void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )
                     ComplianceTest.NbGateways = info->NbGateways;
                 }
             }
-            if( flags->Bits.RxData == true )
+            if( dev->RxData == true )
             {
                 ProcessRxFrame( flags, info );
             }

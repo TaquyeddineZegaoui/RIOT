@@ -145,7 +145,7 @@ typedef union
     {
         //uint8_t Tx              : 1;
         //uint8_t Rx              : 1;
-        uint8_t RxData          : 1;
+        //uint8_t RxData          : 1;
         uint8_t Multicast       : 1;
         //uint8_t RxSlot          : 2;
         //uint8_t LinkCheck       : 1;

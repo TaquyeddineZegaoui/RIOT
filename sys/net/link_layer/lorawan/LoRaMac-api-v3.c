@@ -76,10 +76,6 @@ static void McpsIndication(void)
     LoRaMacEventInfo.Status = netdev->frame_status;
     netdev->b_rx = 1;
     LoRaMacEventFlags.Bits.Multicast = netdev->Multicast;
-    if( netdev->RxData == true )
-    {
-        LoRaMacEventFlags.Bits.RxData = 1;
-    }
 
     LoRaMacEventInfo.RxPort = netdev->Port;
     LoRaMacEventInfo.RxBuffer = netdev->Buffer;
