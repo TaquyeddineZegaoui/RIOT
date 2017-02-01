@@ -138,8 +138,6 @@ static uint8_t IsTxConfirmed = LORAWAN_CONFIRMED_MSG_ON;
  */
 static bool DownlinkStatusUpdate = false;
 
-static LoRaMacCallbacks_t LoRaMacCallbacks;
-
 
 /*!
  * LoRaWAN compliance tests support data
@@ -749,10 +747,7 @@ int main( void )
                      _event_loop, (void *) netdev, "asd");
     netdev->context = &pid;
 
-    // Set LoRaMAC thread
-    LoRaMacCallbacks.MacEvent = OnMacEvent;
-    LoRaMacCallbacks.GetBatteryLevel = board_get_battery_level;
-    LoRaMacInit( &LoRaMacCallbacks, pid );
+    LoRaMacInit(pid );
 
     /* start the shell */
     puts("Initialization successful - starting the shell now");

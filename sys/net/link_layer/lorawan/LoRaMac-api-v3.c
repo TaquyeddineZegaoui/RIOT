@@ -36,7 +36,6 @@ extern netdev2_lorawan_t *get_dev_ptr(void);
 /*!
  * Static variables
  */
-static LoRaMacCallbacks_t LoRaMacCallbacks;
 
 
 /*!
@@ -46,10 +45,9 @@ static LoRaMacCallbacks_t LoRaMacCallbacks;
  *               containing confirm attributes.
  */
 
-void LoRaMacInit( LoRaMacCallbacks_t *callbacks, kernel_pid_t mac_pid)
+void LoRaMacInit( kernel_pid_t mac_pid)
 {
 
-    LoRaMacCallbacks.MacEvent = callbacks->MacEvent;
 
     LoRaMacInitialization(  mac_pid);
 }

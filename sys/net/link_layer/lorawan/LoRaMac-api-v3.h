@@ -136,33 +136,12 @@
 #define LORA_MAC_PUBLIC_SYNCWORD                    0x34
 
 /*!
- * LoRaMAC events structure
- * Used to notify upper layers of MAC events
- */
-typedef struct sLoRaMacCallbacks
-{
-    /*!
-     * MAC layer event callback prototype.
-     *
-     * \param [IN] flags Bit field indicating the MAC events occurred
-     * \param [IN] info  Details about MAC events occurred
-     */
-    void ( *MacEvent )(void);
-    /*!
-     * Function callback to get the current battery level
-     *
-     * \retval batteryLevel Current battery level
-     */
-    uint8_t ( *GetBatteryLevel )( void );
-}LoRaMacCallbacks_t;
-
-/*!
  * LoRaMAC layer initialization
  *
  * \param [IN] callbacks     Pointer to a structure defining the LoRaMAC
  *                           callback functions.
  */
-void LoRaMacInit( LoRaMacCallbacks_t *callbacks, kernel_pid_t mac_pid );
+void LoRaMacInit(kernel_pid_t mac_pid );
 
 /*!
  * Enables/Disables the ADR (Adaptive Data Rate)
