@@ -469,7 +469,7 @@ typedef enum eMib
      *
      * LoRaWAN Specification V1.0.1
      */
-    MIB_NETWORK_JOINED,
+    //MIB_NETWORK_JOINED,
     /*!
      * Adaptive data rate
      *
@@ -636,7 +636,7 @@ typedef union uMibParam
      *
      * Related MIB type: \ref MIB_NETWORK_JOINED
      */
-    bool IsNetworkJoined;
+    //bool IsNetworkJoined;
     /*!
      * Activation state of ADR
      *

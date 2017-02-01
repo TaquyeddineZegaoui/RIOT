@@ -3246,11 +3246,6 @@ LoRaMacStatus_t LoRaMacMibGetRequestConfirm( MibRequestConfirm_t *mibGet )
 
     switch( mibGet->Type )
     {
-        case MIB_NETWORK_JOINED:
-        {
-            mibGet->Param.IsNetworkJoined = dev->lorawan.tx_rx.nwk_status;
-            break;
-        }
         case MIB_ADR:
         {
             mibGet->Param.AdrEnable = dev->lorawan.tx_rx.adr_ctrl;
@@ -3424,11 +3419,6 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
 
     switch( mibSet->Type )
     {
-        case MIB_NETWORK_JOINED:
-        {
-            dev->lorawan.tx_rx.nwk_status = mibSet->Param.IsNetworkJoined;
-            break;
-        }
         case MIB_ADR:
         {
             dev->lorawan.tx_rx.adr_ctrl = mibSet->Param.AdrEnable;
