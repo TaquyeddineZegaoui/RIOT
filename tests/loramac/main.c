@@ -302,20 +302,20 @@ static bool SendFrame( void )
     lws.port = AppPort;
     lws.buffer = AppData;
     lws.size = AppDataSize;
-    lws.type = 0;
+    lws.retries = 8;
     msg.type = GNRC_NETAPI_MSG_TYPE_SND;
     msg.content.ptr = &lws;
     kernel_pid_t pid = *((kernel_pid_t*) nd->context);
 
     if( IsTxConfirmed == false )
     {
-        //sendFrameStatus = LoRaMacSendFrame( AppPort, AppData, AppDataSize );
-    msg_send(&msg, pid);
+        lws.type = 0;
     }
     else
     {
-        sendFrameStatus = LoRaMacSendConfirmedFrame( AppPort, AppData, AppDataSize, 8 );
+        lws.type = 1;
     }
+    msg_send(&msg, pid);
 
     switch( sendFrameStatus )
     {
@@ -545,19 +545,15 @@ static int _send(lorawan_send_t *lws)
             macHdr.Bits.MType = FRAME_TYPE_DATA_UNCONFIRMED_UP;
             break;
         }
-        /*
-        case MCPS_CONFIRMED:
+        case 1:
         {
-            readyToSend = true;
             dev->AckTimeoutRetriesCounter = 1;
-            dev->AckTimeoutRetries = dev->NbTrials;
+            dev->AckTimeoutRetries = lws->retries;
 
             macHdr.Bits.MType = FRAME_TYPE_DATA_CONFIRMED_UP;
-            fPort = dev->fPort;
-            fBuffer = dev->fBuffer;
-            fBufferSize = dev->fBufferSize;
             break;
         }
+        /*
         case MCPS_PROPRIETARY:
         {
             readyToSend = true;
