@@ -150,7 +150,6 @@ typedef struct sLoRaMacPrimitives
 {
     void ( *MacMcpsConfirm )(void);
     void ( *MacMcpsIndication )(void);
-    void ( *MacMlmeConfirm )(uint8_t mlme_req);
 }LoRaMacPrimitives_t;
 
 typedef union eLoRaMacFlags_t

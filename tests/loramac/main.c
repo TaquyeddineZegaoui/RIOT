@@ -336,7 +336,7 @@ static bool SendFrame( void )
 /*!
  * \brief Function to be executed on MAC layer event
  */
-static void OnMacEvent(void)
+void OnMacEvent(void)
 {
     netdev2_lorawan_t *dev = (netdev2_lorawan_t*) &sx1276;
     if( dev->join_req == 1 )

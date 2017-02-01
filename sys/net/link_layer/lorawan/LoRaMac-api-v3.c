@@ -79,45 +79,10 @@ static void McpsIndication(void)
  *               containing confirm attributes.
  */
 
-void MlmeConfirm(uint8_t mlme_req)
-{
-    netdev2_lorawan_t *netdev = get_dev_ptr();
-    if( netdev->frame_status == LORAMAC_EVENT_INFO_STATUS_OK )
-    {
-        switch( mlme_req )
-        {
-            case MLME_JOIN:
-            {
-                // Status is OK, node has joined the network
-                netdev->b_tx = 1;
-                netdev->b_rx = 1;
-                netdev->join_req = 1;
-                break;
-            }
-            case MLME_LINK_CHECK:
-            {
-                netdev->b_tx = 1;
-                netdev->b_rx = 1;
-                netdev->link_check = 1;
-
-                break;
-            }
-            default:
-                break;
-        }
-    }
-
-    if( netdev->LoRaMacFlags.Bits.McpsInd != 1 )
-    {
-        LoRaMacCallbacks.MacEvent();
-    }
-}
-
 void LoRaMacInit( LoRaMacCallbacks_t *callbacks, kernel_pid_t mac_pid)
 {
     LoRaMacPrimitives.MacMcpsConfirm = McpsConfirm;
     LoRaMacPrimitives.MacMcpsIndication = McpsIndication;
-    LoRaMacPrimitives.MacMlmeConfirm = MlmeConfirm;
 
     LoRaMacCallbacks.MacEvent = callbacks->MacEvent;
 

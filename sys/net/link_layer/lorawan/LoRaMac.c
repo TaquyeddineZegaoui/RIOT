@@ -26,6 +26,7 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jä
 #include <string.h>
 
 
+extern void OnMacEvent(void);
 /*!
  * \brief Returns the minimum value betwen a and b
  *
@@ -1297,10 +1298,24 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
 
         if( dev->LoRaMacFlags.Bits.MlmeReq == 1 )
         {
-            if(dev->last_frame == FRAME_TYPE_JOIN_REQ)
-                dev->LoRaMacPrimitives->MacMlmeConfirm( MLME_JOIN );
-            else if (dev->last_command == MOTE_MAC_LINK_CHECK_REQ)
-                dev->LoRaMacPrimitives->MacMlmeConfirm(MLME_LINK_CHECK);
+            if( dev->frame_status == LORAMAC_EVENT_INFO_STATUS_OK )
+            {
+                dev->b_tx = 1;
+                dev->b_rx = 1;
+                if(dev->last_frame == FRAME_TYPE_JOIN_REQ)
+                {
+                    dev->join_req = 1;
+                }
+                else if (dev->last_command == MOTE_MAC_LINK_CHECK_REQ)
+                {
+                    dev->link_check = 1;
+                }
+            }
+
+            if( dev->LoRaMacFlags.Bits.McpsInd != 1 )
+            {
+                OnMacEvent();
+            }
 
             dev->LoRaMacFlags.Bits.MlmeReq = 0;
         }
@@ -3029,8 +3044,7 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, kernel_p
     }
 
     if( ( primitives->MacMcpsConfirm == NULL ) ||
-        ( primitives->MacMcpsIndication == NULL ) ||
-        ( primitives->MacMlmeConfirm == NULL ))
+        ( primitives->MacMcpsIndication == NULL ))
     {
         return LORAMAC_STATUS_PARAMETER_INVALID;
     }
