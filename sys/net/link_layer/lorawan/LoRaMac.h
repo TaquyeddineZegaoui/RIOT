@@ -517,7 +517,7 @@ typedef enum eMib
      *
      * LoRaWAN Specification V1.0.1, chapter 7
      */
-    MIB_CHANNELS,
+    //MIB_CHANNELS,
     /*!
      * Set receive window 2 channel
      *
