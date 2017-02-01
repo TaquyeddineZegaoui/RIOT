@@ -3246,11 +3246,6 @@ LoRaMacStatus_t LoRaMacMibGetRequestConfirm( MibRequestConfirm_t *mibGet )
 
     switch( mibGet->Type )
     {
-        case MIB_REPEATER_SUPPORT:
-        {
-            mibGet->Param.EnableRepeaterSupport = dev->RepeaterSupport;
-            break;
-        }
         case MIB_CHANNELS:
         {
             mibGet->Param.ChannelList = Channels;
@@ -3414,11 +3409,6 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
 
     switch( mibSet->Type )
     {
-        case MIB_REPEATER_SUPPORT:
-        {
-             dev->RepeaterSupport = mibSet->Param.EnableRepeaterSupport;
-            break;
-        }
         case MIB_CHANNELS_DEFAULT_DATARATE:
         {
             if( ValueInRange( mibSet->Param.ChannelsDefaultDatarate,

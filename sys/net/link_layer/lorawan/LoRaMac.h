@@ -509,7 +509,7 @@ typedef enum eMib
      *
      * [true: repeater support enabled, false: repeater support disabled]
      */
-    MIB_REPEATER_SUPPORT,
+    //MIB_REPEATER_SUPPORT,
     /*!
      * Communication channels. A get request will return a
      * pointer which references the first entry of the channel list. The
