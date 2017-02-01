@@ -145,11 +145,11 @@ typedef struct
     uint8_t TxNbRetries;
     uint8_t TxDatarate;
     uint8_t RxPort;
-    uint8_t *RxBuffer;
-    uint8_t RxBufferSize;
-    int16_t RxRssi;
-    uint8_t RxSnr;
-    uint16_t Energy;
+    //uint8_t *RxBuffer;
+    //uint8_t RxBufferSize;
+    //int16_t RxRssi;
+    //uint8_t RxSnr;
+    //uint16_t Energy;
     uint8_t DemodMargin;
     uint8_t NbGateways;
 }LoRaMacEventInfo_t;

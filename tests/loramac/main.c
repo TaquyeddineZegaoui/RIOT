@@ -213,13 +213,14 @@ static uint8_t PrepareTxFrame( uint8_t port, uint8_t* data, uint8_t size)
 static void ProcessRxFrame(LoRaMacEventInfo_t *info )
 {
     kernel_pid_t pid = *((kernel_pid_t*) nd->context);
+    netdev2_lorawan_t *dev = (netdev2_lorawan_t*) &sx1276;
     uint8_t res;
 
     switch( info->RxPort ) // Check Rx port number
     {
     case 1: // The application LED can be controlled on port 1 or 2
     case 2:
-        if( info->RxBufferSize == 1 )
+        if( dev->BufferSize == 1 )
         {
         }
         break;
@@ -227,11 +228,11 @@ static void ProcessRxFrame(LoRaMacEventInfo_t *info )
         if( ComplianceTest.Running == false )
         {
             // Check compliance test enable command (i)
-            if( ( info->RxBufferSize == 4 ) && 
-                ( info->RxBuffer[0] == 0x01 ) &&
-                ( info->RxBuffer[1] == 0x01 ) &&
-                ( info->RxBuffer[2] == 0x01 ) &&
-                ( info->RxBuffer[3] == 0x01 ) )
+            if( ( dev->BufferSize == 4 ) && 
+                ( dev->Buffer[0] == 0x01 ) &&
+                ( dev->Buffer[1] == 0x01 ) &&
+                ( dev->Buffer[2] == 0x01 ) &&
+                ( dev->Buffer[3] == 0x01 ) )
             {
                 IsTxConfirmed = false;
                 AppPort = 224;
@@ -249,7 +250,7 @@ static void ProcessRxFrame(LoRaMacEventInfo_t *info )
         }
         else
         {
-            ComplianceTest.State = info->RxBuffer[0];
+            ComplianceTest.State = dev->Buffer[0];
             switch( ComplianceTest.State )
             {
             case 0: // Check compliance test disable command (ii)
@@ -273,12 +274,12 @@ static void ProcessRxFrame(LoRaMacEventInfo_t *info )
                 ComplianceTest.State = 1;
                 break;
             case 4: // (vii)
-                AppDataSize = info->RxBufferSize;
+                AppDataSize = dev->BufferSize;
 
                 AppData[0] = 4;
                 for( uint8_t i = 1; i < AppDataSize; i++ )
                 {
-                    AppData[i] = info->RxBuffer[i] + 1;
+                    AppData[i] = dev->Buffer[i] + 1;
                 }
                 break;
             case 5: // (viii)
