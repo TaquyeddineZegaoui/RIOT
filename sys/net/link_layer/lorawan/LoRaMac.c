@@ -3192,49 +3192,6 @@ LoRaMacStatus_t LoRaMacInitialization( kernel_pid_t mac_pid)
     return LORAMAC_STATUS_OK;
 }
 
-LoRaMacStatus_t LoRaMacQueryTxPossible( uint8_t size, LoRaMacTxInfo_t* txInfo )
-{
-    int8_t datarate = dev->LoRaMacParamsDefaults.ChannelsDatarate;
-    uint8_t fOptLen = dev->MacCommandsBufferIndex + dev->MacCommandsBufferToRepeatIndex;
-
-    if( txInfo == NULL )
-    {
-        return LORAMAC_STATUS_PARAMETER_INVALID;
-    }
-
-    AdrNextDr( dev->lorawan.tx_rx.adr_ctrl, false, &datarate );
-
-    if( dev->RepeaterSupport == true )
-    {
-        txInfo->CurrentPayloadSize = MaxPayloadOfDatarateRepeater[datarate];
-    }
-    else
-    {
-        txInfo->CurrentPayloadSize = MaxPayloadOfDatarate[datarate];
-    }
-
-    if( txInfo->CurrentPayloadSize >= fOptLen )
-    {
-        txInfo->MaxPossiblePayload = txInfo->CurrentPayloadSize - fOptLen;
-    }
-    else
-    {
-        return LORAMAC_STATUS_MAC_CMD_LENGTH_ERROR;
-    }
-
-    if( ValidatePayloadLength( size, datarate, 0 ) == false )
-    {
-        return LORAMAC_STATUS_LENGTH_ERROR;
-    }
-
-    if( ValidatePayloadLength( size, datarate, fOptLen ) == false )
-    {
-        return LORAMAC_STATUS_MAC_CMD_LENGTH_ERROR;
-    }
-
-    return LORAMAC_STATUS_OK;
-}
-
 void lorawan_set_class(netdev2_lorawan_t *dev, int class)
 {
     netdev2_t *netdev = (netdev2_t*) dev;

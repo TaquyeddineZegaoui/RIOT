@@ -379,21 +379,6 @@ typedef union uLoRaMacFrameCtrl
 
 
 /*!
- * LoRaMAC tx information
- */
-typedef struct sLoRaMacTxInfo
-{
-    /*!
-     * Defines the size of the applicative payload which can be processed
-     */
-    uint8_t MaxPossiblePayload;
-    /*!
-     * The current payload size, dependent on the current datarate
-     */
-    uint8_t CurrentPayloadSize;
-}LoRaMacTxInfo_t;
-
-/*!
  * LoRaMAC Status
  */
 typedef enum eLoRaMacStatus
@@ -466,29 +451,6 @@ typedef enum eLoRaMacStatus
  *          \ref LORAMAC_STATUS_PARAMETER_INVALID.
  */
 LoRaMacStatus_t LoRaMacInitialization( kernel_pid_t mac_pid);
-
-/*!
- * \brief   Queries the LoRaMAC if it is possible to send the next frame with
- *          a given payload size. The LoRaMAC takes scheduled MAC commands into
- *          account and reports, when the frame can be send or not.
- *
- * \param   [IN] size - Size of applicative payload to be send next
- *
- * \param   [OUT] txInfo - The structure \ref LoRaMacTxInfo_t contains
- *                         information about the actual maximum payload possible
- *                         ( according to the configured datarate or the next
- *                         datarate according to ADR ), and the maximum frame
- *                         size, taking the scheduled MAC commands into account.
- *
- * \retval  LoRaMacStatus_t Status of the operation. When the parameters are
- *          not valid, the function returns \ref LORAMAC_STATUS_PARAMETER_INVALID.
- *          In case of a length error caused by the applicative payload size, the
- *          function returns LORAMAC_STATUS_LENGTH_ERROR. In case of a length error
- *          due to additional MAC commands in the queue, the function returns
- *          LORAMAC_STATUS_MAC_CMD_LENGTH_ERROR. In case the query is valid, and
- *          the LoRaMAC is able to send the frame, the function returns LORAMAC_STATUS_OK. *
- */
-LoRaMacStatus_t LoRaMacQueryTxPossible( uint8_t size, LoRaMacTxInfo_t* txInfo );
 
 /*!
  * \brief   LoRaMAC channel add service
