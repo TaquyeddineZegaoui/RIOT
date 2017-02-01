@@ -52,107 +52,25 @@
 #include "net/netdev2/lorawan.h"
 
 #define MAC_EVENT_HANDLER_STACK_SIZE 2048
-
-
-/*!
- * Beacon interval in ms
- */
-#define BEACON_INTERVAL                             128000
-
-/*!
- * Class A&B receive delay 1 in ms
- */
-#define RECEIVE_DELAY1                              1000
-
-/*!
- * Class A&B receive delay 2 in ms
- */
-#define RECEIVE_DELAY2                              2000
-
-/*!
- * Join accept receive delay 1 in ms
- */
-#define JOIN_ACCEPT_DELAY1                          5000
-
-/*!
- * Join accept receive delay 2 in ms
- */
-#define JOIN_ACCEPT_DELAY2                          6000
-
-/*!
- * Class A&B maximum receive window delay in ms
- */
-#define MAX_RX_WINDOW                               3000
-
-/*!
- * Maximum allowed gap for the FCNT field
- */
-#define MAX_FCNT_GAP                                16384
-
-/*!
- * ADR acknowledgement counter limit
- */
-#define ADR_ACK_LIMIT                               64
-
-/*!
- * Number of ADR acknowledgement requests before returning to default datarate
- */
-#define ADR_ACK_DELAY                               32
-
-/*!
- * Number of seconds after the start of the second reception window without
- * receiving an acknowledge.
- * AckTimeout = \ref ACK_TIMEOUT + Random( -\ref ACK_TIMEOUT_RND, \ref ACK_TIMEOUT_RND )
- */
-#define ACK_TIMEOUT                                 2000
-
-/*!
- * Random number of seconds after the start of the second reception window without
- * receiving an acknowledge
- * AckTimeout = \ref ACK_TIMEOUT + Random( -\ref ACK_TIMEOUT_RND, \ref ACK_TIMEOUT_RND )
- */
-#define ACK_TIMEOUT_RND                             1000
-
-/*!
- * Check the Mac layer state every MAC_STATE_CHECK_TIMEOUT in ms
- */
-#define MAC_STATE_CHECK_TIMEOUT                     1000
-
-/*!
- * Maximum number of times the MAC layer tries to get an acknowledge.
- */
-#define MAX_ACK_RETRIES                             8
-
-/*!
- * RSSI free threshold [dBm]
- */
-#define RSSI_FREE_TH                                ( int8_t )( -90 )
-
-/*!
- * Frame direction definition for up-link communications
- */
-#define UP_LINK                                     0
-
-/*!
- * Frame direction definition for down-link communications
- */
-#define DOWN_LINK                                   1
-
-/*!
- * Sets the length of the LoRaMAC footer field.
- * Mainly indicates the MIC field length
- */
-#define LORAMAC_MFR_LEN                             4
-
-/*!
- * Syncword for Private LoRa networks
- */
-#define LORA_MAC_PRIVATE_SYNCWORD                   0x12
-
-/*!
- * Syncword for Public LoRa networks
- */
-#define LORA_MAC_PUBLIC_SYNCWORD                    0x34
+#define BEACON_INTERVAL                             128000 /**< Beacon interval in ms */
+#define RECEIVE_DELAY1                              1000 /**< Class A&B receive delay 1 in ms */
+#define RECEIVE_DELAY2                              2000 /**< Class A&B receive delay 2 in ms */
+#define JOIN_ACCEPT_DELAY1                          5000 /**< Join accept receive delay 1 in ms */
+#define JOIN_ACCEPT_DELAY2                          6000 /**< Join accept receive delay 2 in ms */
+#define MAX_RX_WINDOW                               3000 /**< Class A&B maximum receive window delay in ms */
+#define MAX_FCNT_GAP                                16384 /**< Maximum allowed gap for the FCNT field */
+#define ADR_ACK_LIMIT                               64 /**< ADR acknowledgement counter limit */
+#define ADR_ACK_DELAY                               32 /**< Number of ADR acknowledgement requests before returning to default datarate */
+#define ACK_TIMEOUT                                 2000 /**< Number of seconds after the start of the second reception window without receiving an acknowledge.  AckTimeout = \ref ACK_TIMEOUT + Random( -\ref ACK_TIMEOUT_RND, \ref ACK_TIMEOUT_RND ) */
+#define ACK_TIMEOUT_RND                             1000 /**< Random number of seconds after the start of the second reception window without receiving an acknowledge AckTimeout = \ref ACK_TIMEOUT + Random( -\ref ACK_TIMEOUT_RND, \ref ACK_TIMEOUT_RND ) */
+#define MAC_STATE_CHECK_TIMEOUT                     1000 /**< Check the Mac layer state every MAC_STATE_CHECK_TIMEOUT in ms */
+#define MAX_ACK_RETRIES                             8 /**< Maximum number of times the MAC layer tries to get an acknowledge.  */
+#define RSSI_FREE_TH                                ( int8_t )( -90 ) /**< RSSI free threshold [dBm] */
+#define UP_LINK                                     0 /**< Frame direction definition for up-link communications */
+#define DOWN_LINK                                   1 /**< Frame direction definition for down-link communications */
+#define LORAMAC_MFR_LEN                             4 /**< Sets the length of the LoRaMAC footer field.  Mainly indicates the MIC field length */
+#define LORA_MAC_PRIVATE_SYNCWORD                   0x12 /**< Syncword for Private LoRa networks */
+#define LORA_MAC_PUBLIC_SYNCWORD                    0x34 /**< Syncword for Public LoRa networks */
 
 /*!
  * Timer message types
@@ -170,22 +88,10 @@
  */
 typedef struct sBand
 {
-    /*!
-     * Duty cycle
-     */
-    uint16_t DCycle;
-    /*!
-     * Maximum Tx power
-     */
-    int8_t TxMaxPower;
-    /*!
-     * Time stamp of the last Tx frame
-     */
-    TimerTime_t LastTxDoneTime;
-    /*!
-     * Holds the time where the device is off
-     */
-    TimerTime_t TimeOff;
+    uint16_t DCycle; /**< Duty cycle */
+    int8_t TxMaxPower; /*<< Maximum Tx power */
+    TimerTime_t LastTxDoneTime; /*<< Time stamp of the last Tx frame */
+    TimerTime_t TimeOff; /*<< Holds the time where the device is off */
 }Band_t;
 
 
@@ -198,38 +104,14 @@ typedef struct sBand
  */
 typedef enum eLoRaMacFrameType
 {
-    /*!
-     * LoRaMAC join request frame
-     */
-    FRAME_TYPE_JOIN_REQ              = 0x00,
-    /*!
-     * LoRaMAC join accept frame
-     */
-    FRAME_TYPE_JOIN_ACCEPT           = 0x01,
-    /*!
-     * LoRaMAC unconfirmed up-link frame
-     */
-    FRAME_TYPE_DATA_UNCONFIRMED_UP   = 0x02,
-    /*!
-     * LoRaMAC unconfirmed down-link frame
-     */
-    FRAME_TYPE_DATA_UNCONFIRMED_DOWN = 0x03,
-    /*!
-     * LoRaMAC confirmed up-link frame
-     */
-    FRAME_TYPE_DATA_CONFIRMED_UP     = 0x04,
-    /*!
-     * LoRaMAC confirmed down-link frame
-     */
-    FRAME_TYPE_DATA_CONFIRMED_DOWN   = 0x05,
-    /*!
-     * LoRaMAC RFU frame
-     */
-    FRAME_TYPE_RFU                   = 0x06,
-    /*!
-     * LoRaMAC proprietary frame
-     */
-    FRAME_TYPE_PROPRIETARY           = 0x07,
+    FRAME_TYPE_JOIN_REQ              = 0x00, /*<< LoRaMAC join request frame */
+    FRAME_TYPE_JOIN_ACCEPT           = 0x01, /*<< LoRaMAC join accept frame */
+    FRAME_TYPE_DATA_UNCONFIRMED_UP   = 0x02, /*<< LoRaMAC unconfirmed up-link frame */
+    FRAME_TYPE_DATA_UNCONFIRMED_DOWN = 0x03, /*<< LoRaMAC unconfirmed down-link frame */
+    FRAME_TYPE_DATA_CONFIRMED_UP     = 0x04, /*<< LoRaMAC confirmed up-link frame */
+    FRAME_TYPE_DATA_CONFIRMED_DOWN   = 0x05, /*<< LoRaMAC confirmed down-link frame */
+    FRAME_TYPE_RFU                   = 0x06, /*<< LoRaMAC RFU frame */
+    FRAME_TYPE_PROPRIETARY           = 0x07, /*<< LoRaMAC proprietary frame */
 }LoRaMacFrameType_t;
 
 /*!
@@ -239,34 +121,13 @@ typedef enum eLoRaMacFrameType
  */
 typedef enum eLoRaMacMoteCmd
 {
-    /*!
-     * LinkCheckReq
-     */
-    MOTE_MAC_LINK_CHECK_REQ          = 0x02,
-    /*!
-     * LinkADRAns
-     */
-    MOTE_MAC_LINK_ADR_ANS            = 0x03,
-    /*!
-     * DutyCycleAns
-     */
-    MOTE_MAC_DUTY_CYCLE_ANS          = 0x04,
-    /*!
-     * RXParamSetupAns
-     */
-    MOTE_MAC_RX_PARAM_SETUP_ANS      = 0x05,
-    /*!
-     * DevStatusAns
-     */
-    MOTE_MAC_DEV_STATUS_ANS          = 0x06,
-    /*!
-     * NewChannelAns
-     */
-    MOTE_MAC_NEW_CHANNEL_ANS         = 0x07,
-    /*!
-     * RXTimingSetupAns
-     */
-    MOTE_MAC_RX_TIMING_SETUP_ANS     = 0x08,
+    MOTE_MAC_LINK_CHECK_REQ          = 0x02, /*<< LinkCheckReq */
+    MOTE_MAC_LINK_ADR_ANS            = 0x03, /*<< LinkADRAns */
+    MOTE_MAC_DUTY_CYCLE_ANS          = 0x04, /*<< DutyCycleAns */
+    MOTE_MAC_RX_PARAM_SETUP_ANS      = 0x05, /*<< RXParamSetupAns */
+    MOTE_MAC_DEV_STATUS_ANS          = 0x06, /*<< DevStatusAns */
+    MOTE_MAC_NEW_CHANNEL_ANS         = 0x07, /*<< NewChannelAns */
+    MOTE_MAC_RX_TIMING_SETUP_ANS     = 0x08, /*<< RXTimingSetupAns */
 }LoRaMacMoteCmd_t;
 
 /*!
@@ -276,34 +137,13 @@ typedef enum eLoRaMacMoteCmd
  */
 typedef enum eLoRaMacSrvCmd
 {
-    /*!
-     * LinkCheckAns
-     */
-    SRV_MAC_LINK_CHECK_ANS           = 0x02,
-    /*!
-     * LinkADRReq
-     */
-    SRV_MAC_LINK_ADR_REQ             = 0x03,
-    /*!
-     * DutyCycleReq
-     */
-    SRV_MAC_DUTY_CYCLE_REQ           = 0x04,
-    /*!
-     * RXParamSetupReq
-     */
-    SRV_MAC_RX_PARAM_SETUP_REQ       = 0x05,
-    /*!
-     * DevStatusReq
-     */
-    SRV_MAC_DEV_STATUS_REQ           = 0x06,
-    /*!
-     * NewChannelReq
-     */
-    SRV_MAC_NEW_CHANNEL_REQ          = 0x07,
-    /*!
-     * RXTimingSetupReq
-     */
-    SRV_MAC_RX_TIMING_SETUP_REQ      = 0x08,
+    SRV_MAC_LINK_CHECK_ANS           = 0x02, /*<< LinkCheckAns */
+    SRV_MAC_LINK_ADR_REQ             = 0x03, /*<< LinkADRReq */
+    SRV_MAC_DUTY_CYCLE_REQ           = 0x04, /*<< DutyCycleReq */
+    SRV_MAC_RX_PARAM_SETUP_REQ       = 0x05, /*<< RXParamSetupReq */
+    SRV_MAC_DEV_STATUS_REQ           = 0x06, /*<< DevStatusReq */
+    SRV_MAC_NEW_CHANNEL_REQ          = 0x07, /*<< NewChannelReq */
+    SRV_MAC_RX_TIMING_SETUP_REQ      = 0x08, /*<< RXTimingSetupReq */
 }LoRaMacSrvCmd_t;
 
 
@@ -314,14 +154,8 @@ typedef enum eLoRaMacSrvCmd
  */
 typedef union uLoRaMacHeader
 {
-    /*!
-     * Byte-access to the bits
-     */
-    uint8_t Value;
-    /*!
-     * Structure containing single access to header bits
-     */
-    struct sHdrBits
+    uint8_t Value; /*<< Byte-access to the bits */
+    struct sHdrBits /*<< Structure containing single access to header bits */
     {
         /*!
          * Major version
@@ -345,10 +179,7 @@ typedef union uLoRaMacHeader
  */
 typedef union uLoRaMacFrameCtrl
 {
-    /*!
-     * Byte-access to the bits
-     */
-    uint8_t Value;
+    uint8_t Value; /*<< Byte-access to the bits */
     /*!
      * Structure containing single access to bits
      */
@@ -383,50 +214,17 @@ typedef union uLoRaMacFrameCtrl
  */
 typedef enum eLoRaMacStatus
 {
-    /*!
-     * Service started successfully
-     */
-    LORAMAC_STATUS_OK,
-    /*!
-     * Service not started - LoRaMAC is busy
-     */
-    LORAMAC_STATUS_BUSY,
-    /*!
-     * Service unknown
-     */
-    LORAMAC_STATUS_SERVICE_UNKNOWN,
-    /*!
-     * Service not started - invalid parameter
-     */
-    LORAMAC_STATUS_PARAMETER_INVALID,
-    /*!
-     * Service not started - invalid frequency
-     */
-    LORAMAC_STATUS_FREQUENCY_INVALID,
-    /*!
-     * Service not started - invalid datarate
-     */
-    LORAMAC_STATUS_DATARATE_INVALID,
-    /*!
-     * Service not started - invalid frequency and datarate
-     */
-    LORAMAC_STATUS_FREQ_AND_DR_INVALID,
-    /*!
-     * Service not started - the device is not in a LoRaWAN
-     */
-    LORAMAC_STATUS_NO_NETWORK_JOINED,
-    /*!
-     * Service not started - playload lenght error
-     */
-    LORAMAC_STATUS_LENGTH_ERROR,
-    /*!
-     * Service not started - playload lenght error
-     */
-    LORAMAC_STATUS_MAC_CMD_LENGTH_ERROR,
-    /*!
-     * Service not started - the device is switched off
-     */
-    LORAMAC_STATUS_DEVICE_OFF,
+    LORAMAC_STATUS_OK, /*<< Service started successfully */
+    LORAMAC_STATUS_BUSY, /*<< Service not started - LoRaMAC is busy */
+    LORAMAC_STATUS_SERVICE_UNKNOWN, /*<< Service unknown */
+    LORAMAC_STATUS_PARAMETER_INVALID, /*<< Service not started - invalid parameter */
+    LORAMAC_STATUS_FREQUENCY_INVALID, /*<< Service not started - invalid frequency */
+    LORAMAC_STATUS_DATARATE_INVALID, /*<< Service not started - invalid datarate */
+    LORAMAC_STATUS_FREQ_AND_DR_INVALID, /*<< Service not started - invalid frequency and datarate */
+    LORAMAC_STATUS_NO_NETWORK_JOINED, /*<< Service not started - the device is not in a LoRaWAN */
+    LORAMAC_STATUS_LENGTH_ERROR, /*<< Service not started - playload lenght error */
+    LORAMAC_STATUS_MAC_CMD_LENGTH_ERROR, /*<< Service not started - playload lenght error */
+    LORAMAC_STATUS_DEVICE_OFF, /*<< Service not started - the device is switched off */
 }LoRaMacStatus_t;
 
 
