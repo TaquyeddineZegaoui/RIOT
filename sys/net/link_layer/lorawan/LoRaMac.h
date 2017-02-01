@@ -489,7 +489,7 @@ typedef enum eMib
      *
      * LoRaWAN Specification V1.0.1, chapter 6.1.1
      */
-    MIB_DEV_ADDR,
+    //MIB_DEV_ADDR,
     /*!
      * Network session key
      *
