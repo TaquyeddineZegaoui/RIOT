@@ -1136,6 +1136,12 @@ void OnRadioRxTimeout(netdev2_t *netdev);
 void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr );
 void lorawan_set_pointer(netdev2_lorawan_t* netdev);
 
+typedef struct netopt_channel_params
+{
+    uint8_t id;
+    ChannelParams_t params;
+} netopt_channel_params_t;
+
 /*! \} defgroup LORAMAC */
 
 #endif // __LORAMAC_H__

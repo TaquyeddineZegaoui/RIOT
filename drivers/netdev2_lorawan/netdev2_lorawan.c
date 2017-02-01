@@ -54,6 +54,7 @@ int netdev2_lorawan_set(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_
     netdev2_t *netdev = (netdev2_t*) dev;
     uint8_t sw;
     uint8_t tmp;
+    netopt_channel_params_t *cp;
     switch (opt) {
         case NETOPT_ADDRESS:
         {
@@ -149,6 +150,9 @@ int netdev2_lorawan_set(netdev2_lorawan_t *dev, netopt_t opt, void *value, size_
                 dev->LoRaMacParams.ChannelsTxPower = tmp;
             }
             return sizeof(int8_t);
+        case NETOPT_LORAWAN_CHANNEL:
+            cp = (netopt_channel_params_t*) value; 
+            LoRaMacChannelAdd( cp->id, cp->params );
         default:
             break;
     }

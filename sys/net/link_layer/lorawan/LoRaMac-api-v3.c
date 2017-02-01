@@ -250,9 +250,3 @@ uint8_t LoRaMacSendConfirmedFrame( uint8_t fPort, void *fBuffer, uint16_t fBuffe
     return retStatus;
 }
 
-
-void LoRaMacSetChannel( uint8_t id, ChannelParams_t params )
-{
-    LoRaMacChannelAdd( id, params );
-}
-

@@ -335,35 +335,6 @@ uint8_t LoRaMacSendOnChannel( ChannelParams_t channel, LoRaMacHeader_t *macHdr, 
  */
 
 /*
- * Wrapper function which calls \ref LoRaMacMibSetRequestConfirm to
- * set the LoRaWan device class.
- */
-void LoRaMacSetDeviceClass( DeviceClass_t deviceClass );
-
-/*
- * Wrapper function which calls \ref LoRaMacMibSetRequestConfirm to
- * set the network type to public or private.
- */
-void LoRaMacSetPublicNetwork( bool enable );
-
-/*
- * Wrapper function which calls \ref LoRaMacChannelAdd.
- */
-void LoRaMacSetChannel( uint8_t id, ChannelParams_t params );
-
-/*
- * Wrapper function which calls \ref LoRaMacMibGetRequestConfirm to
- * get the up-link counter.
- */
-uint32_t LoRaMacGetUpLinkCounter( void );
-
-/*
- * Wrapper function which calls \ref LoRaMacMibGetRequestConfirm to
- * get the down-link counter.
- */
-uint32_t LoRaMacGetDownLinkCounter( void );
-
-/*
  * ============================================================================
  * = LoRaMac test functions                                                   =
  * ============================================================================
