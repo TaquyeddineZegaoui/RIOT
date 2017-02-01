@@ -1333,7 +1333,8 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
 
     if( dev->LoRaMacFlags.Bits.McpsInd == 1 )
     {
-        dev->LoRaMacPrimitives->MacMcpsIndication();
+        dev->b_rx = 1;
+        OnMacEvent();
         dev->LoRaMacFlags.Bits.McpsInd = 0;
     }
 }
@@ -3043,8 +3044,7 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, kernel_p
         return LORAMAC_STATUS_PARAMETER_INVALID;
     }
 
-    if( ( primitives->MacMcpsConfirm == NULL ) ||
-        ( primitives->MacMcpsIndication == NULL ))
+    if( ( primitives->MacMcpsConfirm == NULL ))
     {
         return LORAMAC_STATUS_PARAMETER_INVALID;
     }

@@ -149,7 +149,6 @@ typedef enum eMcps
 typedef struct sLoRaMacPrimitives
 {
     void ( *MacMcpsConfirm )(void);
-    void ( *MacMcpsIndication )(void);
 }LoRaMacPrimitives_t;
 
 typedef union eLoRaMacFlags_t

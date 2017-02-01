@@ -57,20 +57,6 @@ static void McpsConfirm(void)
     }
 }
 
-/*!
- * \brief   MCPS-Indication event function
- *
- * \param   [IN] mcpsIndication - Pointer to the indication structure,
- *               containing indication attributes.
- */
-static void McpsIndication(void)
-{
-    netdev2_lorawan_t *netdev = get_dev_ptr();
-    netdev->b_rx = 1;
-
-
-    LoRaMacCallbacks.MacEvent();
-}
 
 /*!
  * \brief   MLME-Confirm event function
@@ -82,7 +68,6 @@ static void McpsIndication(void)
 void LoRaMacInit( LoRaMacCallbacks_t *callbacks, kernel_pid_t mac_pid)
 {
     LoRaMacPrimitives.MacMcpsConfirm = McpsConfirm;
-    LoRaMacPrimitives.MacMcpsIndication = McpsIndication;
 
     LoRaMacCallbacks.MacEvent = callbacks->MacEvent;
 
