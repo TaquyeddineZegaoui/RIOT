@@ -74,7 +74,6 @@ static void McpsIndication(void)
     LoRaMacEventInfo.Status = netdev->frame_status;
     netdev->b_rx = 1;
 
-    LoRaMacEventInfo.RxPort = netdev->Port;
 
     LoRaMacCallbacks.MacEvent( &LoRaMacEventInfo );
 }
