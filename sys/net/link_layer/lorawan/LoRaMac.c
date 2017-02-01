@@ -3754,7 +3754,6 @@ LoRaMacStatus_t LoRaMacMcpsRequest(uint8_t mcps_req)
     uint8_t fPort = 0;
     void *fBuffer;
     uint16_t fBufferSize;
-    int8_t datarate;
     bool readyToSend = false;
 
     if( ( ( dev->LoRaMacState & MAC_TX_RUNNING ) == MAC_TX_RUNNING ) ||
@@ -3777,7 +3776,6 @@ LoRaMacStatus_t LoRaMacMcpsRequest(uint8_t mcps_req)
             fPort = dev->fPort;
             fBuffer = dev->fBuffer;
             fBufferSize = dev->fBufferSize;
-            datarate = dev->Datarate;
             break;
         }
         case MCPS_CONFIRMED:
@@ -3790,7 +3788,6 @@ LoRaMacStatus_t LoRaMacMcpsRequest(uint8_t mcps_req)
             fPort = dev->fPort;
             fBuffer = dev->fBuffer;
             fBufferSize = dev->fBufferSize;
-            datarate = dev->Datarate;
             break;
         }
         case MCPS_PROPRIETARY:
@@ -3801,7 +3798,6 @@ LoRaMacStatus_t LoRaMacMcpsRequest(uint8_t mcps_req)
             macHdr.Bits.MType = FRAME_TYPE_PROPRIETARY;
             fBuffer = dev->fBuffer;
             fBufferSize = dev->fBufferSize;
-            datarate = dev->Datarate;
             break;
         }
         default:
@@ -3810,18 +3806,6 @@ LoRaMacStatus_t LoRaMacMcpsRequest(uint8_t mcps_req)
 
     if( readyToSend == true )
     {
-        if( dev->lorawan.tx_rx.adr_ctrl == false )
-        {
-            if( ValueInRange( datarate, LORAMAC_TX_MIN_DATARATE, LORAMAC_TX_MAX_DATARATE ) == true )
-            {
-                dev->LoRaMacParams.ChannelsDatarate = datarate;
-            }
-            else
-            {
-                return LORAMAC_STATUS_PARAMETER_INVALID;
-            }
-        }
-
         status = Send( &macHdr, fPort, fBuffer, fBufferSize );
         if( status == LORAMAC_STATUS_OK )
         {
