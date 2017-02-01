@@ -150,8 +150,8 @@ typedef struct
     //int16_t RxRssi;
     //uint8_t RxSnr;
     //uint16_t Energy;
-    uint8_t DemodMargin;
-    uint8_t NbGateways;
+    //uint8_t DemodMargin;
+    //uint8_t NbGateways;
 }LoRaMacEventInfo_t;
 
 /*!

@@ -106,8 +106,6 @@ void MlmeConfirm(uint8_t mlme_req)
                 netdev->b_rx = 1;
                 netdev->link_check = 1;
 
-                LoRaMacEventInfo.DemodMargin = netdev->demod_margin;
-                LoRaMacEventInfo.NbGateways = netdev->number_of_gateways;
                 break;
             }
             default:

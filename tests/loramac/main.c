@@ -357,8 +357,8 @@ static void OnMacEvent(LoRaMacEventInfo_t *info )
                 if( dev->link_check == 1 )
                 {
                     ComplianceTest.LinkCheck = true;
-                    ComplianceTest.DemodMargin = info->DemodMargin;
-                    ComplianceTest.NbGateways = info->NbGateways;
+                    ComplianceTest.DemodMargin = dev->demod_margin;
+                    ComplianceTest.NbGateways = dev->number_of_gateways;
                 }
             }
             if( dev->RxData == true )
