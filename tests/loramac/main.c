@@ -33,7 +33,6 @@ Maintainer: Miguel Luis and Gregory Cristian
 
 #include "LoRaMac.h"
 #include "Comissioning.h"
-#include "LoRaMac-api-v3.h"
 #include "net/gnrc/netdev2.h"
 #include "net/netdev2.h"
 #include "sx1276_params.h"
@@ -747,7 +746,7 @@ int main( void )
                      _event_loop, (void *) netdev, "asd");
     netdev->context = &pid;
 
-    LoRaMacInit(pid );
+    LoRaMacInitialization(pid );
 
     /* start the shell */
     puts("Initialization successful - starting the shell now");

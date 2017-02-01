@@ -21,8 +21,7 @@
 #include <assert.h>
 #include <string.h>
 #include <errno.h>
-#include "net/netdev2/lorawan.h"
-#include "LoRaMac-api-v3.h"
+#include "LoRaMac.h"
 
 #define ENABLE_DEBUG (0)
 #include "debug.h"
