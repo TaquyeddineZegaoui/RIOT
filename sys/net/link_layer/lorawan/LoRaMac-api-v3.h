@@ -136,24 +136,6 @@
 #define LORA_MAC_PUBLIC_SYNCWORD                    0x34
 
 /*!
- * LoRaMAC event flags
- */
-typedef union
-{
-    uint8_t Value;
-    struct
-    {
-        //uint8_t Tx              : 1;
-        //uint8_t Rx              : 1;
-        //uint8_t RxData          : 1;
-        //uint8_t Multicast       : 1;
-        //uint8_t RxSlot          : 2;
-        //uint8_t LinkCheck       : 1;
-        //uint8_t JoinAccept      : 1;
-    }Bits;
-}LoRaMacEventFlags_t;
-
-/*!
  * LoRaMAC event information
  */
 typedef struct
@@ -184,7 +166,7 @@ typedef struct sLoRaMacCallbacks
      * \param [IN] flags Bit field indicating the MAC events occurred
      * \param [IN] info  Details about MAC events occurred
      */
-    void ( *MacEvent )( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info );
+    void ( *MacEvent )(LoRaMacEventInfo_t *info );
     /*!
      * Function callback to get the current battery level
      *

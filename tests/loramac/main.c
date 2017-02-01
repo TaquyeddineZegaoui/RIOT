@@ -210,7 +210,7 @@ static uint8_t PrepareTxFrame( uint8_t port, uint8_t* data, uint8_t size)
     return 1;
 }
 
-static void ProcessRxFrame( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )
+static void ProcessRxFrame(LoRaMacEventInfo_t *info )
 {
     kernel_pid_t pid = *((kernel_pid_t*) nd->context);
     uint8_t res;
@@ -335,7 +335,7 @@ static bool SendFrame( void )
 /*!
  * \brief Function to be executed on MAC layer event
  */
-static void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )
+static void OnMacEvent(LoRaMacEventInfo_t *info )
 {
     netdev2_lorawan_t *dev = (netdev2_lorawan_t*) &sx1276;
     if( dev->join_req == 1 )
@@ -362,7 +362,7 @@ static void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )
             }
             if( dev->RxData == true )
             {
-                ProcessRxFrame( flags, info );
+                ProcessRxFrame(info );
             }
 
             DownlinkStatusUpdate = true;
