@@ -3246,11 +3246,6 @@ LoRaMacStatus_t LoRaMacMibGetRequestConfirm( MibRequestConfirm_t *mibGet )
 
     switch( mibGet->Type )
     {
-        case MIB_RX2_CHANNEL:
-        {
-            mibGet->Param.Rx2Channel = dev->LoRaMacParams.Rx2Channel;
-            break;
-        }
         case MIB_CHANNELS_MASK:
         {
             mibGet->Param.ChannelsMask = dev->LoRaMacParams.ChannelsMask;

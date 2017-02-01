@@ -523,7 +523,7 @@ typedef enum eMib
      *
      * LoRaWAN Specification V1.0.1, chapter 3.3.2
      */
-    MIB_RX2_CHANNEL,
+    //MIB_RX2_CHANNEL,
     /*!
      * LoRaWAN channels mask
      *
