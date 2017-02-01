@@ -1292,7 +1292,11 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
     {
         if( dev->LoRaMacFlags.Bits.McpsReq == 1 )
         {
-            dev->LoRaMacPrimitives->MacMcpsConfirm();
+            dev->b_tx = 1;
+            if( ( dev->LoRaMacFlags.Bits.McpsInd != 1 ) && ( dev->LoRaMacFlags.Bits.MlmeReq != 1 ) )
+            {
+                OnMacEvent();
+            }
             dev->LoRaMacFlags.Bits.McpsReq = 0;
         }
 
@@ -3037,18 +3041,8 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     return LORAMAC_STATUS_OK;
 }
 
-LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, kernel_pid_t mac_pid)
+LoRaMacStatus_t LoRaMacInitialization( kernel_pid_t mac_pid)
 {
-    if( primitives == NULL )
-    {
-        return LORAMAC_STATUS_PARAMETER_INVALID;
-    }
-
-    if( ( primitives->MacMcpsConfirm == NULL ))
-    {
-        return LORAMAC_STATUS_PARAMETER_INVALID;
-    }
-
     dev->MulticastChannels = NULL;
     dev->LoRaMacBufferPktLen = 0;
     dev->uplink_counter = 0;
@@ -3069,7 +3063,6 @@ LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, kernel_p
     dev->AckTimeoutRetry = false;
     dev->TxTimeOnAir = 0;
     dev->RxSlot = 0;
-    dev->LoRaMacPrimitives = primitives;
 
     dev->LoRaMacFlags.Value = 0;
 

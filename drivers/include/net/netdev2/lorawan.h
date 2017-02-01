@@ -146,11 +146,6 @@ typedef enum eMcps
     MCPS_PROPRIETARY,
 }Mcps_t;
 
-typedef struct sLoRaMacPrimitives
-{
-    void ( *MacMcpsConfirm )(void);
-}LoRaMacPrimitives_t;
-
 typedef union eLoRaMacFlags_t
 {
     uint8_t Value;
@@ -202,7 +197,6 @@ typedef struct {
     uint8_t LastTxChannel;
     uint32_t LoRaMacState;
     TimerEvent_t MacStateCheckTimer;
-    LoRaMacPrimitives_t *LoRaMacPrimitives;
     TimerEvent_t TxDelayedTimer;
     TimerEvent_t RxWindowTimer1;
     TimerEvent_t RxWindowTimer2;

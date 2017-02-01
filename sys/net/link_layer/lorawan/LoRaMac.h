@@ -874,7 +874,7 @@ typedef enum eLoRaMacStatus
  *          \ref LORAMAC_STATUS_OK,
  *          \ref LORAMAC_STATUS_PARAMETER_INVALID.
  */
-LoRaMacStatus_t LoRaMacInitialization( LoRaMacPrimitives_t *primitives, kernel_pid_t mac_pid);
+LoRaMacStatus_t LoRaMacInitialization( kernel_pid_t mac_pid);
 
 /*!
  * \brief   Queries the LoRaMAC if it is possible to send the next frame with

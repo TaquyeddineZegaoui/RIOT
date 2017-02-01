@@ -36,26 +36,7 @@ extern netdev2_lorawan_t *get_dev_ptr(void);
 /*!
  * Static variables
  */
-static LoRaMacPrimitives_t LoRaMacPrimitives;
 static LoRaMacCallbacks_t LoRaMacCallbacks;
-
-/*!
- * \brief   MCPS-Confirm event function
- *
- * \param   [IN] mcpsConfirm - Pointer to the confirm structure,
- *               containing confirm attributes.
- */
-static void McpsConfirm(void)
-{
-    netdev2_lorawan_t *netdev = get_dev_ptr();
-    netdev->b_tx = 1;
-
-
-     if( ( netdev->LoRaMacFlags.Bits.McpsInd != 1 ) && ( netdev->LoRaMacFlags.Bits.MlmeReq != 1 ) )
-    {
-        LoRaMacCallbacks.MacEvent();
-    }
-}
 
 
 /*!
@@ -67,10 +48,9 @@ static void McpsConfirm(void)
 
 void LoRaMacInit( LoRaMacCallbacks_t *callbacks, kernel_pid_t mac_pid)
 {
-    LoRaMacPrimitives.MacMcpsConfirm = McpsConfirm;
 
     LoRaMacCallbacks.MacEvent = callbacks->MacEvent;
 
-    LoRaMacInitialization( &LoRaMacPrimitives, mac_pid);
+    LoRaMacInitialization(  mac_pid);
 }
 
