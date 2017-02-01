@@ -141,9 +141,9 @@
 typedef struct
 {
     LoRaMacEventInfoStatus_t Status;
-    bool TxAckReceived;
-    uint8_t TxNbRetries;
-    uint8_t TxDatarate;
+    //bool TxAckReceived;
+    //uint8_t TxNbRetries;
+    //uint8_t TxDatarate;
     //uint8_t RxPort;
     //uint8_t *RxBuffer;
     //uint8_t RxBufferSize;
