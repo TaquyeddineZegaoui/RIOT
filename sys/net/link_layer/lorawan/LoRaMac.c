@@ -3235,85 +3235,6 @@ LoRaMacStatus_t LoRaMacQueryTxPossible( uint8_t size, LoRaMacTxInfo_t* txInfo )
     return LORAMAC_STATUS_OK;
 }
 
-LoRaMacStatus_t LoRaMacMibGetRequestConfirm( MibRequestConfirm_t *mibGet )
-{
-    LoRaMacStatus_t status = LORAMAC_STATUS_OK;
-
-    if( mibGet == NULL )
-    {
-        return LORAMAC_STATUS_PARAMETER_INVALID;
-    }
-
-    switch( mibGet->Type )
-    {
-        case MIB_CHANNELS_NB_REP:
-        {
-            mibGet->Param.ChannelNbRep = dev->LoRaMacParams.ChannelsNbRep;
-            break;
-        }
-        case MIB_MAX_RX_WINDOW_DURATION:
-        {
-            mibGet->Param.MaxRxWindow = dev->LoRaMacParams.MaxRxWindow;
-            break;
-        }
-        case MIB_RECEIVE_DELAY_1:
-        {
-            mibGet->Param.ReceiveDelay1 = dev->LoRaMacParams.ReceiveDelay1;
-            break;
-        }
-        case MIB_RECEIVE_DELAY_2:
-        {
-            mibGet->Param.ReceiveDelay2 = dev->LoRaMacParams.ReceiveDelay2;
-            break;
-        }
-        case MIB_JOIN_ACCEPT_DELAY_1:
-        {
-            mibGet->Param.JoinAcceptDelay1 = dev->LoRaMacParams.JoinAcceptDelay1;
-            break;
-        }
-        case MIB_JOIN_ACCEPT_DELAY_2:
-        {
-            mibGet->Param.JoinAcceptDelay2 = dev->LoRaMacParams.JoinAcceptDelay2;
-            break;
-        }
-        case MIB_CHANNELS_DEFAULT_DATARATE:
-        {
-            mibGet->Param.ChannelsDefaultDatarate = dev->LoRaMacParamsDefaults.ChannelsDatarate;
-            break;
-        }
-        case MIB_CHANNELS_DATARATE:
-        {
-            mibGet->Param.ChannelsDatarate = dev->LoRaMacParams.ChannelsDatarate;
-            break;
-        }
-        case MIB_CHANNELS_TX_POWER:
-        {
-            mibGet->Param.ChannelsTxPower = dev->LoRaMacParams.ChannelsTxPower;
-            break;
-        }
-        case MIB_UPLINK_COUNTER:
-        {
-            mibGet->Param.UpLinkCounter = dev->uplink_counter;
-            break;
-        }
-        case MIB_DOWNLINK_COUNTER:
-        {
-            mibGet->Param.DownLinkCounter = dev->DownLinkCounter;
-            break;
-        }
-        case MIB_MULTICAST_CHANNEL:
-        {
-            mibGet->Param.MulticastList = dev->MulticastChannels;
-            break;
-        }
-        default:
-            status = LORAMAC_STATUS_SERVICE_UNKNOWN;
-            break;
-    }
-
-    return status;
-}
-
 void lorawan_set_class(netdev2_lorawan_t *dev, int class)
 {
     netdev2_t *netdev = (netdev2_t*) dev;
@@ -3379,52 +3300,6 @@ void _set_channel_mask(uint16_t *mask)
              ( uint8_t* ) mibSet->Param.ChannelsMask, 2 );
 #endif
 }
-LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
-{
-    LoRaMacStatus_t status = LORAMAC_STATUS_OK;
-
-    if( mibSet == NULL )
-    {
-        return LORAMAC_STATUS_PARAMETER_INVALID;
-    }
-    if( ( dev->LoRaMacState & MAC_TX_RUNNING ) == MAC_TX_RUNNING )
-    {
-        return LORAMAC_STATUS_BUSY;
-    }
-
-    switch( mibSet->Type )
-    {
-        case MIB_CHANNELS_DEFAULT_DATARATE:
-        {
-            if( ValueInRange( mibSet->Param.ChannelsDefaultDatarate,
-                              LORAMAC_TX_MIN_DATARATE, LORAMAC_TX_MAX_DATARATE ) )
-            {
-                dev->LoRaMacParamsDefaults.ChannelsDatarate = mibSet->Param.ChannelsDefaultDatarate;
-            }
-            else
-            {
-                status = LORAMAC_STATUS_PARAMETER_INVALID;
-            }
-            break;
-        }
-        case MIB_UPLINK_COUNTER:
-        {
-            dev->uplink_counter = mibSet->Param.UpLinkCounter;
-            break;
-        }
-        case MIB_DOWNLINK_COUNTER:
-        {
-            dev->DownLinkCounter = mibSet->Param.DownLinkCounter;
-            break;
-        }
-        default:
-            status = LORAMAC_STATUS_SERVICE_UNKNOWN;
-            break;
-    }
-
-    return status;
-}
-
 LoRaMacStatus_t LoRaMacChannelAdd( uint8_t id, ChannelParams_t params )
 {
 #if ( defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID ) )
