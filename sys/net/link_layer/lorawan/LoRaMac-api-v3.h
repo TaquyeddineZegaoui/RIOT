@@ -140,7 +140,7 @@
  */
 typedef struct
 {
-    LoRaMacEventInfoStatus_t Status;
+    //LoRaMacEventInfoStatus_t Status;
     //bool TxAckReceived;
     //uint8_t TxNbRetries;
     //uint8_t TxDatarate;

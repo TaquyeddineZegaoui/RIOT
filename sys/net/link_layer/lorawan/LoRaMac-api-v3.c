@@ -49,7 +49,6 @@ static LoRaMacCallbacks_t LoRaMacCallbacks;
 static void McpsConfirm(void)
 {
     netdev2_lorawan_t *netdev = get_dev_ptr();
-    LoRaMacEventInfo.Status = netdev->frame_status;
     netdev->b_tx = 1;
 
 
@@ -68,7 +67,6 @@ static void McpsConfirm(void)
 static void McpsIndication(void)
 {
     netdev2_lorawan_t *netdev = get_dev_ptr();
-    LoRaMacEventInfo.Status = netdev->frame_status;
     netdev->b_rx = 1;
 
 
@@ -109,7 +107,6 @@ void MlmeConfirm(uint8_t mlme_req)
                 break;
         }
     }
-    LoRaMacEventInfo.Status = netdev->frame_status;
 
     if( netdev->LoRaMacFlags.Bits.McpsInd != 1 )
     {
