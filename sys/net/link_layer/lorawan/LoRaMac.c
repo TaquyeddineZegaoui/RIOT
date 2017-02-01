@@ -3246,11 +3246,6 @@ LoRaMacStatus_t LoRaMacMibGetRequestConfirm( MibRequestConfirm_t *mibGet )
 
     switch( mibGet->Type )
     {
-        case MIB_ADR:
-        {
-            mibGet->Param.AdrEnable = dev->lorawan.tx_rx.adr_ctrl;
-            break;
-        }
         case MIB_REPEATER_SUPPORT:
         {
             mibGet->Param.EnableRepeaterSupport = dev->RepeaterSupport;
@@ -3419,11 +3414,6 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
 
     switch( mibSet->Type )
     {
-        case MIB_ADR:
-        {
-            dev->lorawan.tx_rx.adr_ctrl = mibSet->Param.AdrEnable;
-            break;
-        }
         case MIB_REPEATER_SUPPORT:
         {
              dev->RepeaterSupport = mibSet->Param.EnableRepeaterSupport;

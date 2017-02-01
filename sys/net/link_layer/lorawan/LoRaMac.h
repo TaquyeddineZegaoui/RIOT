@@ -477,7 +477,7 @@ typedef enum eMib
      *
      * [true: ADR enabled, false: ADR disabled]
      */
-    MIB_ADR,
+    //MIB_ADR,
     /*!
      * Network identifier
      *
