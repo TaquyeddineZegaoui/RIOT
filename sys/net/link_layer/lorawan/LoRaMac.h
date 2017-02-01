@@ -495,13 +495,13 @@ typedef enum eMib
      *
      * LoRaWAN Specification V1.0.1, chapter 6.1.3
      */
-    MIB_NWK_SKEY,
+    //MIB_NWK_SKEY,
     /*!
      * Application session key
      *
      * LoRaWAN Specification V1.0.1, chapter 6.1.4
      */
-    MIB_APP_SKEY,
+    //MIB_APP_SKEY,
     /*!
      * Support the operation with repeaters
      *
