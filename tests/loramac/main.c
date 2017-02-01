@@ -294,10 +294,19 @@ static void ProcessRxFrame( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info
 static bool SendFrame( void )
 {
     uint8_t sendFrameStatus = 0;
+    msg_t msg;
+    lorawan_send_t lws;
+    lws.port = AppPort;
+    lws.buffer = AppData;
+    lws.size = AppDataSize;
+    msg.type = GNRC_NETAPI_MSG_TYPE_SND;
+    msg.content.ptr = &lws;
+    kernel_pid_t pid = *((kernel_pid_t*) nd->context);
 
     if( IsTxConfirmed == false )
     {
-        sendFrameStatus = LoRaMacSendFrame( AppPort, AppData, AppDataSize );
+        //sendFrameStatus = LoRaMacSendFrame( AppPort, AppData, AppDataSize );
+    msg_send(&msg, pid);
     }
     else
     {
@@ -520,7 +529,7 @@ void *_event_loop(void *arg)
     msg_t msg, reply;
     netdev2_t *netdev = (netdev2_t*) arg;
     msg_init_queue(_msg_q, GNRC_LORA_MSG_QUEUE);
-
+    lorawan_send_t *lws;
     gnrc_netapi_opt_t *opt;
     int res;
 
@@ -531,8 +540,8 @@ void *_event_loop(void *arg)
                 netdev->driver->isr(netdev);
                 break;
             case GNRC_NETAPI_MSG_TYPE_SND:
-                //gnrc_pktsnip_t *pkt = msg.content.ptr;
-                //gnrc_netdev2->send(gnrc_netdev2, pkt);
+                lws = msg.content.ptr;
+                LoRaMacSendFrame(lws->port, lws->buffer, lws->size);
                 break;
             case GNRC_NETAPI_MSG_TYPE_SET:
                 /* read incoming options */
