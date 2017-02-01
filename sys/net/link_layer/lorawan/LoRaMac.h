@@ -529,7 +529,7 @@ typedef enum eMib
      *
      * LoRaWAN Specification V1.0.1, chapter 7
      */
-    MIB_CHANNELS_MASK,
+    //MIB_CHANNELS_MASK,
     /*!
      * Set the number of repetitions on a channel
      *
