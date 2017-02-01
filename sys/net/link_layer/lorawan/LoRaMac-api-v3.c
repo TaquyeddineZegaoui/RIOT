@@ -148,13 +148,3 @@ void LoRaMacInit( LoRaMacCallbacks_t *callbacks, kernel_pid_t mac_pid)
     LoRaMacInitialization( &LoRaMacPrimitives, mac_pid);
 }
 
-void LoRaMacMulticastChannelAdd( MulticastParams_t *channelParam )
-{
-    LoRaMacMulticastChannelLink( channelParam );
-}
-
-void LoRaMacMulticastChannelRemove( MulticastParams_t *channelParam )
-{
-    LoRaMacMulticastChannelUnlink( channelParam );
-}
-

@@ -548,6 +548,19 @@ bool check_rf_freq( uint32_t frequency )
     return true;
 }
 
+//TODO!!!
+#if 0
+void LoRaMacMulticastChannelAdd( MulticastParams_t *channelParam )
+{
+    LoRaMacMulticastChannelLink( channelParam );
+}
+
+void LoRaMacMulticastChannelRemove( MulticastParams_t *channelParam )
+{
+    LoRaMacMulticastChannelUnlink( channelParam );
+}
+#endif
+
 /*!
  * \brief Resets MAC specific parameters to default
  */
