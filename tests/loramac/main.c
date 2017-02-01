@@ -338,7 +338,7 @@ static bool SendFrame( void )
 static void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )
 {
     netdev2_lorawan_t *dev = (netdev2_lorawan_t*) &sx1276;
-    if( flags->Bits.JoinAccept == 1 )
+    if( dev->join_req == 1 )
     {
         IsNetworkJoined = true;
     }

@@ -111,7 +111,7 @@ void MlmeConfirm(uint8_t mlme_req)
                 // Status is OK, node has joined the network
                 netdev->b_tx = 1;
                 netdev->b_rx = 1;
-                LoRaMacEventFlags.Bits.JoinAccept = 1;
+                netdev->join_req = 1;
                 break;
             }
             case MLME_LINK_CHECK:
