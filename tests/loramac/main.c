@@ -353,7 +353,7 @@ static void OnMacEvent( LoRaMacEventFlags_t *flags, LoRaMacEventInfo_t *info )
             if( ComplianceTest.Running == true )
             {
                 ComplianceTest.DownLinkCounter++;
-                if( flags->Bits.LinkCheck == 1 )
+                if( dev->link_check == 1 )
                 {
                     ComplianceTest.LinkCheck = true;
                     ComplianceTest.DemodMargin = info->DemodMargin;
