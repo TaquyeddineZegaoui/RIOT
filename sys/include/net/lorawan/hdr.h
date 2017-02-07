@@ -89,4 +89,59 @@ static inline uint8_t lw_hdr_get_maj(lw_hdr_t *hdr)
 {
     return (hdr->mt_maj & 0x03);
 }
+
+static inline void lw_hdr_set_adr(lw_hdr_t *hdr, bool adr)
+{
+    hdr->fctrl &= 0x7F;
+    hdr->fctrl |= (adr << 7);
+}
+
+static inline bool lw_hdr_get_adr(lw_hdr_t *hdr)
+{
+    return (hdr->fctrl & 0x80);
+}
+
+static inline void lw_hdr_set_adr_ack_req(lw_hdr_t *hdr, bool adr_ack_req)
+{
+    hdr->fctrl &= 0xBF;
+    hdr->fctrl |= (adr_ack_req << 6);
+}
+
+static inline bool lw_hdr_get_adr_ack_req(lw_hdr_t *hdr)
+{
+    return (hdr->fctrl & 0x40);
+}
+
+static inline void lw_hdr_set_ack(lw_hdr_t *hdr, bool ack)
+{
+    hdr->fctrl &= 0xDF;
+    hdr->fctrl |= (ack << 5);
+}
+
+static inline bool lw_hdr_get_ack(lw_hdr_t *hdr)
+{
+    return (hdr->fctrl & 0x20);
+}
+
+static inline void lw_hdr_set_frame_pending(lw_hdr_t *hdr, bool frame_pending)
+{
+    hdr->fctrl &= 0xEF;
+    hdr->fctrl |= (frame_pending << 4);
+}
+
+static inline bool lw_hdr_get_frame_pending(lw_hdr_t *hdr)
+{
+    return (hdr->fctrl & 0x10);
+}
+
+static inline void lw_hdr_set_frame_opts_len(lw_hdr_t *hdr, uint8_t len)
+{
+    hdr->fctrl &= 0xF0;
+    hdr->fctrl |= (len & 0x0F);
+}
+
+static inline uint8_t lw_hdr_get_frame_opts_len(lw_hdr_t *hdr)
+{
+    return (hdr->fctrl & 0x0F);
+}
 #endif
