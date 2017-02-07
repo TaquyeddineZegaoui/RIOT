@@ -25,6 +25,7 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jä
 
 #include "LoRaMacCrypto.h"
 #include <string.h>
+#include "byteorder.h"
 
 /*!
  * CMAC/AES Message Integrity Code (MIC) Block B0 size
@@ -37,12 +38,15 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jä
 #define KEYSIZE                                     16
 
 
-/*!
- * MIC field computation initial data
- */
-static uint8_t MicBlockB0[] = { 0x49, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-                              };
+typedef struct  __attribute__((packed)) {
+    uint8_t fb;
+    uint32_t u8_pad;
+    uint8_t dir; 
+    le_uint32_t dev_addr;
+    le_uint32_t fcnt;
+    uint8_t u32_pad;
+    uint8_t len;
+} lorawan_mic_t;
 
 /*!
  * Contains the computed MIC field.
@@ -84,28 +88,23 @@ static cipher_t    AesContext;;
  * \param [IN]  sequenceCounter Frame sequence counter
  * \param [OUT] mic Computed MIC field
  */
-void LoRaMacComputeMic( const uint8_t *buffer, uint16_t size, const uint8_t *key, uint32_t address, uint8_t dir, uint32_t sequenceCounter, uint32_t *mic )
+uint32_t LoRaMacComputeMic( const uint8_t *buffer, uint16_t size, const uint8_t *key, uint32_t address, uint8_t dir, uint32_t sequenceCounter)
 {
-    MicBlockB0[5] = dir;
-    
-    MicBlockB0[6] = ( address ) & 0xFF;
-    MicBlockB0[7] = ( address >> 8 ) & 0xFF;
-    MicBlockB0[8] = ( address >> 16 ) & 0xFF;
-    MicBlockB0[9] = ( address >> 24 ) & 0xFF;
-
-    MicBlockB0[10] = ( sequenceCounter ) & 0xFF;
-    MicBlockB0[11] = ( sequenceCounter >> 8 ) & 0xFF;
-    MicBlockB0[12] = ( sequenceCounter >> 16 ) & 0xFF;
-    MicBlockB0[13] = ( sequenceCounter >> 24 ) & 0xFF;
-
-    MicBlockB0[15] = size & 0xFF;
+    lorawan_mic_t mic;
+    mic.fb = 0x49;
+    mic.u8_pad = 0;
+    mic.dir = dir;
+    mic.dev_addr = byteorder_btoll(byteorder_htonl(address));
+    mic.fcnt = byteorder_btoll(byteorder_htonl(sequenceCounter));
+    mic.u32_pad = 0;
+    mic.len = size & 0xFF;
 
     cmac_init(&CmacContext, key, KEYSIZE);
-    cmac_update(&CmacContext, MicBlockB0, LORAMAC_MIC_BLOCK_B0_SIZE );
+    cmac_update(&CmacContext, &mic, LORAMAC_MIC_BLOCK_B0_SIZE );
     cmac_update(&CmacContext, buffer, size);
     cmac_final(&CmacContext, digest);
 
-    *mic = ( uint32_t )( ( uint32_t )digest[3] << 24 | ( uint32_t )digest[2] << 16 | ( uint32_t )digest[1] << 8 | ( uint32_t )digest[0] );
+    return ( uint32_t )( ( uint32_t )digest[3] << 24 | ( uint32_t )digest[2] << 16 | ( uint32_t )digest[1] << 8 | ( uint32_t )digest[0] );
 }
 
 void LoRaMacPayloadEncrypt( const uint8_t *buffer, uint16_t size, const uint8_t *key, uint32_t address, uint8_t dir, uint32_t sequenceCounter, uint8_t *encBuffer )

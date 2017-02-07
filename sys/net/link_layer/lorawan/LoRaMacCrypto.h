@@ -48,7 +48,7 @@
  * \param [IN]  sequenceCounter - Frame sequence counter
  * \param [OUT] mic             - Computed MIC field
  */
-void LoRaMacComputeMic( const uint8_t *buffer, uint16_t size, const uint8_t *key, uint32_t address, uint8_t dir, uint32_t sequenceCounter, uint32_t *mic );
+uint32_t LoRaMacComputeMic( const uint8_t *buffer, uint16_t size, const uint8_t *key, uint32_t address, uint8_t dir, uint32_t sequenceCounter);
 
 /*!
  * Computes the LoRaMAC payload encryption

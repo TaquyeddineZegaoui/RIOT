@@ -846,7 +846,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 if( sequenceCounterDiff < ( 1 << 15 ) )
                 {
                     downLinkCounter += sequenceCounterDiff;
-                    LoRaMacComputeMic( payload, size - LORAMAC_MFR_LEN, dev->lorawan.nwk_skey, address, DOWN_LINK, downLinkCounter, &mic );
+                    mic = LoRaMacComputeMic( payload, size - LORAMAC_MFR_LEN, dev->lorawan.nwk_skey, address, DOWN_LINK, downLinkCounter);
                     if( micRx == mic )
                     {
                         isMicOk = true;
@@ -856,7 +856,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 {
                     // check for sequence roll-over
                     uint32_t  downLinkCounterTmp = downLinkCounter + 0x10000 + ( int16_t )sequenceCounterDiff;
-                    LoRaMacComputeMic( payload, size - LORAMAC_MFR_LEN, dev->lorawan.nwk_skey, address, DOWN_LINK, downLinkCounterTmp, &mic );
+                    mic = LoRaMacComputeMic( payload, size - LORAMAC_MFR_LEN, dev->lorawan.nwk_skey, address, DOWN_LINK, downLinkCounterTmp);
                     if( micRx == mic )
                     {
                         isMicOk = true;
@@ -2881,7 +2881,7 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
             }
             dev->LoRaMacBufferPktLen = pktHeaderLen + payloadSize;
 
-            LoRaMacComputeMic( dev->LoRaMacBuffer, dev->LoRaMacBufferPktLen, dev->lorawan.nwk_skey, dev->lorawan.dev_addr, UP_LINK, dev->uplink_counter, &mic );
+            mic = LoRaMacComputeMic( dev->LoRaMacBuffer, dev->LoRaMacBufferPktLen, dev->lorawan.nwk_skey, dev->lorawan.dev_addr, UP_LINK, dev->uplink_counter);
 
             dev->LoRaMacBuffer[dev->LoRaMacBufferPktLen + 0] = mic & 0xFF;
             dev->LoRaMacBuffer[dev->LoRaMacBufferPktLen + 1] = ( mic >> 8 ) & 0xFF;
