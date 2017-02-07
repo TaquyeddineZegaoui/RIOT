@@ -147,67 +147,6 @@ typedef enum eLoRaMacSrvCmd
 }LoRaMacSrvCmd_t;
 
 
-/*!
- * LoRaMAC header field definition (MHDR field)
- *
- * LoRaWAN Specification V1.0.1, chapter 4.2
- */
-typedef union uLoRaMacHeader
-{
-    uint8_t Value; /*<< Byte-access to the bits */
-    struct sHdrBits /*<< Structure containing single access to header bits */
-    {
-        /*!
-         * Major version
-         */
-        uint8_t Major           : 2;
-        /*!
-         * RFU
-         */
-        uint8_t RFU             : 3;
-        /*!
-         * Message type
-         */
-        uint8_t MType           : 3;
-    }Bits;
-}LoRaMacHeader_t;
-
-/*!
- * LoRaMAC frame control field definition (FCtrl)
- *
- * LoRaWAN Specification V1.0.1, chapter 4.3.1
- */
-typedef union uLoRaMacFrameCtrl
-{
-    uint8_t Value; /*<< Byte-access to the bits */
-    /*!
-     * Structure containing single access to bits
-     */
-    struct sCtrlBits
-    {
-        /*!
-         * Frame options length
-         */
-        uint8_t FOptsLen        : 4;
-        /*!
-         * Frame pending bit
-         */
-        uint8_t FPending        : 1;
-        /*!
-         * Message acknowledge bit
-         */
-        uint8_t Ack             : 1;
-        /*!
-         * ADR acknowledgment request bit
-         */
-        uint8_t AdrAckReq       : 1;
-        /*!
-         * ADR control in frame header
-         */
-        uint8_t Adr             : 1;
-    }Bits;
-}LoRaMacFrameCtrl_t;
-
 
 /*!
  * LoRaMAC Status

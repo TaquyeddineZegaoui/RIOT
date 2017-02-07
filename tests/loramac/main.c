@@ -38,6 +38,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 #include "sx1276_params.h"
 #include "sx1276_netdev.h"
 #include "LoRaMac.h"
+#include "net/lorawan/hdr.h"
 
 #define GNRC_LORA_MSG_QUEUE 16
 
@@ -88,7 +89,7 @@ static netdev2_t *nd;
 #endif
 
 
-extern LoRaMacStatus_t Send( LoRaMacHeader_t *macHdr, uint8_t fPort,
+extern LoRaMacStatus_t Send( lw_hdr_t *hdr, uint8_t fPort,
                              void *fBuffer, uint16_t fBufferSize );
 static uint8_t DevEui[] = LORAWAN_DEVICE_EUI;
 static uint8_t AppEui[] = LORAWAN_APPLICATION_EUI;
@@ -524,7 +525,7 @@ static int _send(lorawan_send_t *lws)
     //LoRaMacSendFrame(lws->port, lws->buffer, lws->size);
     netdev2_lorawan_t *dev = (netdev2_lorawan_t*) &sx1276;
     LoRaMacStatus_t status = LORAMAC_STATUS_SERVICE_UNKNOWN;
-    LoRaMacHeader_t macHdr;
+    lw_hdr_t hdr;
 
     if( ( ( dev->LoRaMacState & MAC_TX_RUNNING ) == MAC_TX_RUNNING ) ||
         ( ( dev->LoRaMacState & MAC_TX_DELAYED ) == MAC_TX_DELAYED ) )
@@ -532,7 +533,6 @@ static int _send(lorawan_send_t *lws)
         return LORAMAC_STATUS_BUSY;
     }
 
-    macHdr.Value = 0;
     dev->frame_status = LORAMAC_EVENT_INFO_STATUS_ERROR;
 
     switch(lws->type)
@@ -541,7 +541,7 @@ static int _send(lorawan_send_t *lws)
         {
             dev->AckTimeoutRetries = 1;
 
-            macHdr.Bits.MType = FRAME_TYPE_DATA_UNCONFIRMED_UP;
+            lw_hdr_set_mtype(&hdr, FRAME_TYPE_DATA_UNCONFIRMED_UP);
             break;
         }
         case 1:
@@ -549,7 +549,7 @@ static int _send(lorawan_send_t *lws)
             dev->AckTimeoutRetriesCounter = 1;
             dev->AckTimeoutRetries = lws->retries;
 
-            macHdr.Bits.MType = FRAME_TYPE_DATA_CONFIRMED_UP;
+            lw_hdr_set_mtype(&hdr, FRAME_TYPE_DATA_CONFIRMED_UP);
             break;
         }
         /*
@@ -568,7 +568,7 @@ static int _send(lorawan_send_t *lws)
             break;
     }
 
-    status = Send( &macHdr, lws->port, lws->buffer, lws->size );
+    status = Send( &hdr, lws->port, lws->buffer, lws->size );
     if( status == LORAMAC_STATUS_OK )
     {
         //dev->McpsConfirm.McpsRequest = mcpsRequest->Type;

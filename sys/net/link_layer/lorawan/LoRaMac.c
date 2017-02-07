@@ -23,6 +23,7 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jä
 #include "LoRaMacTest.h"
 #include "thread.h"
 #include "random.h"
+#include "net/lorawan/hdr.h"
 #include <string.h>
 
 
@@ -489,7 +490,7 @@ static void ProcessMacCommands( uint8_t *payload, uint8_t macIndex, uint8_t comm
  * \param [IN] fBufferSize MAC data buffer size
  * \retval status          Status of the operation.
  */
-LoRaMacStatus_t Send( LoRaMacHeader_t *macHdr, uint8_t fPort, void *fBuffer, uint16_t fBufferSize );
+LoRaMacStatus_t Send(lw_hdr_t *hdr, uint8_t fPort, void *fBuffer, uint16_t fBufferSize );
 
 /*!
  * \brief LoRaMAC layer frame buffer initialization
@@ -502,7 +503,7 @@ LoRaMacStatus_t Send( LoRaMacHeader_t *macHdr, uint8_t fPort, void *fBuffer, uin
  * \param [IN] fBufferSize MAC data buffer size
  * \retval status          Status of the operation.
  */
-LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl, uint8_t fPort, void *fBuffer, uint16_t fBufferSize );
+LoRaMacStatus_t PrepareFrame(lw_hdr_t *hdr, uint8_t fPort, void *fBuffer, uint16_t fBufferSize );
 
 /*
  * \brief Schedules the frame according to the duty cycle
@@ -668,8 +669,7 @@ void lorawan_set_pointer(netdev2_lorawan_t* netdev)
 
 void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
 {
-    LoRaMacHeader_t macHdr;
-    LoRaMacFrameCtrl_t fCtrl;
+    lw_hdr_t hdr;
     bool skipIndication = false;
 
     uint8_t pktHeaderLen = 0;
@@ -713,9 +713,9 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
     //TimerStop( &RxWindowTimer2 );
     xtimer_remove(&dev->RxWindowTimer2.dev);
 
-    macHdr.Value = payload[pktHeaderLen++];
+    hdr.mt_maj = payload[pktHeaderLen++];
 
-    switch( macHdr.Bits.MType )
+    switch( lw_hdr_get_mtype(&hdr) )
     {
         case FRAME_TYPE_JOIN_ACCEPT:
             if( dev->lorawan.tx_rx.nwk_status == true )
@@ -724,7 +724,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
             }
             LoRaMacJoinDecrypt( payload + 1, size - 1, dev->app_key, dev->LoRaMacRxPayload + 1 );
 
-            dev->LoRaMacRxPayload[0] = macHdr.Value;
+            dev->LoRaMacRxPayload[0] = hdr.mt_maj;
 
             LoRaMacJoinComputeMic( dev->LoRaMacRxPayload, size - LORAMAC_MFR_LEN, dev->app_key, &mic );
 
@@ -828,12 +828,12 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                     downLinkCounter = dev->DownLinkCounter;
                 }
 
-                fCtrl.Value = payload[pktHeaderLen++];
+                hdr.fctrl = payload[pktHeaderLen++];
 
                 sequenceCounter = ( uint16_t )payload[pktHeaderLen++];
                 sequenceCounter |= ( uint16_t )payload[pktHeaderLen++] << 8;
 
-                appPayloadStartIndex = 8 + fCtrl.Bits.FOptsLen;
+                appPayloadStartIndex = 8 + lw_hdr_get_frame_opts_len(&hdr);
 
                 micRx |= ( uint32_t )payload[size - LORAMAC_MFR_LEN];
                 micRx |= ( ( uint32_t )payload[size - LORAMAC_MFR_LEN + 1] << 8 );
@@ -877,7 +877,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 {
                     dev->frame_status = LORAMAC_EVENT_INFO_STATUS_OK;
                     dev->Multicast = multicast;
-                    dev->FramePending = fCtrl.Bits.FPending;
+                    dev->FramePending = lw_hdr_get_frame_pending(&hdr);
                     dev->Buffer = NULL;
                     dev->BufferSize = 0;
                     dev->received_downlink = downLinkCounter;
@@ -904,7 +904,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                     }
                     else
                     {
-                        if( macHdr.Bits.MType == FRAME_TYPE_DATA_CONFIRMED_DOWN )
+                        if( lw_hdr_get_mtype(&hdr) == FRAME_TYPE_DATA_CONFIRMED_DOWN)
                         {
                             dev->SrvAckRequested = true;
                             //dev->McpsIndication.McpsIndication = MCPS_CONFIRMED;
@@ -934,7 +934,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                     }
 
                     // Check if the frame is an acknowledgement
-                    if( fCtrl.Bits.Ack == 1 )
+                    if( lw_hdr_get_ack(&hdr) )
                     {
                         dev->ack_received = true;
 
@@ -965,7 +965,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
 
                         if( port == 0 )
                         {
-                            if( fCtrl.Bits.FOptsLen == 0 )
+                            if(lw_hdr_get_frame_opts_len(&hdr) == 0)
                             {
                                  LoRaMacPayloadDecrypt( payload + appPayloadStartIndex,
                                                        frameLen,
@@ -985,7 +985,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                         }
                         else
                         {
-                            if( fCtrl.Bits.FOptsLen > 0 )
+                            if( lw_hdr_get_frame_opts_len(&hdr) > 0 )
                             {
                                 // Decode Options field MAC commands. Omit the fPort.
                                 ProcessMacCommands( payload, 8, appPayloadStartIndex - 1, snr );
@@ -1009,7 +1009,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                     }
                     else
                     {
-                        if( fCtrl.Bits.FOptsLen > 0 )
+                        if( lw_hdr_get_frame_opts_len(&hdr) > 0 )
                         {
                             // Decode Options field MAC commands
                             ProcessMacCommands( payload, 8, appPayloadStartIndex, snr );
@@ -1194,19 +1194,17 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
                         /* Hack so retransmited package is re-built*/
                         if(dev->lorawan.tx_rx.nwk_status == false)
                         {
-                            LoRaMacHeader_t macHdr;
-                            LoRaMacFrameCtrl_t fCtrl;
+                            lw_hdr_t hdr;
 
-                            macHdr.Value = 0;
-                            macHdr.Bits.MType = FRAME_TYPE_JOIN_REQ;
+                            hdr.mt_maj = 0;
+                            lw_hdr_set_mtype(&hdr, FRAME_TYPE_JOIN_REQ);
 
-                            fCtrl.Value = 0;
-                            fCtrl.Bits.Adr = dev->lorawan.tx_rx.adr_ctrl;
+                            lw_hdr_set_adr(&hdr, dev->lorawan.tx_rx.adr_ctrl);
 
                             /* In case of a join request retransmission, the stack must prepare
                              * the frame again, because the network server keeps track of the random
                              * dev->dev_nonce values to prevent reply attacks. */
-                            PrepareFrame( &macHdr, &fCtrl, 0, NULL, 0 );
+                            PrepareFrame( &hdr, 0, NULL, 0 );
                             /* End of*/
                         }
                     #endif
@@ -1345,8 +1343,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
 
 void OnTxDelayedTimerEvent(netdev2_t *netdev)
 {
-    LoRaMacHeader_t macHdr;
-    LoRaMacFrameCtrl_t fCtrl;
+    lw_hdr_t hdr;
 
     //TimerStop( &TxDelayedTimer );
     xtimer_remove(&dev->TxDelayedTimer.dev);
@@ -1354,16 +1351,16 @@ void OnTxDelayedTimerEvent(netdev2_t *netdev)
 
     if( ( dev->LoRaMacFlags.Bits.MlmeReq == 1 ) && ( dev->last_frame == FRAME_TYPE_JOIN_REQ ) )
     {
-        macHdr.Value = 0;
-        macHdr.Bits.MType = FRAME_TYPE_JOIN_REQ;
+        hdr.mt_maj = 0;
+        lw_hdr_set_mtype(&hdr, FRAME_TYPE_JOIN_REQ);
 
-        fCtrl.Value = 0;
-        fCtrl.Bits.Adr = dev->lorawan.tx_rx.adr_ctrl;
+        hdr.fctrl = 0;
+        lw_hdr_set_adr(&hdr, dev->lorawan.tx_rx.adr_ctrl);
 
         /* In case of a join request retransmission, the stack must prepare
          * the frame again, because the network server keeps track of the random
          * dev->dev_nonce values to prevent reply attacks. */
-        PrepareFrame( &macHdr, &fCtrl, 0, NULL, 0 );
+        PrepareFrame( &hdr, 0, NULL, 0 );
     }
 
     ScheduleTx( );
@@ -2496,20 +2493,18 @@ static void ProcessMacCommands( uint8_t *payload, uint8_t macIndex, uint8_t comm
     }
 }
 
-LoRaMacStatus_t Send( LoRaMacHeader_t *macHdr, uint8_t fPort, void *fBuffer, uint16_t fBufferSize )
+LoRaMacStatus_t Send( lw_hdr_t *hdr, uint8_t fPort, void *fBuffer, uint16_t fBufferSize )
 {
-    LoRaMacFrameCtrl_t fCtrl;
     LoRaMacStatus_t status = LORAMAC_STATUS_PARAMETER_INVALID;
 
-    fCtrl.Value = 0;
-    fCtrl.Bits.FOptsLen      = 0;
-    fCtrl.Bits.FPending      = 0;
-    fCtrl.Bits.Ack           = false;
-    fCtrl.Bits.AdrAckReq     = false;
-    fCtrl.Bits.Adr           = dev->lorawan.tx_rx.adr_ctrl;
+    lw_hdr_set_adr(hdr, dev->lorawan.tx_rx.adr_ctrl);
+    lw_hdr_set_adr_ack_req(hdr, false);
+    lw_hdr_set_ack(hdr, false);
+    lw_hdr_set_frame_pending(hdr, false);
+    lw_hdr_set_frame_opts_len(hdr, 0);
 
     // Prepare the frame
-    status = PrepareFrame( macHdr, &fCtrl, fPort, fBuffer, fBufferSize );
+    status = PrepareFrame( hdr, fPort, fBuffer, fBufferSize );
 
     // Validate status
     if( status != LORAMAC_STATUS_OK )
@@ -2745,7 +2740,7 @@ static void ResetMacParameters( void )
     dev->Channel = LORA_MAX_NB_CHANNELS;
 }
 
-LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl, uint8_t fPort, void *fBuffer, uint16_t fBufferSize )
+LoRaMacStatus_t PrepareFrame( lw_hdr_t *hdr, uint8_t fPort, void *fBuffer, uint16_t fBufferSize )
 {
     netdev2_t *netdev = (netdev2_t*) dev;
     uint32_t random;
@@ -2765,9 +2760,9 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
         fBufferSize = 0;
     }
 
-    dev->LoRaMacBuffer[pktHeaderLen++] = macHdr->Value;
+    dev->LoRaMacBuffer[pktHeaderLen++] = hdr->mt_maj;
 
-    switch( macHdr->Bits.MType )
+    switch( lw_hdr_get_mtype(hdr) )
     {
         case FRAME_TYPE_JOIN_REQ:
             dev->RxWindow1Delay = dev->LoRaMacParams.JoinAcceptDelay1 - RADIO_WAKEUP_TIME;
@@ -2803,7 +2798,7 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
                 return LORAMAC_STATUS_NO_NETWORK_JOINED; // No network has been joined yet
             }
 
-            fCtrl->Bits.AdrAckReq = AdrNextDr( fCtrl->Bits.Adr, true, &dev->LoRaMacParams.ChannelsDatarate );
+            lw_hdr_set_adr_ack_req(hdr, AdrNextDr( lw_hdr_get_adr(hdr), true, &dev->LoRaMacParams.ChannelsDatarate ));
 
             if( ValidatePayloadLength( fBufferSize, dev->LoRaMacParams.ChannelsDatarate, dev->MacCommandsBufferIndex ) == false )
             {
@@ -2816,7 +2811,7 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
             if( dev->SrvAckRequested == true )
             {
                 dev->SrvAckRequested = false;
-                fCtrl->Bits.Ack = 1;
+                lw_hdr_set_ack(hdr, true);
             }
 
             dev->LoRaMacBuffer[pktHeaderLen++] = ( dev->lorawan.dev_addr ) & 0xFF;
@@ -2824,7 +2819,7 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
             dev->LoRaMacBuffer[pktHeaderLen++] = ( dev->lorawan.dev_addr >> 16 ) & 0xFF;
             dev->LoRaMacBuffer[pktHeaderLen++] = ( dev->lorawan.dev_addr >> 24 ) & 0xFF;
 
-            dev->LoRaMacBuffer[pktHeaderLen++] = fCtrl->Value;
+            dev->LoRaMacBuffer[pktHeaderLen++] = hdr->fctrl;
 
             dev->LoRaMacBuffer[pktHeaderLen++] = dev->uplink_counter & 0xFF;
             dev->LoRaMacBuffer[pktHeaderLen++] = ( dev->uplink_counter >> 8 ) & 0xFF;
@@ -2837,10 +2832,10 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
             {
                 if( ( dev->MacCommandsBufferIndex <= LORA_MAC_COMMAND_MAX_LENGTH ) && ( dev->MacCommandsInNextTx == true ) )
                 {
-                    fCtrl->Bits.FOptsLen += dev->MacCommandsBufferIndex;
+                    lw_hdr_set_frame_opts_len(hdr, lw_hdr_get_frame_opts_len(hdr) + dev->MacCommandsBufferIndex);
 
                     // Update FCtrl field with new value of OptionsLength
-                    dev->LoRaMacBuffer[0x05] = fCtrl->Value;
+                    dev->LoRaMacBuffer[0x05] = hdr->fctrl;
                     for( i = 0; i < dev->MacCommandsBufferIndex; i++ )
                     {
                         dev->LoRaMacBuffer[pktHeaderLen++] = dev->MacCommandsBuffer[i];
@@ -3474,7 +3469,7 @@ LoRaMacStatus_t LoRaMacMulticastChannelUnlink( MulticastParams_t *channelParam )
 LoRaMacStatus_t join_request(void)
 {
     LoRaMacStatus_t status = LORAMAC_STATUS_SERVICE_UNKNOWN;
-    LoRaMacHeader_t macHdr;
+    lw_hdr_t hdr;
 
     if( ( dev->LoRaMacState & MAC_TX_RUNNING ) == MAC_TX_RUNNING )
     {
@@ -3492,15 +3487,15 @@ LoRaMacStatus_t join_request(void)
     dev->last_frame = FRAME_TYPE_JOIN_REQ;
     dev->LoRaMacFlags.Bits.MlmeReq = 1;
 
-    macHdr.Value = 0;
-    macHdr.Bits.MType  = FRAME_TYPE_JOIN_REQ;
+    hdr.mt_maj = 0;
+    lw_hdr_set_mtype(&hdr, FRAME_TYPE_JOIN_REQ);
 
     ResetMacParameters( );
 
     dev->JoinRequestTrials++;
     dev->LoRaMacParams.ChannelsDatarate = AlternateDatarate( dev->JoinRequestTrials );
 
-    status = Send( &macHdr, 0, NULL, 0 );
+    status = Send( &hdr, 0, NULL, 0 );
 
     if( status != LORAMAC_STATUS_OK )
     {
@@ -3541,7 +3536,7 @@ LoRaMacStatus_t link_check(void)
 LoRaMacStatus_t LoRaMacMcpsRequest(uint8_t mcps_req)
 {
     LoRaMacStatus_t status = LORAMAC_STATUS_SERVICE_UNKNOWN;
-    LoRaMacHeader_t macHdr;
+    lw_hdr_t hdr;
     uint8_t fPort = 0;
     void *fBuffer;
     uint16_t fBufferSize;
@@ -3553,7 +3548,7 @@ LoRaMacStatus_t LoRaMacMcpsRequest(uint8_t mcps_req)
         return LORAMAC_STATUS_BUSY;
     }
 
-    macHdr.Value = 0;
+    hdr.mt_maj = 0;
     dev->frame_status = LORAMAC_EVENT_INFO_STATUS_ERROR;
 
     switch(mcps_req)
@@ -3563,7 +3558,7 @@ LoRaMacStatus_t LoRaMacMcpsRequest(uint8_t mcps_req)
             readyToSend = true;
             dev->AckTimeoutRetries = 1;
 
-            macHdr.Bits.MType = FRAME_TYPE_DATA_UNCONFIRMED_UP;
+            lw_hdr_set_mtype(&hdr, FRAME_TYPE_DATA_UNCONFIRMED_UP);
             fPort = dev->fPort;
             fBuffer = dev->fBuffer;
             fBufferSize = dev->fBufferSize;
@@ -3575,7 +3570,7 @@ LoRaMacStatus_t LoRaMacMcpsRequest(uint8_t mcps_req)
             dev->AckTimeoutRetriesCounter = 1;
             dev->AckTimeoutRetries = dev->NbTrials;
 
-            macHdr.Bits.MType = FRAME_TYPE_DATA_CONFIRMED_UP;
+            lw_hdr_set_mtype(&hdr, FRAME_TYPE_DATA_CONFIRMED_UP);
             fPort = dev->fPort;
             fBuffer = dev->fBuffer;
             fBufferSize = dev->fBufferSize;
@@ -3586,7 +3581,7 @@ LoRaMacStatus_t LoRaMacMcpsRequest(uint8_t mcps_req)
             readyToSend = true;
             dev->AckTimeoutRetries = 1;
 
-            macHdr.Bits.MType = FRAME_TYPE_PROPRIETARY;
+            lw_hdr_set_mtype(&hdr, FRAME_TYPE_PROPRIETARY);
             fBuffer = dev->fBuffer;
             fBufferSize = dev->fBufferSize;
             break;
@@ -3597,7 +3592,7 @@ LoRaMacStatus_t LoRaMacMcpsRequest(uint8_t mcps_req)
 
     if( readyToSend == true )
     {
-        status = Send( &macHdr, fPort, fBuffer, fBufferSize );
+        status = Send( &hdr, fPort, fBuffer, fBufferSize );
         if( status == LORAMAC_STATUS_OK )
         {
             //dev->McpsConfirm.McpsRequest = mcpsRequest->Type;
