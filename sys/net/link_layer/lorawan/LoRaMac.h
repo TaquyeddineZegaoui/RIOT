@@ -147,7 +147,6 @@ typedef enum eLoRaMacSrvCmd
 }LoRaMacSrvCmd_t;
 
 
-
 /*!
  * LoRaMAC Status
  */
