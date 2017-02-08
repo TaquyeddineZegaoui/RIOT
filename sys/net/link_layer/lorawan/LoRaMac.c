@@ -26,7 +26,7 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jä
 #include "net/lorawan/hdr.h"
 #include <string.h>
 
-
+static bool txTimeout = false;
 extern void OnMacEvent(void);
 /*!
  * \brief Returns the minimum value betwen a and b
@@ -1063,7 +1063,12 @@ void OnRadioTxTimeout( netdev2_t *netdev )
     }
 
     dev->frame_status = LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT;
-    dev->frame_status = LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT;
+    // Stop transmit cycle due to tx timeout.
+    dev->LoRaMacState &= ~MAC_TX_RUNNING;
+    dev->n_retries = dev->AckTimeoutRetriesCounter;
+    dev->ack_received = false;
+    //dev->McpsConfirm.TxTimeOnAir = 0;
+    txTimeout = true;
     dev->LoRaMacFlags.Bits.MacDone = 1;
 }
 
@@ -1118,19 +1123,6 @@ void OnRadioRxTimeout(netdev2_t *netdev)
 
 void on_mac_done(void)
 {
-    bool txTimeout = false;
-
-    //Check if frame timed out
-    if( dev->frame_status == LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT )
-    {
-        // Stop transmit cycle due to tx timeout.
-        dev->LoRaMacState &= ~MAC_TX_RUNNING;
-        dev->n_retries = dev->AckTimeoutRetriesCounter;
-        dev->ack_received = false;
-        //dev->McpsConfirm.TxTimeOnAir = 0;
-        txTimeout = true;
-    }
-
     if( ( dev->NodeAckRequested == false ) && ( txTimeout == false ) )
     {
         if( dev->LoRaMacFlags.Bits.MlmeReq == 1 )
