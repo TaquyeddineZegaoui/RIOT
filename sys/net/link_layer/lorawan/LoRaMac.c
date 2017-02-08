@@ -642,7 +642,7 @@ static void PrepareRxDoneAbort(netdev2_t *netdev)
         OnRxWindow2TimerEvent(netdev);
     }
 
-    dev->LoRaMacFlags.Bits.McpsInd = 1;
+    dev->received_data = 1;
     dev->LoRaMacFlags.Bits.MacDone = 1;
 
     // Trig OnMacCheckTimerEvent call as soon as possible
@@ -1008,7 +1008,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
 
                     if( skipIndication == false )
                     {
-                        dev->LoRaMacFlags.Bits.McpsInd = 1;
+                        dev->received_data = 1;
                     }
                 }
                 else
@@ -1024,12 +1024,11 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
             {
                 memcpy( dev->LoRaMacRxPayload, &payload[pktHeaderLen], size );
 
-                //dev->McpsIndication.McpsIndication = MCPS_PROPRIETARY;
                 dev->frame_status = LORAMAC_EVENT_INFO_STATUS_OK;
                 dev->Buffer = dev->LoRaMacRxPayload;
                 dev->BufferSize = size - pktHeaderLen;
 
-                dev->LoRaMacFlags.Bits.McpsInd = 1;
+                dev->received_data = 1;
                 break;
             }
         default:
@@ -1121,6 +1120,7 @@ void on_mac_done(void)
 {
     bool txTimeout = false;
 
+    //Check if frame timed out
     if( dev->frame_status == LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT )
     {
         // Stop transmit cycle due to tx timeout.
@@ -1150,7 +1150,7 @@ void on_mac_done(void)
         }
         if( ( dev->LoRaMacFlags.Bits.MlmeReq == 1 ) || ( ( dev->LoRaMacFlags.Bits.McpsReq == 1 ) ) )
         {
-            if( ( dev->ChannelsNbRepCounter >= dev->LoRaMacParams.ChannelsNbRep ) || ( dev->LoRaMacFlags.Bits.McpsInd == 1 ) )
+            if( ( dev->ChannelsNbRepCounter >= dev->LoRaMacParams.ChannelsNbRep ) || ( dev->received_data == 1 ) )
             {
                 dev->ChannelsNbRepCounter = 0;
 
@@ -1188,7 +1188,7 @@ void on_mac_done(void)
         }
     }
 
-    if( dev->LoRaMacFlags.Bits.McpsInd == 1 )
+    if( dev->received_data == 1 )
     {
         if( ( dev->ack_received == true ) || ( dev->AckTimeoutRetriesCounter > dev->AckTimeoutRetries ) )
         {
@@ -1274,7 +1274,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
         if( dev->LoRaMacFlags.Bits.McpsReq == 1 )
         {
             dev->b_tx = 1;
-            if( ( dev->LoRaMacFlags.Bits.McpsInd != 1 ) && ( dev->LoRaMacFlags.Bits.MlmeReq != 1 ) )
+            if( ( dev->received_data != 1 ) && ( dev->LoRaMacFlags.Bits.MlmeReq != 1 ) )
             {
                 OnMacEvent();
             }
@@ -1297,7 +1297,7 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
                 }
             }
 
-            if( dev->LoRaMacFlags.Bits.McpsInd != 1 )
+            if( dev->received_data != 1 )
             {
                 OnMacEvent();
             }
@@ -1316,11 +1316,11 @@ void OnMacStateCheckTimerEvent(netdev2_t *netdev)
         //TimerStart( &MacStateCheckTimer, 0);
     }
 
-    if( dev->LoRaMacFlags.Bits.McpsInd == 1 )
+    if( dev->received_data == 1 )
     {
         dev->b_rx = 1;
         OnMacEvent();
-        dev->LoRaMacFlags.Bits.McpsInd = 0;
+        dev->received_data = 0;
     }
 }
 

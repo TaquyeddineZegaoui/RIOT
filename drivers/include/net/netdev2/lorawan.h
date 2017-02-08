@@ -240,6 +240,8 @@ typedef struct {
     bool b_rx;
     bool link_check;
     bool join_req;
+
+    bool received_data;
 } netdev2_lorawan_t;
 
 /**
