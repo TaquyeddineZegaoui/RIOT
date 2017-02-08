@@ -1121,17 +1121,14 @@ void on_mac_done(void)
 {
     bool txTimeout = false;
 
-    if( ( dev->LoRaMacFlags.Bits.MlmeReq == 1 ) || ( ( dev->LoRaMacFlags.Bits.McpsReq == 1 ) ) )
+    if( dev->frame_status == LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT )
     {
-        if( dev->frame_status == LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT )
-        {
-            // Stop transmit cycle due to tx timeout.
-            dev->LoRaMacState &= ~MAC_TX_RUNNING;
-            dev->n_retries = dev->AckTimeoutRetriesCounter;
-            dev->ack_received = false;
-            //dev->McpsConfirm.TxTimeOnAir = 0;
-            txTimeout = true;
-        }
+        // Stop transmit cycle due to tx timeout.
+        dev->LoRaMacState &= ~MAC_TX_RUNNING;
+        dev->n_retries = dev->AckTimeoutRetriesCounter;
+        dev->ack_received = false;
+        //dev->McpsConfirm.TxTimeOnAir = 0;
+        txTimeout = true;
     }
 
     if( ( dev->NodeAckRequested == false ) && ( txTimeout == false ) )
