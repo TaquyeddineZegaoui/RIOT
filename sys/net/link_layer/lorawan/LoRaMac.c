@@ -89,17 +89,6 @@ typedef enum
     MODEM_LORA,
 }RadioModems_t;
 
-/*!
- * Radio driver internal state machine states definition
- */
-typedef enum
-{
-    RF_IDLE = 0,
-    RF_RX_RUNNING,
-    RF_TX_RUNNING,
-    RF_CAD,
-}RadioState_t;
-
 static netdev2_lorawan_t *dev;
 
 netdev2_lorawan_t *get_dev_ptr(void)
