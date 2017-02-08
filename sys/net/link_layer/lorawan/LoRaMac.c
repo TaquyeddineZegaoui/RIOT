@@ -1123,8 +1123,7 @@ void on_mac_done(void)
 
     if( ( dev->LoRaMacFlags.Bits.MlmeReq == 1 ) || ( ( dev->LoRaMacFlags.Bits.McpsReq == 1 ) ) )
     {
-        if( ( dev->frame_status == LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT ) ||
-            ( dev->frame_status == LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT ) )
+        if( dev->frame_status == LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT )
         {
             // Stop transmit cycle due to tx timeout.
             dev->LoRaMacState &= ~MAC_TX_RUNNING;
