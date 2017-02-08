@@ -629,7 +629,8 @@ void OnRadioTxDone(netdev2_t *netdev)
 
 static void PrepareRxDoneAbort(netdev2_t *netdev)
 {
-    dev->LoRaMacState |= MAC_RX_ABORT;
+    //Abort TX Running...
+    dev->LoRaMacState &= ~MAC_TX_RUNNING;
 
     if( dev->NodeAckRequested )
     {
@@ -1116,160 +1117,157 @@ void OnRadioRxTimeout(netdev2_t *netdev)
     }
 }
 
+void on_mac_done(void)
+{
+    bool txTimeout = false;
+
+    if( ( dev->LoRaMacFlags.Bits.MlmeReq == 1 ) || ( ( dev->LoRaMacFlags.Bits.McpsReq == 1 ) ) )
+    {
+        if( ( dev->frame_status == LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT ) ||
+            ( dev->frame_status == LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT ) )
+        {
+            // Stop transmit cycle due to tx timeout.
+            dev->LoRaMacState &= ~MAC_TX_RUNNING;
+            dev->n_retries = dev->AckTimeoutRetriesCounter;
+            dev->ack_received = false;
+            //dev->McpsConfirm.TxTimeOnAir = 0;
+            txTimeout = true;
+        }
+    }
+
+    if( ( dev->NodeAckRequested == false ) && ( txTimeout == false ) )
+    {
+        if( dev->LoRaMacFlags.Bits.MlmeReq == 1 )
+        {
+            if( dev->last_frame == FRAME_TYPE_JOIN_REQ )
+            {
+                // Retransmit only if the answer is not OK
+                dev->ChannelsNbRepCounter = 0;
+
+                if( dev->frame_status == LORAMAC_EVENT_INFO_STATUS_OK )
+                {
+                    // Stop retransmission
+                    dev->ChannelsNbRepCounter = dev->LoRaMacParams.ChannelsNbRep;
+                    dev->uplink_counter = 0;
+                }
+            }
+        }
+        if( ( dev->LoRaMacFlags.Bits.MlmeReq == 1 ) || ( ( dev->LoRaMacFlags.Bits.McpsReq == 1 ) ) )
+        {
+            if( ( dev->ChannelsNbRepCounter >= dev->LoRaMacParams.ChannelsNbRep ) || ( dev->LoRaMacFlags.Bits.McpsInd == 1 ) )
+            {
+                dev->ChannelsNbRepCounter = 0;
+
+                dev->AdrAckCounter++;
+                if( dev->IsUpLinkCounterFixed == false )
+                {
+                    dev->uplink_counter++;
+                }
+
+                dev->LoRaMacState &= ~MAC_TX_RUNNING;
+            }
+            else
+            {
+                dev->LoRaMacFlags.Bits.MacDone = 0;
+                #if defined HACK_OTA
+                    /* Hack so retransmited package is re-built*/
+                    if(dev->lorawan.tx_rx.nwk_status == false)
+                    {
+                        lw_hdr_t hdr;
+
+                        hdr.mt_maj = 0;
+                        lw_hdr_set_mtype(&hdr, FRAME_TYPE_JOIN_REQ);
+
+                        lw_hdr_set_adr(&hdr, dev->lorawan.tx_rx.adr_ctrl);
+
+                        /* In case of a join request retransmission, the stack must prepare
+                         * the frame again, because the network server keeps track of the random
+                         * dev->dev_nonce values to prevent reply attacks. */
+                        PrepareFrame( &hdr, 0, NULL, 0 );
+                        /* End of*/
+                    }
+                #endif
+                ScheduleTx( );
+            }
+        }
+    }
+
+    if( dev->LoRaMacFlags.Bits.McpsInd == 1 )
+    {
+        if( ( dev->ack_received == true ) || ( dev->AckTimeoutRetriesCounter > dev->AckTimeoutRetries ) )
+        {
+            dev->AckTimeoutRetry = false;
+            dev->NodeAckRequested = false;
+            if( dev->IsUpLinkCounterFixed == false )
+            {
+                dev->uplink_counter++;
+            }
+            dev->n_retries = dev->AckTimeoutRetriesCounter;
+
+            dev->LoRaMacState &= ~MAC_TX_RUNNING;
+        }
+    }
+
+    if( ( dev->AckTimeoutRetry == true ) && ( ( dev->LoRaMacState & MAC_TX_DELAYED ) == 0 ) )
+    {
+        dev->AckTimeoutRetry = false;
+        if( ( dev->AckTimeoutRetriesCounter < dev->AckTimeoutRetries ) && ( dev->AckTimeoutRetriesCounter <= MAX_ACK_RETRIES ) )
+        {
+            dev->AckTimeoutRetriesCounter++;
+
+            if( ( dev->AckTimeoutRetriesCounter % 2 ) == 1 )
+            {
+                dev->LoRaMacParams.ChannelsDatarate = MAX( dev->LoRaMacParams.ChannelsDatarate - 1, LORAMAC_TX_MIN_DATARATE );
+            }
+            dev->LoRaMacFlags.Bits.MacDone = 0;
+            // Sends the same frame again
+            ScheduleTx( );
+        }
+        else
+        {
+#if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
+            // Re-enable default channels LC1, LC2, LC3
+            dev->LoRaMacParams.ChannelsMask[0] = dev->LoRaMacParams.ChannelsMask[0] | ( LC( 1 ) + LC( 2 ) + LC( 3 ) );
+#elif defined( USE_BAND_915 )
+            // Re-enable default channels
+            dev->LoRaMacParams.ChannelsMask[0] = 0xFFFF;
+            dev->LoRaMacParams.ChannelsMask[1] = 0xFFFF;
+            dev->LoRaMacParams.ChannelsMask[2] = 0xFFFF;
+            dev->LoRaMacParams.ChannelsMask[3] = 0xFFFF;
+            dev->LoRaMacParams.ChannelsMask[4] = 0x00FF;
+            dev->LoRaMacParams.ChannelsMask[5] = 0x0000;
+#elif defined( USE_BAND_915_HYBRID )
+            // Re-enable default channels
+            ReenableChannels( dev->LoRaMacParams.ChannelsMask[4], dev->LoRaMacParams.ChannelsMask );
+            dev->LoRaMacParams.ChannelsMask[0] = 0x3C3C;
+            dev->LoRaMacParams.ChannelsMask[1] = 0x0000;
+            dev->LoRaMacParams.ChannelsMask[2] = 0x0000;
+            dev->LoRaMacParams.ChannelsMask[3] = 0x0000;
+            dev->LoRaMacParams.ChannelsMask[4] = 0x0001;
+            dev->LoRaMacParams.ChannelsMask[5] = 0x0000;
+#else
+#error "Please define a frequency band in the compiler options."
+#endif
+            dev->LoRaMacState &= ~MAC_TX_RUNNING;
+
+            dev->NodeAckRequested = false;
+            dev->ack_received = false;
+            dev->n_retries = dev->AckTimeoutRetriesCounter;
+            if( dev->IsUpLinkCounterFixed == false )
+            {
+                dev->uplink_counter++;
+            }
+        }
+    }
+}
 void OnMacStateCheckTimerEvent(netdev2_t *netdev)
 {
     //TimerStop( &MacStateCheckTimer );
     xtimer_remove(&dev->MacStateCheckTimer.dev);
-    bool txTimeout = false;
     printf("%i\n", dev->frame_status);
 
     if( dev->LoRaMacFlags.Bits.MacDone == 1 )
-    {
-        if( ( dev->LoRaMacState & MAC_RX_ABORT ) == MAC_RX_ABORT )
-        {
-            dev->LoRaMacState &= ~MAC_RX_ABORT;
-            dev->LoRaMacState &= ~MAC_TX_RUNNING;
-        }
-
-        if( ( dev->LoRaMacFlags.Bits.MlmeReq == 1 ) || ( ( dev->LoRaMacFlags.Bits.McpsReq == 1 ) ) )
-        {
-            if( ( dev->frame_status == LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT ) ||
-                ( dev->frame_status == LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT ) )
-            {
-                // Stop transmit cycle due to tx timeout.
-                dev->LoRaMacState &= ~MAC_TX_RUNNING;
-                dev->n_retries = dev->AckTimeoutRetriesCounter;
-                dev->ack_received = false;
-                //dev->McpsConfirm.TxTimeOnAir = 0;
-                txTimeout = true;
-            }
-        }
-
-        if( ( dev->NodeAckRequested == false ) && ( txTimeout == false ) )
-        {
-            if( dev->LoRaMacFlags.Bits.MlmeReq == 1 )
-            {
-                if( dev->last_frame == FRAME_TYPE_JOIN_REQ )
-                {
-                    // Retransmit only if the answer is not OK
-                    dev->ChannelsNbRepCounter = 0;
-
-                    if( dev->frame_status == LORAMAC_EVENT_INFO_STATUS_OK )
-                    {
-                        // Stop retransmission
-                        dev->ChannelsNbRepCounter = dev->LoRaMacParams.ChannelsNbRep;
-                        dev->uplink_counter = 0;
-                    }
-                }
-            }
-            if( ( dev->LoRaMacFlags.Bits.MlmeReq == 1 ) || ( ( dev->LoRaMacFlags.Bits.McpsReq == 1 ) ) )
-            {
-                if( ( dev->ChannelsNbRepCounter >= dev->LoRaMacParams.ChannelsNbRep ) || ( dev->LoRaMacFlags.Bits.McpsInd == 1 ) )
-                {
-                    dev->ChannelsNbRepCounter = 0;
-
-                    dev->AdrAckCounter++;
-                    if( dev->IsUpLinkCounterFixed == false )
-                    {
-                        dev->uplink_counter++;
-                    }
-
-                    dev->LoRaMacState &= ~MAC_TX_RUNNING;
-                }
-                else
-                {
-                    dev->LoRaMacFlags.Bits.MacDone = 0;
-                    #if defined HACK_OTA
-                        /* Hack so retransmited package is re-built*/
-                        if(dev->lorawan.tx_rx.nwk_status == false)
-                        {
-                            lw_hdr_t hdr;
-
-                            hdr.mt_maj = 0;
-                            lw_hdr_set_mtype(&hdr, FRAME_TYPE_JOIN_REQ);
-
-                            lw_hdr_set_adr(&hdr, dev->lorawan.tx_rx.adr_ctrl);
-
-                            /* In case of a join request retransmission, the stack must prepare
-                             * the frame again, because the network server keeps track of the random
-                             * dev->dev_nonce values to prevent reply attacks. */
-                            PrepareFrame( &hdr, 0, NULL, 0 );
-                            /* End of*/
-                        }
-                    #endif
-                    ScheduleTx( );
-                }
-            }
-        }
-
-        if( dev->LoRaMacFlags.Bits.McpsInd == 1 )
-        {
-            if( ( dev->ack_received == true ) || ( dev->AckTimeoutRetriesCounter > dev->AckTimeoutRetries ) )
-            {
-                dev->AckTimeoutRetry = false;
-                dev->NodeAckRequested = false;
-                if( dev->IsUpLinkCounterFixed == false )
-                {
-                    dev->uplink_counter++;
-                }
-                dev->n_retries = dev->AckTimeoutRetriesCounter;
-
-                dev->LoRaMacState &= ~MAC_TX_RUNNING;
-            }
-        }
-
-        if( ( dev->AckTimeoutRetry == true ) && ( ( dev->LoRaMacState & MAC_TX_DELAYED ) == 0 ) )
-        {
-            dev->AckTimeoutRetry = false;
-            if( ( dev->AckTimeoutRetriesCounter < dev->AckTimeoutRetries ) && ( dev->AckTimeoutRetriesCounter <= MAX_ACK_RETRIES ) )
-            {
-                dev->AckTimeoutRetriesCounter++;
-
-                if( ( dev->AckTimeoutRetriesCounter % 2 ) == 1 )
-                {
-                    dev->LoRaMacParams.ChannelsDatarate = MAX( dev->LoRaMacParams.ChannelsDatarate - 1, LORAMAC_TX_MIN_DATARATE );
-                }
-                dev->LoRaMacFlags.Bits.MacDone = 0;
-                // Sends the same frame again
-                ScheduleTx( );
-            }
-            else
-            {
-#if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
-                // Re-enable default channels LC1, LC2, LC3
-                dev->LoRaMacParams.ChannelsMask[0] = dev->LoRaMacParams.ChannelsMask[0] | ( LC( 1 ) + LC( 2 ) + LC( 3 ) );
-#elif defined( USE_BAND_915 )
-                // Re-enable default channels
-                dev->LoRaMacParams.ChannelsMask[0] = 0xFFFF;
-                dev->LoRaMacParams.ChannelsMask[1] = 0xFFFF;
-                dev->LoRaMacParams.ChannelsMask[2] = 0xFFFF;
-                dev->LoRaMacParams.ChannelsMask[3] = 0xFFFF;
-                dev->LoRaMacParams.ChannelsMask[4] = 0x00FF;
-                dev->LoRaMacParams.ChannelsMask[5] = 0x0000;
-#elif defined( USE_BAND_915_HYBRID )
-                // Re-enable default channels
-                ReenableChannels( dev->LoRaMacParams.ChannelsMask[4], dev->LoRaMacParams.ChannelsMask );
-                dev->LoRaMacParams.ChannelsMask[0] = 0x3C3C;
-                dev->LoRaMacParams.ChannelsMask[1] = 0x0000;
-                dev->LoRaMacParams.ChannelsMask[2] = 0x0000;
-                dev->LoRaMacParams.ChannelsMask[3] = 0x0000;
-                dev->LoRaMacParams.ChannelsMask[4] = 0x0001;
-                dev->LoRaMacParams.ChannelsMask[5] = 0x0000;
-#else
-    #error "Please define a frequency band in the compiler options."
-#endif
-                dev->LoRaMacState &= ~MAC_TX_RUNNING;
-
-                dev->NodeAckRequested = false;
-                dev->ack_received = false;
-                dev->n_retries = dev->AckTimeoutRetriesCounter;
-                if( dev->IsUpLinkCounterFixed == false )
-                {
-                    dev->uplink_counter++;
-                }
-            }
-        }
-    }
+        on_mac_done();
     // Handle reception for Class B and Class C
     if( ( dev->LoRaMacState & MAC_RX ) == MAC_RX )
     {
