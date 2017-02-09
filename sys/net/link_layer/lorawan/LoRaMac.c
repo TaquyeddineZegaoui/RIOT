@@ -807,7 +807,11 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
             else
             {
                 dev->frame_status = LORAMAC_EVENT_INFO_STATUS_JOIN_FAIL;
-                retransmit_join_req(netdev);
+                if( dev->ChannelsNbRepCounter >= dev->LoRaMacParams.ChannelsNbRep )
+                {
+                    retransmit_join_req(netdev);
+                }
+
             }
             break;
         case FRAME_TYPE_DATA_CONFIRMED_DOWN:
@@ -1143,13 +1147,17 @@ void OnRadioRxTimeout(netdev2_t *netdev)
         {
             dev->frame_status = LORAMAC_EVENT_INFO_STATUS_RX2_TIMEOUT;
         }
-        if(dev->last_frame == FRAME_TYPE_JOIN_REQ && dev->lorawan.tx_rx.nwk_status == false)
+        if(dev->last_frame == FRAME_TYPE_JOIN_REQ && dev->lorawan.tx_rx.nwk_status == false && dev->ChannelsNbRepCounter >= dev->LoRaMacParams.ChannelsNbRep)
         {
             retransmit_join_req(netdev);
         }
         dev->frame_status = LORAMAC_EVENT_INFO_STATUS_RX2_TIMEOUT;
         dev->LoRaMacFlags.Bits.MacDone = 1;
     }
+}
+
+void finish_rx(netdev2_t *dev)
+{
 }
 
 void on_mac_done(void)
