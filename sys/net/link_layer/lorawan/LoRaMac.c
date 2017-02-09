@@ -90,6 +90,7 @@ typedef enum
 }RadioModems_t;
 
 static netdev2_lorawan_t *dev;
+void finish_rx(netdev2_t *dev);
 
 netdev2_lorawan_t *get_dev_ptr(void)
 {
@@ -681,6 +682,22 @@ void lorawan_set_pointer(netdev2_lorawan_t* netdev)
     dev = netdev;
 }
 
+void retransmit_ack(netdev2_t *netdev)
+{
+    if( ( dev->AckTimeoutRetriesCounter < dev->AckTimeoutRetries ) && ( dev->AckTimeoutRetriesCounter <= MAX_ACK_RETRIES ) )
+    {
+        dev->AckTimeoutRetriesCounter++;
+
+        if( ( dev->AckTimeoutRetriesCounter % 2 ) == 1 )
+        {
+            dev->LoRaMacParams.ChannelsDatarate = MAX( dev->LoRaMacParams.ChannelsDatarate - 1, LORAMAC_TX_MIN_DATARATE );
+        }
+        dev->LoRaMacFlags.Bits.MacDone = 0;
+        // Sends the same frame again
+        ScheduleTx( );
+    }
+}
+
 void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
 {
     lw_hdr_t hdr;
@@ -803,6 +820,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 dev->LoRaMacParams.ChannelsDatarate = dev->LoRaMacParamsDefaults.ChannelsDatarate;
                 dev->ChannelsNbRepCounter = dev->LoRaMacParams.ChannelsNbRep;
                 dev->uplink_counter = 0;
+                finish_rx((netdev2_t*) dev);
             }
             else
             {
@@ -963,6 +981,38 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                         // are needed.
                         //TimerStop( &AckTimeoutTimer );
                         xtimer_remove(&dev->AckTimeoutTimer.dev);
+#if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
+                        // Re-enable default channels LC1, LC2, LC3
+                        dev->LoRaMacParams.ChannelsMask[0] = dev->LoRaMacParams.ChannelsMask[0] | ( LC( 1 ) + LC( 2 ) + LC( 3 ) );
+#elif defined( USE_BAND_915 )
+                        // Re-enable default channels
+                        dev->LoRaMacParams.ChannelsMask[0] = 0xFFFF;
+                        dev->LoRaMacParams.ChannelsMask[1] = 0xFFFF;
+                        dev->LoRaMacParams.ChannelsMask[2] = 0xFFFF;
+                        dev->LoRaMacParams.ChannelsMask[3] = 0xFFFF;
+                        dev->LoRaMacParams.ChannelsMask[4] = 0x00FF;
+                        dev->LoRaMacParams.ChannelsMask[5] = 0x0000;
+#elif defined( USE_BAND_915_HYBRID )
+                        // Re-enable default channels
+                        ReenableChannels( dev->LoRaMacParams.ChannelsMask[4], dev->LoRaMacParams.ChannelsMask );
+                        dev->LoRaMacParams.ChannelsMask[0] = 0x3C3C;
+                        dev->LoRaMacParams.ChannelsMask[1] = 0x0000;
+                        dev->LoRaMacParams.ChannelsMask[2] = 0x0000;
+                        dev->LoRaMacParams.ChannelsMask[3] = 0x0000;
+                        dev->LoRaMacParams.ChannelsMask[4] = 0x0001;
+                        dev->LoRaMacParams.ChannelsMask[5] = 0x0000;
+#else
+#error "Please define a frequency band in the compiler options."
+#endif
+                        dev->LoRaMacState &= ~MAC_TX_RUNNING;
+
+                        dev->NodeAckRequested = false;
+                        dev->ack_received = false;
+                        dev->n_retries = dev->AckTimeoutRetriesCounter;
+                        if( dev->IsUpLinkCounterFixed == false )
+                        {
+                            dev->uplink_counter++;
+                        }
                     }
                     else
                     {
@@ -1041,6 +1091,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                     {
                         dev->received_data = 1;
                     }
+                    finish_rx((netdev2_t*) dev);
                 }
                 else
                 {
@@ -1153,34 +1204,25 @@ void OnRadioRxTimeout(netdev2_t *netdev)
         }
         dev->frame_status = LORAMAC_EVENT_INFO_STATUS_RX2_TIMEOUT;
         dev->LoRaMacFlags.Bits.MacDone = 1;
+        finish_rx((netdev2_t*) dev);
     }
 }
 
-void finish_rx(netdev2_t *dev)
+void finish_rx(netdev2_t *netdev)
 {
+    dev->ChannelsNbRepCounter = 0;
+
+    dev->AdrAckCounter++;
+    if( dev->IsUpLinkCounterFixed == false )
+    {
+        dev->uplink_counter++;
+    }
+
+    dev->LoRaMacState &= ~MAC_TX_RUNNING;
 }
 
 void on_mac_done(void)
 {
-    if( ( dev->NodeAckRequested == false ) && ( txTimeout == false ) )
-    {
-        if( ( dev->LoRaMacFlags.Bits.MlmeReq == 1 ) || ( ( dev->LoRaMacFlags.Bits.McpsReq == 1 ) ) )
-        {
-            if( ( dev->ChannelsNbRepCounter >= dev->LoRaMacParams.ChannelsNbRep ) || ( dev->received_data == 1 ) )
-            {
-                dev->ChannelsNbRepCounter = 0;
-
-                dev->AdrAckCounter++;
-                if( dev->IsUpLinkCounterFixed == false )
-                {
-                    dev->uplink_counter++;
-                }
-
-                dev->LoRaMacState &= ~MAC_TX_RUNNING;
-            }
-        }
-    }
-
     if( dev->received_data == 1 )
     {
         if( ( dev->ack_received == true ) || ( dev->AckTimeoutRetriesCounter > dev->AckTimeoutRetries ) )
@@ -1194,58 +1236,6 @@ void on_mac_done(void)
             dev->n_retries = dev->AckTimeoutRetriesCounter;
 
             dev->LoRaMacState &= ~MAC_TX_RUNNING;
-        }
-    }
-
-    if( ( dev->AckTimeoutRetry == true ) && ( ( dev->LoRaMacState & MAC_TX_DELAYED ) == 0 ) )
-    {
-        dev->AckTimeoutRetry = false;
-        if( ( dev->AckTimeoutRetriesCounter < dev->AckTimeoutRetries ) && ( dev->AckTimeoutRetriesCounter <= MAX_ACK_RETRIES ) )
-        {
-            dev->AckTimeoutRetriesCounter++;
-
-            if( ( dev->AckTimeoutRetriesCounter % 2 ) == 1 )
-            {
-                dev->LoRaMacParams.ChannelsDatarate = MAX( dev->LoRaMacParams.ChannelsDatarate - 1, LORAMAC_TX_MIN_DATARATE );
-            }
-            dev->LoRaMacFlags.Bits.MacDone = 0;
-            // Sends the same frame again
-            ScheduleTx( );
-        }
-        else
-        {
-#if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
-            // Re-enable default channels LC1, LC2, LC3
-            dev->LoRaMacParams.ChannelsMask[0] = dev->LoRaMacParams.ChannelsMask[0] | ( LC( 1 ) + LC( 2 ) + LC( 3 ) );
-#elif defined( USE_BAND_915 )
-            // Re-enable default channels
-            dev->LoRaMacParams.ChannelsMask[0] = 0xFFFF;
-            dev->LoRaMacParams.ChannelsMask[1] = 0xFFFF;
-            dev->LoRaMacParams.ChannelsMask[2] = 0xFFFF;
-            dev->LoRaMacParams.ChannelsMask[3] = 0xFFFF;
-            dev->LoRaMacParams.ChannelsMask[4] = 0x00FF;
-            dev->LoRaMacParams.ChannelsMask[5] = 0x0000;
-#elif defined( USE_BAND_915_HYBRID )
-            // Re-enable default channels
-            ReenableChannels( dev->LoRaMacParams.ChannelsMask[4], dev->LoRaMacParams.ChannelsMask );
-            dev->LoRaMacParams.ChannelsMask[0] = 0x3C3C;
-            dev->LoRaMacParams.ChannelsMask[1] = 0x0000;
-            dev->LoRaMacParams.ChannelsMask[2] = 0x0000;
-            dev->LoRaMacParams.ChannelsMask[3] = 0x0000;
-            dev->LoRaMacParams.ChannelsMask[4] = 0x0001;
-            dev->LoRaMacParams.ChannelsMask[5] = 0x0000;
-#else
-#error "Please define a frequency band in the compiler options."
-#endif
-            dev->LoRaMacState &= ~MAC_TX_RUNNING;
-
-            dev->NodeAckRequested = false;
-            dev->ack_received = false;
-            dev->n_retries = dev->AckTimeoutRetriesCounter;
-            if( dev->IsUpLinkCounterFixed == false )
-            {
-                dev->uplink_counter++;
-            }
         }
     }
 }
@@ -1509,6 +1499,8 @@ void OnAckTimeoutTimerEvent(netdev2_t *netdev)
     {
         dev->AckTimeoutRetry = true;
         dev->LoRaMacState &= ~MAC_ACK_REQ;
+        finish_rx((netdev2_t*) dev);
+        retransmit_ack(netdev);
     }
     if( dev->LoRaMacDeviceClass == CLASS_C )
     {
