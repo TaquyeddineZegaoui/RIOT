@@ -526,6 +526,7 @@ static int _send(lorawan_send_t *lws)
     netdev2_lorawan_t *dev = (netdev2_lorawan_t*) &sx1276;
     LoRaMacStatus_t status = LORAMAC_STATUS_SERVICE_UNKNOWN;
     lw_hdr_t hdr;
+    memset(&hdr, 0, sizeof(lw_hdr_t));
 
     if( ( ( dev->LoRaMacState & MAC_TX_RUNNING ) == MAC_TX_RUNNING ) ||
         ( ( dev->LoRaMacState & MAC_TX_DELAYED ) == MAC_TX_DELAYED ) )
