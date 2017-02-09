@@ -652,6 +652,30 @@ static void PrepareRxDoneAbort(netdev2_t *netdev)
     //TimerStart( &MacStateCheckTimer, 0);
 }
 
+void retransmit_join_req(netdev2_t *netdev)
+{
+    dev->ChannelsNbRepCounter = 0;
+    dev->LoRaMacFlags.Bits.MacDone = 0;
+    #if defined HACK_OTA
+        /* Hack so retransmited package is re-built*/
+        if(dev->lorawan.tx_rx.nwk_status == false)
+        {
+            lw_hdr_t hdr;
+
+            hdr.mt_maj = 0;
+            lw_hdr_set_mtype(&hdr, FRAME_TYPE_JOIN_REQ);
+
+            lw_hdr_set_adr(&hdr, dev->lorawan.tx_rx.adr_ctrl);
+
+            /* In case of a join request retransmission, the stack must prepare
+             * the frame again, because the network server keeps track of the random
+             * dev->dev_nonce values to prevent reply attacks. */
+            PrepareFrame( &hdr, 0, NULL, 0 );
+            /* End of*/
+        }
+    #endif
+    ScheduleTx( );
+}
 void lorawan_set_pointer(netdev2_lorawan_t* netdev)
 {
     dev = netdev;
@@ -777,10 +801,13 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 dev->frame_status = LORAMAC_EVENT_INFO_STATUS_OK;
                 dev->lorawan.tx_rx.nwk_status = true;
                 dev->LoRaMacParams.ChannelsDatarate = dev->LoRaMacParamsDefaults.ChannelsDatarate;
+                dev->ChannelsNbRepCounter = dev->LoRaMacParams.ChannelsNbRep;
+                dev->uplink_counter = 0;
             }
             else
             {
                 dev->frame_status = LORAMAC_EVENT_INFO_STATUS_JOIN_FAIL;
+                retransmit_join_req(netdev);
             }
             break;
         case FRAME_TYPE_DATA_CONFIRMED_DOWN:
@@ -1116,6 +1143,10 @@ void OnRadioRxTimeout(netdev2_t *netdev)
         {
             dev->frame_status = LORAMAC_EVENT_INFO_STATUS_RX2_TIMEOUT;
         }
+        if(dev->last_frame == FRAME_TYPE_JOIN_REQ && dev->lorawan.tx_rx.nwk_status == false)
+        {
+            retransmit_join_req(netdev);
+        }
         dev->frame_status = LORAMAC_EVENT_INFO_STATUS_RX2_TIMEOUT;
         dev->LoRaMacFlags.Bits.MacDone = 1;
     }
@@ -1125,21 +1156,6 @@ void on_mac_done(void)
 {
     if( ( dev->NodeAckRequested == false ) && ( txTimeout == false ) )
     {
-        if( dev->LoRaMacFlags.Bits.MlmeReq == 1 )
-        {
-            if( dev->last_frame == FRAME_TYPE_JOIN_REQ )
-            {
-                // Retransmit only if the answer is not OK
-                dev->ChannelsNbRepCounter = 0;
-
-                if( dev->frame_status == LORAMAC_EVENT_INFO_STATUS_OK )
-                {
-                    // Stop retransmission
-                    dev->ChannelsNbRepCounter = dev->LoRaMacParams.ChannelsNbRep;
-                    dev->uplink_counter = 0;
-                }
-            }
-        }
         if( ( dev->LoRaMacFlags.Bits.MlmeReq == 1 ) || ( ( dev->LoRaMacFlags.Bits.McpsReq == 1 ) ) )
         {
             if( ( dev->ChannelsNbRepCounter >= dev->LoRaMacParams.ChannelsNbRep ) || ( dev->received_data == 1 ) )
@@ -1153,29 +1169,6 @@ void on_mac_done(void)
                 }
 
                 dev->LoRaMacState &= ~MAC_TX_RUNNING;
-            }
-            else
-            {
-                dev->LoRaMacFlags.Bits.MacDone = 0;
-                #if defined HACK_OTA
-                    /* Hack so retransmited package is re-built*/
-                    if(dev->lorawan.tx_rx.nwk_status == false)
-                    {
-                        lw_hdr_t hdr;
-
-                        hdr.mt_maj = 0;
-                        lw_hdr_set_mtype(&hdr, FRAME_TYPE_JOIN_REQ);
-
-                        lw_hdr_set_adr(&hdr, dev->lorawan.tx_rx.adr_ctrl);
-
-                        /* In case of a join request retransmission, the stack must prepare
-                         * the frame again, because the network server keeps track of the random
-                         * dev->dev_nonce values to prevent reply attacks. */
-                        PrepareFrame( &hdr, 0, NULL, 0 );
-                        /* End of*/
-                    }
-                #endif
-                ScheduleTx( );
             }
         }
     }
