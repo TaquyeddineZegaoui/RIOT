@@ -696,6 +696,19 @@ void retransmit_ack(netdev2_t *netdev)
         // Sends the same frame again
         ScheduleTx( );
     }
+
+    if( dev->AckTimeoutRetriesCounter >= dev->AckTimeoutRetries )
+    {
+        dev->AckTimeoutRetry = false;
+        dev->NodeAckRequested = false;
+        if( dev->IsUpLinkCounterFixed == false )
+        {
+            dev->uplink_counter++;
+        }
+        dev->n_retries = dev->AckTimeoutRetriesCounter;
+
+        dev->LoRaMacState &= ~MAC_TX_RUNNING;
+    }
 }
 
 void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
@@ -1221,32 +1234,12 @@ void finish_rx(netdev2_t *netdev)
     dev->LoRaMacState &= ~MAC_TX_RUNNING;
 }
 
-void on_mac_done(void)
-{
-    if( dev->received_data == 1 )
-    {
-        if( ( dev->ack_received == true ) || ( dev->AckTimeoutRetriesCounter > dev->AckTimeoutRetries ) )
-        {
-            dev->AckTimeoutRetry = false;
-            dev->NodeAckRequested = false;
-            if( dev->IsUpLinkCounterFixed == false )
-            {
-                dev->uplink_counter++;
-            }
-            dev->n_retries = dev->AckTimeoutRetriesCounter;
-
-            dev->LoRaMacState &= ~MAC_TX_RUNNING;
-        }
-    }
-}
 void OnMacStateCheckTimerEvent(netdev2_t *netdev)
 {
     //TimerStop( &MacStateCheckTimer );
     xtimer_remove(&dev->MacStateCheckTimer.dev);
     printf("%i\n", dev->frame_status);
 
-    if( dev->LoRaMacFlags.Bits.MacDone == 1 )
-        on_mac_done();
     // Handle reception for Class B and Class C
     if( ( dev->LoRaMacState & MAC_RX ) == MAC_RX )
     {
