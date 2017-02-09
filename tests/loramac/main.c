@@ -649,9 +649,6 @@ void *_event_loop(void *arg)
                 assert(false);
                 //events->CadDone(sx1276._internal.is_last_cad_success);
                 break;
-            case LORAWAN_TIMER_MAC_STATE:
-                OnMacStateCheckTimerEvent(netdev);
-                break;
             case LORAWAN_TIMER_RX_WINDOW1:
                 OnRxWindow1TimerEvent(netdev);
                 break;
