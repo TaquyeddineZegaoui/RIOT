@@ -534,8 +534,6 @@ static int _send(lorawan_send_t *lws)
         return LORAMAC_STATUS_BUSY;
     }
 
-    dev->frame_status = LORAMAC_EVENT_INFO_STATUS_ERROR;
-
     switch(lws->type)
     {
         case 0:

@@ -608,17 +608,9 @@ void OnRadioTxDone(netdev2_t *netdev)
             //TimerStart( &AckTimeoutTimer, 0);
         }
     }
-    else
-    {
-        dev->frame_status = LORAMAC_EVENT_INFO_STATUS_OK;
-//TODO: Below there's an MlmeConfirm event. Fix this.
-        //dev->frame_status = LORAMAC_EVENT_INFO_STATUS_RX2_TIMEOUT;
-
-    }
 
     if( dev->NodeAckRequested == false )
     {
-        dev->frame_status = LORAMAC_EVENT_INFO_STATUS_OK;
         dev->ChannelsNbRepCounter++;
     }
 }
@@ -817,7 +809,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                     LoRaMacState &= ~MAC_TX_CONFIG;
                 }
 #endif
-                dev->frame_status = LORAMAC_EVENT_INFO_STATUS_OK;
                 dev->lorawan.tx_rx.nwk_status = true;
                 dev->LoRaMacParams.ChannelsDatarate = dev->LoRaMacParamsDefaults.ChannelsDatarate;
                 dev->ChannelsNbRepCounter = dev->LoRaMacParams.ChannelsNbRep;
@@ -829,7 +820,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
             }
             else
             {
-                dev->frame_status = LORAMAC_EVENT_INFO_STATUS_JOIN_FAIL;
                 if( dev->ChannelsNbRepCounter >= dev->LoRaMacParams.ChannelsNbRep )
                 {
                     retransmit_join_req(netdev);
@@ -861,7 +851,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                     if( multicast == 0 )
                     {
                         // We are not the destination of this frame.
-                        dev->frame_status = LORAMAC_EVENT_INFO_STATUS_ADDRESS_FAIL;
                         PrepareRxDoneAbort(netdev);
                         return;
                     }
@@ -911,7 +900,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 // Check for a the maximum allowed counter difference
                 if( sequenceCounterDiff >= MAX_FCNT_GAP )
                 {
-                    dev->frame_status = LORAMAC_EVENT_INFO_STATUS_DOWNLINK_TOO_MANY_FRAMES_LOSS;
                     dev->received_downlink = downLinkCounter;
                     PrepareRxDoneAbort(netdev);
                     return;
@@ -919,14 +907,12 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
 
                 if( isMicOk == true )
                 {
-                    dev->frame_status = LORAMAC_EVENT_INFO_STATUS_OK;
                     dev->Multicast = multicast;
                     dev->FramePending = lw_hdr_get_frame_pending(&hdr);
                     dev->Buffer = NULL;
                     dev->BufferSize = 0;
                     dev->received_downlink = downLinkCounter;
 
-                    dev->frame_status = LORAMAC_EVENT_INFO_STATUS_OK;
 
                     dev->AdrAckCounter = 0;
                     dev->MacCommandsBufferToRepeatIndex = 0;
@@ -939,7 +925,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                         if( ( curMulticastParams->DownLinkCounter == downLinkCounter ) &&
                             ( curMulticastParams->DownLinkCounter != 0 ) )
                         {
-                            dev->frame_status = LORAMAC_EVENT_INFO_STATUS_DOWNLINK_REPEATED;
                             dev->received_downlink = downLinkCounter;
                             PrepareRxDoneAbort(netdev);
                             return;
@@ -968,7 +953,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                             if( ( dev->DownLinkCounter == downLinkCounter ) &&
                                 ( dev->DownLinkCounter != 0 ) )
                             {
-                                dev->frame_status = LORAMAC_EVENT_INFO_STATUS_DOWNLINK_REPEATED;
                                 dev->received_downlink = downLinkCounter;
                                 PrepareRxDoneAbort(netdev);
                                 return;
@@ -1103,8 +1087,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 }
                 else
                 {
-                    dev->frame_status = LORAMAC_EVENT_INFO_STATUS_MIC_FAIL;
-
                     PrepareRxDoneAbort(netdev);
                     return;
                 }
@@ -1114,7 +1096,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
             {
                 memcpy( dev->LoRaMacRxPayload, &payload[pktHeaderLen], size );
 
-                dev->frame_status = LORAMAC_EVENT_INFO_STATUS_OK;
                 dev->Buffer = dev->LoRaMacRxPayload;
                 dev->BufferSize = size - pktHeaderLen;
 
@@ -1122,7 +1103,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 break;
             }
         default:
-            dev->frame_status = LORAMAC_EVENT_INFO_STATUS_ERROR;
             PrepareRxDoneAbort(netdev);
             break;
     }
@@ -1148,7 +1128,6 @@ void OnRadioTxTimeout( netdev2_t *netdev )
         OnRxWindow2TimerEvent(netdev);
     }
 
-    dev->frame_status = LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT;
     // Stop transmit cycle due to tx timeout.
     dev->LoRaMacState &= ~MAC_TX_RUNNING;
     dev->n_retries = dev->AckTimeoutRetriesCounter;
@@ -1168,18 +1147,6 @@ void OnRadioRxError(netdev2_t *netdev)
     {
         OnRxWindow2TimerEvent(netdev);
     }
-
-    if( dev->RxSlot == 1 )
-    {
-        //TODO: Check this
-        /*
-        if( dev->NodeAckRequested == true )
-        {
-            dev->frame_status = LORAMAC_EVENT_INFO_STATUS_RX2_ERROR;
-        }
-        */
-        dev->frame_status = LORAMAC_EVENT_INFO_STATUS_RX2_ERROR;
-    }
 }
 
 void OnRadioRxTimeout(netdev2_t *netdev)
@@ -1196,15 +1163,10 @@ void OnRadioRxTimeout(netdev2_t *netdev)
 
     if( dev->RxSlot == 1 )
     {
-        if( dev->NodeAckRequested == true )
-        {
-            dev->frame_status = LORAMAC_EVENT_INFO_STATUS_RX2_TIMEOUT;
-        }
         if(dev->last_frame == FRAME_TYPE_JOIN_REQ && dev->lorawan.tx_rx.nwk_status == false && dev->ChannelsNbRepCounter >= dev->LoRaMacParams.ChannelsNbRep)
         {
             retransmit_join_req(netdev);
         }
-        dev->frame_status = LORAMAC_EVENT_INFO_STATUS_RX2_TIMEOUT;
         finish_rx((netdev2_t*) dev);
     }
 }
@@ -2071,7 +2033,6 @@ static void ProcessMacCommands( uint8_t *payload, uint8_t macIndex, uint8_t comm
         switch( payload[macIndex++] )
         {
             case SRV_MAC_LINK_CHECK_ANS:
-                dev->frame_status = LORAMAC_EVENT_INFO_STATUS_OK;
                 dev->demod_margin = payload[macIndex++];
                 dev->number_of_gateways = payload[macIndex++];
                 dev->link_check = 1;
@@ -2835,7 +2796,6 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     txPowerIndex = LimitTxPower( dev->LoRaMacParams.ChannelsTxPower );
     txPower = TxPowers[txPowerIndex];
 
-    dev->frame_status = LORAMAC_EVENT_INFO_STATUS_ERROR;
     dev->datarate = dev->LoRaMacParams.ChannelsDatarate;
     dev->tx_power = txPowerIndex;
 
@@ -3347,8 +3307,6 @@ LoRaMacStatus_t join_request(void)
         return LORAMAC_STATUS_BUSY;
     }
 
-    dev->frame_status = LORAMAC_EVENT_INFO_STATUS_ERROR;
-
     if( ( dev->LoRaMacState & MAC_TX_DELAYED ) == MAC_TX_DELAYED )
     {
         return LORAMAC_STATUS_BUSY;
@@ -3383,8 +3341,6 @@ LoRaMacStatus_t link_check(void)
     {
         return LORAMAC_STATUS_BUSY;
     }
-
-    dev->frame_status = LORAMAC_EVENT_INFO_STATUS_ERROR;
 
     // LoRaMac will send this command piggy-pack
     //dev->mlme_confirm.MlmeRequest = MLME_LINK_CHECK;

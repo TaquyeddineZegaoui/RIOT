@@ -8,8 +8,7 @@
 
 /**
  * @ingroup     drivers_netdev_netdev2
- * @{
- *
+ * @{ *
  * @file
  * @brief       Definitions for netdev2 common lorawan code
  *
@@ -42,23 +41,6 @@ typedef enum eMlme
     MLME_JOIN,
     MLME_LINK_CHECK,
 }Mlme_t;
-
-/*!
- * Enumeration containing the status of the operation of a MAC service
- */
-typedef enum eLoRaMacEventInfoStatus
-{
-    LORAMAC_EVENT_INFO_STATUS_OK = 0,
-    LORAMAC_EVENT_INFO_STATUS_ERROR,
-    LORAMAC_EVENT_INFO_STATUS_TX_TIMEOUT,
-    LORAMAC_EVENT_INFO_STATUS_RX2_TIMEOUT,
-    LORAMAC_EVENT_INFO_STATUS_RX2_ERROR,
-    LORAMAC_EVENT_INFO_STATUS_JOIN_FAIL,
-    LORAMAC_EVENT_INFO_STATUS_DOWNLINK_REPEATED,
-    LORAMAC_EVENT_INFO_STATUS_DOWNLINK_TOO_MANY_FRAMES_LOSS,
-    LORAMAC_EVENT_INFO_STATUS_ADDRESS_FAIL,
-    LORAMAC_EVENT_INFO_STATUS_MIC_FAIL,
-}LoRaMacEventInfoStatus_t;
 
 /*!
  * LoRaMAC channels parameters definition
@@ -197,7 +179,6 @@ typedef struct {
     TimerTime_t TxTimeOnAir;
     uint16_t JoinRequestTrials;
     uint8_t RxSlot;
-    uint8_t frame_status;
     uint8_t demod_margin;
     uint8_t number_of_gateways;
     uint8_t last_command;
