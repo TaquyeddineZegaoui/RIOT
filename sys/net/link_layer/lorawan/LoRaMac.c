@@ -614,10 +614,6 @@ void OnRadioTxDone(netdev2_t *netdev)
 //TODO: Below there's an MlmeConfirm event. Fix this.
         //dev->frame_status = LORAMAC_EVENT_INFO_STATUS_RX2_TIMEOUT;
 
-        if( dev->LoRaMacFlags.Value == 0 )
-        {
-           dev->LoRaMacFlags.Bits.McpsReq = 1;
-        }
     }
 
     if( dev->NodeAckRequested == false )
@@ -1234,7 +1230,7 @@ void OnTxDelayedTimerEvent(netdev2_t *netdev)
     xtimer_remove(&dev->TxDelayedTimer.dev);
     dev->LoRaMacState &= ~MAC_TX_DELAYED;
 
-    if( ( dev->LoRaMacFlags.Bits.MlmeReq == 1 ) && ( dev->last_frame == FRAME_TYPE_JOIN_REQ ) )
+    if( (dev->last_frame == FRAME_TYPE_JOIN_REQ ) )
     {
         hdr.mt_maj = 0;
         lw_hdr_set_mtype(&hdr, FRAME_TYPE_JOIN_REQ);
@@ -2941,8 +2937,6 @@ LoRaMacStatus_t LoRaMacInitialization( kernel_pid_t mac_pid)
     dev->TxTimeOnAir = 0;
     dev->RxSlot = 0;
 
-    dev->LoRaMacFlags.Value = 0;
-
     dev->LoRaMacDeviceClass = CLASS_A;
     dev->LoRaMacState = MAC_IDLE;
 
@@ -3362,7 +3356,6 @@ LoRaMacStatus_t join_request(void)
 
     //dev->mlme_confirm.MlmeRequest = MLME_JOIN;
     dev->last_frame = FRAME_TYPE_JOIN_REQ;
-    dev->LoRaMacFlags.Bits.MlmeReq = 1;
 
     hdr.mt_maj = 0;
     lw_hdr_set_mtype(&hdr, FRAME_TYPE_JOIN_REQ);
@@ -3377,7 +3370,6 @@ LoRaMacStatus_t join_request(void)
     if( status != LORAMAC_STATUS_OK )
     {
         dev->NodeAckRequested = false;
-        dev->LoRaMacFlags.Bits.MlmeReq = 0;
     }
 
     return status;
@@ -3394,7 +3386,6 @@ LoRaMacStatus_t link_check(void)
 
     dev->frame_status = LORAMAC_EVENT_INFO_STATUS_ERROR;
 
-    dev->LoRaMacFlags.Bits.MlmeReq = 1;
     // LoRaMac will send this command piggy-pack
     //dev->mlme_confirm.MlmeRequest = MLME_LINK_CHECK;
     dev->last_command = MOTE_MAC_LINK_CHECK_REQ;
@@ -3404,7 +3395,6 @@ LoRaMacStatus_t link_check(void)
     if( status != LORAMAC_STATUS_OK )
     {
         dev->NodeAckRequested = false;
-        dev->LoRaMacFlags.Bits.MlmeReq = 0;
     }
 
     return status;

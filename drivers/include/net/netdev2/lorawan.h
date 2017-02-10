@@ -146,18 +146,6 @@ typedef enum eMcps
     MCPS_PROPRIETARY,
 }Mcps_t;
 
-typedef union eLoRaMacFlags_t
-{
-    uint8_t Value;
-    struct sMacFlagBits
-    {
-        uint8_t McpsReq         : 1;
-        uint8_t McpsInd         : 1;
-        uint8_t MlmeReq         : 1;
-        uint8_t MacDone         : 1;
-    }Bits;
-}LoRaMacFlags_t;
-
 typedef struct {
     netdev2_t netdev;                       /**< @ref netdev2_t base class */
     lorawan_sesion_t lorawan;
@@ -208,7 +196,6 @@ typedef struct {
     bool AckTimeoutRetry;
     TimerTime_t TxTimeOnAir;
     uint16_t JoinRequestTrials;
-    LoRaMacFlags_t LoRaMacFlags;
     uint8_t RxSlot;
     uint8_t frame_status;
     uint8_t demod_margin;

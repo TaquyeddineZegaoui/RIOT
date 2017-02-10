@@ -570,12 +570,7 @@ static int _send(lorawan_send_t *lws)
     }
 
     status = Send( &hdr, lws->port, lws->buffer, lws->size );
-    if( status == LORAMAC_STATUS_OK )
-    {
-        //dev->McpsConfirm.McpsRequest = mcpsRequest->Type;
-        dev->LoRaMacFlags.Bits.McpsReq = 1;
-    }
-    else
+    if( status != LORAMAC_STATUS_OK )
     {
         dev->NodeAckRequested = false;
     }
