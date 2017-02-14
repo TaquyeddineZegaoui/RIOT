@@ -631,34 +631,29 @@ static void PrepareRxDoneAbort(netdev2_t *netdev)
     }
 
     dev->received_data = 1;
-
-    //TimerSetValue( &MacStateCheckTimer, 1 , LORAWAN_TIMER_MAC_STATE);
-    //TimerStart( &MacStateCheckTimer, 0);
 }
 
 void retransmit_join_req(netdev2_t *netdev)
 {
     dev->ChannelsNbRepCounter = 0;
-    #if defined HACK_OTA
-        /* Hack so retransmited package is re-built*/
-        if(dev->lorawan.tx_rx.nwk_status == false)
-        {
-            lw_hdr_t hdr;
+    if(dev->lorawan.tx_rx.nwk_status == false)
+    {
+        lw_hdr_t hdr;
 
-            hdr.mt_maj = 0;
-            lw_hdr_set_mtype(&hdr, FRAME_TYPE_JOIN_REQ);
+        hdr.mt_maj = 0;
+        lw_hdr_set_mtype(&hdr, FRAME_TYPE_JOIN_REQ);
 
-            lw_hdr_set_adr(&hdr, dev->lorawan.tx_rx.adr_ctrl);
+        lw_hdr_set_adr(&hdr, dev->lorawan.tx_rx.adr_ctrl);
 
-            /* In case of a join request retransmission, the stack must prepare
-             * the frame again, because the network server keeps track of the random
-             * dev->dev_nonce values to prevent reply attacks. */
-            PrepareFrame( &hdr, 0, NULL, 0 );
-            /* End of*/
-        }
-    #endif
+        /* In case of a join request retransmission, the stack must prepare
+         * the frame again, because the network server keeps track of the random
+         * dev->dev_nonce values to prevent reply attacks. */
+        PrepareFrame( &hdr, 0, NULL, 0 );
+        /* End of*/
+    }
     ScheduleTx( );
 }
+
 void lorawan_set_pointer(netdev2_lorawan_t* netdev)
 {
     dev = netdev;
@@ -1604,19 +1599,16 @@ static void RxWindowSetup( uint32_t freq, int8_t datarate, uint32_t bandwidth, u
 #elif defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
         modem = MODEM_LORA;
 
-        #if defined HACK_OTA
-            /* Hack Begin*/
-            if(dev->lorawan.tx_rx.nwk_status == false)
-            {
-                (void) timeout;
-                _set_rx_config( modem, bandwidth, downlinkDatarate, 1, 0, 8, 128, false, 0, false, 0, 0, true, rxContinuous );
-            }
-            else
-                _set_rx_config( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous );
-            /* Hack End*/
-        #else
+        /* Hack Begin*/
+        if(dev->lorawan.tx_rx.nwk_status == false)
+        {
+            (void) timeout;
+            _set_rx_config( modem, bandwidth, downlinkDatarate, 1, 0, 8, 128, false, 0, false, 0, 0, true, rxContinuous );
+        }
+        else
             _set_rx_config( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous );
-        #endif
+        /* Hack End*/
+        //_set_rx_config( modem, bandwidth, downlinkDatarate, 1, 0, 8, timeout, false, 0, false, 0, 0, true, rxContinuous );
 
 #endif
 
