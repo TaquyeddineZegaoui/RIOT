@@ -177,7 +177,7 @@ typedef struct {
     uint8_t ack_timeout_retries_counter; /**< Number of ACK retries */
     TimerTime_t TxTimeOnAir;
     uint16_t join_request_trials; /**< Attempts of join requests */
-    uint8_t RxSlot;
+    uint8_t rx_slot; /**< Current RX slot */
     uint8_t demod_margin;
     uint8_t number_of_gateways;
     uint8_t last_command;

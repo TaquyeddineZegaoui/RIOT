@@ -551,6 +551,7 @@ static int _send(lorawan_send_t *lws)
             lw_hdr_set_mtype(&hdr, FRAME_TYPE_DATA_CONFIRMED_UP);
             break;
         }
+        //TODO:
         /*
         case MCPS_PROPRIETARY:
         {

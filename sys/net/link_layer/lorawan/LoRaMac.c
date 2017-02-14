@@ -625,7 +625,7 @@ static void PrepareRxDoneAbort(netdev2_t *netdev)
         OnAckTimeoutTimerEvent(netdev);
     }
 
-    if( ( dev->RxSlot == 0 ) && ( dev->LoRaMacDeviceClass == CLASS_C ) )
+    if( ( dev->rx_slot == 0 ) && ( dev->LoRaMacDeviceClass == CLASS_C ) )
     {
         OnRxWindow2TimerEvent(netdev);
     }
@@ -714,7 +714,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
     dev->ack_received = false;
     dev->Rssi = rssi;
     dev->Snr = snr;
-    //dev->McpsIndication.RxSlot = dev->RxSlot;
     dev->Port = 0;
     dev->Multicast = 0;
     dev->FramePending = 0;
@@ -1101,7 +1100,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
             break;
     }
 
-    if( ( dev->RxSlot == 0 ) && ( dev->LoRaMacDeviceClass == CLASS_C ) )
+    if( ( dev->rx_slot == 0 ) && ( dev->LoRaMacDeviceClass == CLASS_C ) )
     {
         OnRxWindow2TimerEvent(netdev);
     }
@@ -1155,7 +1154,7 @@ void OnRadioRxTimeout(netdev2_t *netdev)
         OnRxWindow2TimerEvent(netdev);
     }
 
-    if( dev->RxSlot == 1 )
+    if( dev->rx_slot == 1 )
     {
         if(dev->last_frame == FRAME_TYPE_JOIN_REQ && dev->lorawan.tx_rx.nwk_status == false && dev->ChannelsNbRepCounter >= dev->LoRaMacParams.ChannelsNbRep)
         {
@@ -1211,7 +1210,7 @@ void OnRxWindow1TimerEvent(netdev2_t *netdev)
 
     //TimerStop( &RxWindowTimer1 );
     xtimer_remove(&dev->RxWindowTimer1.dev);
-    dev->RxSlot = 0;
+    dev->rx_slot = 0;
 
     netopt_state_t state = NETOPT_STATE_STANDBY;
     if( dev->LoRaMacDeviceClass == CLASS_C )
@@ -1295,7 +1294,7 @@ void OnRxWindow2TimerEvent(netdev2_t *netdev)
 
     //TimerStop( &RxWindowTimer2 );
     xtimer_remove(&dev->RxWindowTimer2.dev);
-    dev->RxSlot = 1;
+    dev->rx_slot = 1;
 
 #if defined( USE_BAND_433 ) || defined( USE_BAND_780 ) || defined( USE_BAND_868 )
     // For higher datarates, we increase the number of symbols generating a Rx Timeout
@@ -2883,7 +2882,7 @@ LoRaMacStatus_t LoRaMacInitialization( kernel_pid_t mac_pid)
     dev->ack_timeout_retries = 1;
     dev->ack_timeout_retries_counter = 1;
     dev->TxTimeOnAir = 0;
-    dev->RxSlot = 0;
+    dev->rx_slot = 0;
 
     dev->LoRaMacDeviceClass = CLASS_A;
     dev->LoRaMacState = MAC_IDLE;
