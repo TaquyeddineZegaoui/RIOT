@@ -711,7 +711,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
     bool isMicOk = false;
 
     netopt_state_t state = NETOPT_STATE_SLEEP;
-    dev->ack_received = false;
     dev->Rssi = rssi;
     dev->Snr = snr;
     dev->Port = 0;
@@ -957,7 +956,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                     // Check if the frame is an acknowledgement
                     if( lw_hdr_get_ack(&hdr) )
                     {
-                        dev->ack_received = true;
 
                         // Stop the AckTimeout timer as no more retransmissions
                         // are needed.
@@ -989,7 +987,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                         dev->LoRaMacState &= ~MAC_TX_RUNNING;
 
                         dev->NodeAckRequested = false;
-                        dev->ack_received = false;
                         dev->n_retries = dev->ack_timeout_retries_counter;
                         if( dev->IsUpLinkCounterFixed == false )
                         {
@@ -998,7 +995,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                     }
                     else
                     {
-                        dev->ack_received = false;
 
                         if( dev->ack_timeout_retries_counter > dev->ack_timeout_retries )
                         {
@@ -1124,7 +1120,6 @@ void OnRadioTxTimeout( netdev2_t *netdev )
     // Stop transmit cycle due to tx timeout.
     dev->LoRaMacState &= ~MAC_TX_RUNNING;
     dev->n_retries = dev->ack_timeout_retries_counter;
-    dev->ack_received = false;
     //dev->McpsConfirm.TxTimeOnAir = 0;
     txTimeout = true;
 }
@@ -2344,7 +2339,6 @@ LoRaMacStatus_t Send( lw_hdr_t *hdr, uint8_t fPort, void *fBuffer, uint16_t fBuf
 
     // Reset confirm parameters
     dev->n_retries = 0;
-    dev->ack_received = false;
     //dev->McpsConfirm.uplink_counter = dev->UpLinkCounter;
 
     status = ScheduleTx( );
@@ -2789,7 +2783,6 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     txPower = TxPowers[txPowerIndex];
 
     dev->datarate = dev->LoRaMacParams.ChannelsDatarate;
-    dev->tx_power = txPowerIndex;
 
     netdev->driver->set(netdev, NETOPT_CHANNEL, &channel.Frequency, sizeof(uint32_t));
     netopt_enable_t lm;

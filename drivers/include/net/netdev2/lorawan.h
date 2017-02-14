@@ -182,9 +182,7 @@ typedef struct {
     uint8_t demod_margin;
     uint8_t number_of_gateways;
 
-    bool join_req_sent;
-    int8_t tx_power;
-    bool ack_received;
+    bool join_req_sent; /**< A join request packet was sent */
     uint8_t datarate;
     uint8_t n_retries;
     uint32_t received_downlink;
