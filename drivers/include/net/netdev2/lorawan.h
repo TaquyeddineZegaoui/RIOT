@@ -183,7 +183,6 @@ typedef struct {
     uint8_t number_of_gateways;
 
     bool join_req_sent; /**< A join request packet was sent */
-    uint8_t n_retries;
     uint32_t received_downlink;
     uint8_t Multicast;
     uint8_t Port;

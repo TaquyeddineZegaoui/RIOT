@@ -680,7 +680,6 @@ void retransmit_ack(netdev2_t *netdev)
         {
             dev->uplink_counter++;
         }
-        dev->n_retries = dev->ack_timeout_retries_counter;
 
         dev->LoRaMacState &= ~MAC_TX_RUNNING;
     }
@@ -987,7 +986,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                         dev->LoRaMacState &= ~MAC_TX_RUNNING;
 
                         dev->NodeAckRequested = false;
-                        dev->n_retries = dev->ack_timeout_retries_counter;
                         if( dev->IsUpLinkCounterFixed == false )
                         {
                             dev->uplink_counter++;
@@ -1119,7 +1117,6 @@ void OnRadioTxTimeout( netdev2_t *netdev )
 
     // Stop transmit cycle due to tx timeout.
     dev->LoRaMacState &= ~MAC_TX_RUNNING;
-    dev->n_retries = dev->ack_timeout_retries_counter;
     //dev->McpsConfirm.TxTimeOnAir = 0;
     txTimeout = true;
 }
@@ -2338,7 +2335,6 @@ LoRaMacStatus_t Send( lw_hdr_t *hdr, uint8_t fPort, void *fBuffer, uint16_t fBuf
     }
 
     // Reset confirm parameters
-    dev->n_retries = 0;
     //dev->McpsConfirm.uplink_counter = dev->UpLinkCounter;
 
     status = ScheduleTx( );
