@@ -180,7 +180,6 @@ typedef struct {
     uint8_t rx_slot; /**< Current RX slot */
     uint8_t demod_margin;
     uint8_t number_of_gateways;
-    uint8_t last_command;
     uint8_t last_frame;
     int8_t tx_power;
     bool ack_received;

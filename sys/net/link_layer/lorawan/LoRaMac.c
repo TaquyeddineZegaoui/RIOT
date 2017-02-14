@@ -3330,9 +3330,6 @@ LoRaMacStatus_t link_check(void)
     }
 
     // LoRaMac will send this command piggy-pack
-    //dev->mlme_confirm.MlmeRequest = MLME_LINK_CHECK;
-    dev->last_command = MOTE_MAC_LINK_CHECK_REQ;
-
     status = AddMacCommand( MOTE_MAC_LINK_CHECK_REQ, 0, 0 );
 
     if( status != LORAMAC_STATUS_OK )
