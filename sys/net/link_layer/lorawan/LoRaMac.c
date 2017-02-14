@@ -522,7 +522,7 @@ static void CalculateBackOff( uint8_t channel );
  * \param [IN] nbTrials    Number of performed join requests.
  * \retval Datarate to apply
  */
-static int8_t AlternateDatarate( uint16_t nbTrials );
+static int8_t join_request_alternate_datarate( uint16_t nbTrials );
 
 /*!
  * \brief LoRaMAC layer prepared frame buffer transmission with channel specification
@@ -2461,7 +2461,7 @@ static void CalculateBackOff( uint8_t channel )
     dev->AggregatedTimeOff = dev->AggregatedTimeOff + ( dev->TxTimeOnAir * dev->AggregatedDCycle - dev->TxTimeOnAir );
 }
 
-static int8_t AlternateDatarate( uint16_t nbTrials )
+static int8_t join_request_alternate_datarate( uint16_t nbTrials )
 {
     int8_t datarate = LORAMAC_TX_MIN_DATARATE;
 #if defined( USE_BAND_915 ) || defined( USE_BAND_915_HYBRID )
@@ -3309,7 +3309,7 @@ LoRaMacStatus_t join_request(void)
     ResetMacParameters( );
 
     dev->join_request_trials++;
-    dev->LoRaMacParams.ChannelsDatarate = AlternateDatarate( dev->join_request_trials );
+    dev->LoRaMacParams.ChannelsDatarate = join_request_alternate_datarate( dev->join_request_trials );
 
     status = Send( &hdr, 0, NULL, 0 );
 
