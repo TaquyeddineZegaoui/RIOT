@@ -713,7 +713,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
     dev->Rssi = rssi;
     dev->Snr = snr;
     dev->Port = 0;
-    dev->Multicast = 0;
     dev->FramePending = 0;
     dev->Buffer = NULL;
     dev->BufferSize = 0;
@@ -896,7 +895,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
 
                 if( isMicOk == true )
                 {
-                    dev->Multicast = multicast;
                     dev->FramePending = lw_hdr_get_frame_pending(&hdr);
                     dev->Buffer = NULL;
                     dev->BufferSize = 0;
