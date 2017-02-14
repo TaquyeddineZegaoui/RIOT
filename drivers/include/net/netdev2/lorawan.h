@@ -185,7 +185,6 @@ typedef struct {
     bool join_req_sent; /**< A join request packet was sent */
     //TODO: Port to be removed...
     uint8_t port; 
-    uint8_t RxDatarate;
     uint8_t FramePending;
     uint8_t *Buffer;
     uint8_t BufferSize;
