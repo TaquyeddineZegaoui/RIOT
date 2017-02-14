@@ -675,7 +675,6 @@ void retransmit_ack(netdev2_t *netdev)
 
     if( dev->ack_timeout_retries_counter >= dev->ack_timeout_retries )
     {
-        dev->AckTimeoutRetry = false;
         dev->NodeAckRequested = false;
         if( dev->IsUpLinkCounterFixed == false )
         {
@@ -1369,7 +1368,6 @@ void OnAckTimeoutTimerEvent(netdev2_t *netdev)
 
     if( dev->NodeAckRequested == true )
     {
-        dev->AckTimeoutRetry = true;
         dev->LoRaMacState &= ~MAC_ACK_REQ;
         finish_rx((netdev2_t*) dev);
         retransmit_ack(netdev);
@@ -2526,7 +2524,6 @@ static void ResetMacParameters( void )
 
     dev->ack_timeout_retries = 1;
     dev->ack_timeout_retries_counter = 1;
-    dev->AckTimeoutRetry = false;
 
     dev->MaxDCycle = 0;
     dev->AggregatedDCycle = 1;
@@ -2885,7 +2882,6 @@ LoRaMacStatus_t LoRaMacInitialization( kernel_pid_t mac_pid)
     dev->LoRaMacState = MAC_IDLE;
     dev->ack_timeout_retries = 1;
     dev->ack_timeout_retries_counter = 1;
-    dev->AckTimeoutRetry = false;
     dev->TxTimeOnAir = 0;
     dev->RxSlot = 0;
 

@@ -175,7 +175,6 @@ typedef struct {
     TimerEvent_t AckTimeoutTimer;
     uint8_t ack_timeout_retries; /**< Current number of ACK attempts */
     uint8_t ack_timeout_retries_counter; /**< Number of ACK retries */
-    bool AckTimeoutRetry;
     TimerTime_t TxTimeOnAir;
     uint16_t JoinRequestTrials;
     uint8_t RxSlot;
