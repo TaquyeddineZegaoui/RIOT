@@ -183,7 +183,8 @@ typedef struct {
     uint8_t number_of_gateways;
 
     bool join_req_sent; /**< A join request packet was sent */
-    uint8_t Port;
+    //TODO: Port to be removed...
+    uint8_t port; 
     uint8_t RxDatarate;
     uint8_t FramePending;
     uint8_t *Buffer;

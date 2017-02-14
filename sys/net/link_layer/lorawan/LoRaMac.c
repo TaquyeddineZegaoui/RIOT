@@ -712,7 +712,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
     netopt_state_t state = NETOPT_STATE_SLEEP;
     dev->Rssi = rssi;
     dev->Snr = snr;
-    dev->Port = 0;
+    dev->port = 0;
     dev->FramePending = 0;
     dev->Buffer = NULL;
     dev->BufferSize = 0;
@@ -1001,7 +1001,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                         port = payload[appPayloadStartIndex++];
                         frameLen = ( size - 4 ) - appPayloadStartIndex;
 
-                        dev->Port = port;
+                        dev->port = port;
 
                         if( port == 0 )
                         {

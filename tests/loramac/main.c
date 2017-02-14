@@ -214,7 +214,7 @@ static void ProcessRxFrame(void)
     netdev2_lorawan_t *dev = (netdev2_lorawan_t*) &sx1276;
     uint8_t res;
 
-    switch( dev->Port ) // Check Rx port number
+    switch( dev->port ) // Check Rx port number
     {
     case 1: // The application LED can be controlled on port 1 or 2
     case 2:
