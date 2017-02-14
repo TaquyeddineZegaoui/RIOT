@@ -718,7 +718,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
     dev->Buffer = NULL;
     dev->BufferSize = 0;
     dev->RxData = false;
-    dev->received_downlink = 0;
     //dev->McpsIndication.McpsIndication = MCPS_UNCONFIRMED;
 
     if( dev->LoRaMacDeviceClass != CLASS_C )
@@ -891,7 +890,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                 // Check for a the maximum allowed counter difference
                 if( sequenceCounterDiff >= MAX_FCNT_GAP )
                 {
-                    dev->received_downlink = downLinkCounter;
                     PrepareRxDoneAbort(netdev);
                     return;
                 }
@@ -902,7 +900,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                     dev->FramePending = lw_hdr_get_frame_pending(&hdr);
                     dev->Buffer = NULL;
                     dev->BufferSize = 0;
-                    dev->received_downlink = downLinkCounter;
 
 
                     dev->AdrAckCounter = 0;
@@ -916,7 +913,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                         if( ( curMulticastParams->DownLinkCounter == downLinkCounter ) &&
                             ( curMulticastParams->DownLinkCounter != 0 ) )
                         {
-                            dev->received_downlink = downLinkCounter;
                             PrepareRxDoneAbort(netdev);
                             return;
                         }
@@ -944,7 +940,6 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                             if( ( dev->DownLinkCounter == downLinkCounter ) &&
                                 ( dev->DownLinkCounter != 0 ) )
                             {
-                                dev->received_downlink = downLinkCounter;
                                 PrepareRxDoneAbort(netdev);
                                 return;
                             }
