@@ -538,15 +538,15 @@ static int _send(lorawan_send_t *lws)
     {
         case 0:
         {
-            dev->AckTimeoutRetries = 1;
+            dev->ack_timeout_retries = 1;
 
             lw_hdr_set_mtype(&hdr, FRAME_TYPE_DATA_UNCONFIRMED_UP);
             break;
         }
         case 1:
         {
-            dev->AckTimeoutRetriesCounter = 1;
-            dev->AckTimeoutRetries = lws->retries;
+            dev->ack_timeout_retries_counter = 1;
+            dev->ack_timeout_retries = lws->retries;
 
             lw_hdr_set_mtype(&hdr, FRAME_TYPE_DATA_CONFIRMED_UP);
             break;

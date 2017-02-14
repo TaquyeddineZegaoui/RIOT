@@ -173,8 +173,8 @@ typedef struct {
     uint32_t RxWindow1Delay;
     uint32_t RxWindow2Delay;
     TimerEvent_t AckTimeoutTimer;
-    uint8_t AckTimeoutRetries;
-    uint8_t AckTimeoutRetriesCounter;
+    uint8_t ack_timeout_retries; /**< Current number of ACK attempts */
+    uint8_t ack_timeout_retries_counter; /**< Number of ACK retries */
     bool AckTimeoutRetry;
     TimerTime_t TxTimeOnAir;
     uint16_t JoinRequestTrials;

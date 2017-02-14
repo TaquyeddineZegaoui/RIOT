@@ -661,11 +661,11 @@ void lorawan_set_pointer(netdev2_lorawan_t* netdev)
 
 void retransmit_ack(netdev2_t *netdev)
 {
-    if( ( dev->AckTimeoutRetriesCounter < dev->AckTimeoutRetries ) && ( dev->AckTimeoutRetriesCounter <= MAX_ACK_RETRIES ) )
+    if( ( dev->ack_timeout_retries_counter < dev->ack_timeout_retries ) && ( dev->ack_timeout_retries_counter <= MAX_ACK_RETRIES ) )
     {
-        dev->AckTimeoutRetriesCounter++;
+        dev->ack_timeout_retries_counter++;
 
-        if( ( dev->AckTimeoutRetriesCounter % 2 ) == 1 )
+        if( ( dev->ack_timeout_retries_counter % 2 ) == 1 )
         {
             dev->LoRaMacParams.ChannelsDatarate = MAX( dev->LoRaMacParams.ChannelsDatarate - 1, LORAMAC_TX_MIN_DATARATE );
         }
@@ -673,7 +673,7 @@ void retransmit_ack(netdev2_t *netdev)
         ScheduleTx( );
     }
 
-    if( dev->AckTimeoutRetriesCounter >= dev->AckTimeoutRetries )
+    if( dev->ack_timeout_retries_counter >= dev->ack_timeout_retries )
     {
         dev->AckTimeoutRetry = false;
         dev->NodeAckRequested = false;
@@ -681,7 +681,7 @@ void retransmit_ack(netdev2_t *netdev)
         {
             dev->uplink_counter++;
         }
-        dev->n_retries = dev->AckTimeoutRetriesCounter;
+        dev->n_retries = dev->ack_timeout_retries_counter;
 
         dev->LoRaMacState &= ~MAC_TX_RUNNING;
     }
@@ -992,7 +992,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
 
                         dev->NodeAckRequested = false;
                         dev->ack_received = false;
-                        dev->n_retries = dev->AckTimeoutRetriesCounter;
+                        dev->n_retries = dev->ack_timeout_retries_counter;
                         if( dev->IsUpLinkCounterFixed == false )
                         {
                             dev->uplink_counter++;
@@ -1002,7 +1002,7 @@ void OnRadioRxDone(netdev2_t *netdev, uint8_t *payload, uint16_t size, int16_t r
                     {
                         dev->ack_received = false;
 
-                        if( dev->AckTimeoutRetriesCounter > dev->AckTimeoutRetries )
+                        if( dev->ack_timeout_retries_counter > dev->ack_timeout_retries )
                         {
                             // Stop the AckTimeout timer as no more retransmissions
                             // are needed.
@@ -1125,7 +1125,7 @@ void OnRadioTxTimeout( netdev2_t *netdev )
 
     // Stop transmit cycle due to tx timeout.
     dev->LoRaMacState &= ~MAC_TX_RUNNING;
-    dev->n_retries = dev->AckTimeoutRetriesCounter;
+    dev->n_retries = dev->ack_timeout_retries_counter;
     dev->ack_received = false;
     //dev->McpsConfirm.TxTimeOnAir = 0;
     txTimeout = true;
@@ -2524,8 +2524,8 @@ static void ResetMacParameters( void )
 
     dev->ChannelsNbRepCounter = 0;
 
-    dev->AckTimeoutRetries = 1;
-    dev->AckTimeoutRetriesCounter = 1;
+    dev->ack_timeout_retries = 1;
+    dev->ack_timeout_retries_counter = 1;
     dev->AckTimeoutRetry = false;
 
     dev->MaxDCycle = 0;
@@ -2883,8 +2883,8 @@ LoRaMacStatus_t LoRaMacInitialization( kernel_pid_t mac_pid)
     dev->ChannelsNbRepCounter = 0;
     dev->MaxDCycle = 0;
     dev->LoRaMacState = MAC_IDLE;
-    dev->AckTimeoutRetries = 1;
-    dev->AckTimeoutRetriesCounter = 1;
+    dev->ack_timeout_retries = 1;
+    dev->ack_timeout_retries_counter = 1;
     dev->AckTimeoutRetry = false;
     dev->TxTimeOnAir = 0;
     dev->RxSlot = 0;
