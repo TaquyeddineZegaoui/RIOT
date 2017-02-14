@@ -2782,8 +2782,6 @@ LoRaMacStatus_t SendFrameOnChannel( ChannelParams_t channel )
     txPowerIndex = LimitTxPower( dev->LoRaMacParams.ChannelsTxPower );
     txPower = TxPowers[txPowerIndex];
 
-    dev->datarate = dev->LoRaMacParams.ChannelsDatarate;
-
     netdev->driver->set(netdev, NETOPT_CHANNEL, &channel.Frequency, sizeof(uint32_t));
     netopt_enable_t lm;
 
