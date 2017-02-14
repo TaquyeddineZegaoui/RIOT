@@ -2888,7 +2888,7 @@ LoRaMacStatus_t LoRaMacInitialization( kernel_pid_t mac_pid)
     dev->LoRaMacDeviceClass = CLASS_A;
     dev->LoRaMacState = MAC_IDLE;
 
-    dev->JoinRequestTrials = 0;
+    dev->join_request_trials = 0;
     dev->RepeaterSupport = false;
 
     // Reset duty cycle times
@@ -3308,8 +3308,8 @@ LoRaMacStatus_t join_request(void)
 
     ResetMacParameters( );
 
-    dev->JoinRequestTrials++;
-    dev->LoRaMacParams.ChannelsDatarate = AlternateDatarate( dev->JoinRequestTrials );
+    dev->join_request_trials++;
+    dev->LoRaMacParams.ChannelsDatarate = AlternateDatarate( dev->join_request_trials );
 
     status = Send( &hdr, 0, NULL, 0 );
 
