@@ -1156,7 +1156,7 @@ void OnRadioRxTimeout(netdev2_t *netdev)
 
     if( dev->rx_slot == 1 )
     {
-        if(dev->last_frame == FRAME_TYPE_JOIN_REQ && dev->lorawan.tx_rx.nwk_status == false && dev->ChannelsNbRepCounter >= dev->LoRaMacParams.ChannelsNbRep)
+        if(dev->join_req_sent && dev->lorawan.tx_rx.nwk_status == false && dev->ChannelsNbRepCounter >= dev->LoRaMacParams.ChannelsNbRep)
         {
             retransmit_join_req(netdev);
         }
@@ -1185,7 +1185,7 @@ void OnTxDelayedTimerEvent(netdev2_t *netdev)
     xtimer_remove(&dev->TxDelayedTimer.dev);
     dev->LoRaMacState &= ~MAC_TX_DELAYED;
 
-    if( (dev->last_frame == FRAME_TYPE_JOIN_REQ ) )
+    if(dev->join_req_sent)
     {
         hdr.mt_maj = 0;
         lw_hdr_set_mtype(&hdr, FRAME_TYPE_JOIN_REQ);
@@ -2616,12 +2616,15 @@ LoRaMacStatus_t PrepareFrame( lw_hdr_t *hdr, uint8_t fPort, void *fBuffer, uint1
             dev->LoRaMacBuffer[dev->LoRaMacBufferPktLen++] = ( mic >> 8 ) & 0xFF;
             dev->LoRaMacBuffer[dev->LoRaMacBufferPktLen++] = ( mic >> 16 ) & 0xFF;
             dev->LoRaMacBuffer[dev->LoRaMacBufferPktLen++] = ( mic >> 24 ) & 0xFF;
+            dev->join_req_sent = true;
 
             break;
         case FRAME_TYPE_DATA_CONFIRMED_UP:
             dev->NodeAckRequested = true;
+            dev->join_req_sent = false;
             //Intentional falltrough
         case FRAME_TYPE_DATA_UNCONFIRMED_UP:
+            dev->join_req_sent = false;
             if( dev->lorawan.tx_rx.nwk_status == false )
             {
                 return LORAMAC_STATUS_NO_NETWORK_JOINED; // No network has been joined yet
@@ -2716,6 +2719,7 @@ LoRaMacStatus_t PrepareFrame( lw_hdr_t *hdr, uint8_t fPort, void *fBuffer, uint1
 
             break;
         case FRAME_TYPE_PROPRIETARY:
+            dev->join_req_sent = false;
             if( ( fBuffer != NULL ) && ( fBufferSize > 0 ) )
             {
                 memcpy( dev->LoRaMacBuffer + pktHeaderLen, ( uint8_t* ) fBuffer, fBufferSize );
@@ -2883,6 +2887,7 @@ LoRaMacStatus_t LoRaMacInitialization( kernel_pid_t mac_pid)
     dev->ack_timeout_retries_counter = 1;
     dev->TxTimeOnAir = 0;
     dev->rx_slot = 0;
+    dev->join_req_sent = false;
 
     dev->LoRaMacDeviceClass = CLASS_A;
     dev->LoRaMacState = MAC_IDLE;
@@ -3300,7 +3305,6 @@ LoRaMacStatus_t join_request(void)
     }
 
     //dev->mlme_confirm.MlmeRequest = MLME_JOIN;
-    dev->last_frame = FRAME_TYPE_JOIN_REQ;
 
     hdr.mt_maj = 0;
     lw_hdr_set_mtype(&hdr, FRAME_TYPE_JOIN_REQ);
