@@ -93,8 +93,6 @@ uint8_t count_drops (uint32_t sample_time)
     start_ticks =  xtimer_now();
     actual_time = xtimer_now_usec64();
 
-    puts("start");
-
     int sum=0;
     while( (actual_time - start_time) < sample_time )
     {
@@ -147,8 +145,6 @@ uint8_t count_drops (uint32_t sample_time)
 
 	drops.sampled_time = (actual_time - start_time)*1000;
 	drops.number = sum;
-
-	puts("stop");
 
     INFRARED_OFF;
 

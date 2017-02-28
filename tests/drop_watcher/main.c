@@ -41,6 +41,8 @@
 extern adc_t sensors[];
 #endif
 
+#define TIME_DROPS 10000000
+
 #ifdef ENABLE_FILTER
 
 extern uint8_t atd(uint16_t value);
@@ -92,9 +94,9 @@ int main(void)
 #endif
     xtimer_usleep(1000);
 #else
-        count_drops(10000000);
+        count_drops(TIME_DROPS);
         int drops = get_drops();
-        printf("Value: %i\n", drops);
+        printf("%i\n", drops);
 #endif
     }
     return 0;
