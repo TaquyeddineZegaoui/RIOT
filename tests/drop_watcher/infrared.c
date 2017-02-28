@@ -16,12 +16,12 @@ static bool drop_detect(uint8_t *drop_bits, uint8_t last_accum_drop)
 	return (*drop_bits & 7) == 0x07;
 }
 
-static uint8_t atd(uint16_t value)
+uint8_t atd(uint16_t value)
 {
 	return (value > THRESHOLD);
 }
 
-static uint16_t high_filter(uint16_t adc, uint16_t adc_1, uint16_t yn_1)
+uint16_t high_filter(uint16_t adc, uint16_t adc_1, uint16_t yn_1)
 {
  
   double cte_in = 0.99502;
@@ -47,10 +47,10 @@ uint8_t count_drops (uint32_t sample_time)
     uint16_t y[NSENSOR]   = {0,0,0};
 
     /* Aux Variables*/
-    uint8_t drop_counts = 0;
+    //uint8_t drop_counts = 0;
 	uint8_t drop_bool   = 0;
 	uint8_t drop_agreg  = 0;
-	uint8_t debouncer = 0x00;
+	//uint8_t debouncer = 0x00;
 
 	uint8_t drop_bits = 0x00;
 
@@ -95,6 +95,7 @@ uint8_t count_drops (uint32_t sample_time)
 
     puts("start");
 
+    int sum=0;
     while( (actual_time - start_time) < sample_time )
     {
     	INFRARED_ON;
@@ -123,6 +124,7 @@ uint8_t count_drops (uint32_t sample_time)
 
 		//printf("%d %d %d \n", y[2], y[1], y[0]);
 
+#if 0
 		debouncer = ((debouncer << 1) | drop_detect(&drop_bits, drop_agreg)) & 0x1F;
 
 		/* Filter output drops */
@@ -135,6 +137,8 @@ uint8_t count_drops (uint32_t sample_time)
 		if(drop_counts > 255)
 			return 0;
 
+#endif
+        sum += drop_agreg > 0 ? 1:0;
 		/* Update time*/
 		actual_time = xtimer_now_usec64();
 		if((actual_time - start_time) < sample_time)
@@ -142,7 +146,7 @@ uint8_t count_drops (uint32_t sample_time)
 	}
 
 	drops.sampled_time = (actual_time - start_time)*1000;
-	drops.number = drop_counts;
+	drops.number = sum;
 
 	puts("stop");
 
@@ -151,7 +155,7 @@ uint8_t count_drops (uint32_t sample_time)
     return 1;
 }
 
-uint8_t get_drops( void )
+int get_drops( void )
 {
 	return drops.number;
 }

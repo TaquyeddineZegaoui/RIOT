@@ -31,10 +31,10 @@
  */
 typedef struct drops
 {
-	uint8_t number;
+	int number;
 	uint16_t sampled_time;
 }drops_t;
 
 uint8_t count_drops ( uint32_t sample_time );
-uint8_t get_drops( void );
+int get_drops( void );
 uint16_t get_time( void );

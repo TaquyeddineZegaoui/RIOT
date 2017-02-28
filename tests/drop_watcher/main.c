@@ -32,12 +32,20 @@
 #include "infrared.h"
 #include "boards_hw.h"
 
-#define JUST_SERIAL 1
-
+#define JUST_SERIAL 0
 #if JUST_SERIAL
-adc_t sensors[] = {ADC_LINE(0), ADC_LINE(1), ADC_LINE(2)};
+#define ENABLE_FILTER
 #endif
 
+#if JUST_SERIAL
+extern adc_t sensors[];
+#endif
+
+#ifdef ENABLE_FILTER
+
+extern uint8_t atd(uint16_t value);
+extern uint16_t high_filter(uint16_t adc, uint16_t adc_1, uint16_t yn_1);
+#endif
 int main(void)
 {
     adc_init(ADC_VDIV);
@@ -52,19 +60,41 @@ int main(void)
     INFRARED_ON;
 
 #if JUST_SERIAL
-    uint16_t adc[3];
+    uint16_t adc[3]={1023,1023,1023};
 #endif
+
+#ifdef ENABLE_FILTER
+    int adc_1[3] = {1023,1023,1023};
+    int y[3] = {0,0,0};
+#endif
+
     while(1)
     {
 #if JUST_SERIAL
     for(int i=0;i<3;i++)
     {
+#ifdef ENABLE_FILTER
+        adc_1[i] = adc[i];
+#endif
         adc[i] = adc_sample(sensors[i], SENSOR_RES);
     } 
+
+#ifdef ENABLE_FILTER
+    for(int i=0;i<3;i++)
+    {
+        y[i] = high_filter(adc[i], adc_1[i], y[i]);
+    }
+    printf("%i,%i,%i,", adc[0], adc[1], adc[2]);
+    printf("%i,%i,%i,", y[0], y[1], y[2]);
+    printf("%i,%i,%i\n", atd(y[0]), atd(y[1]), atd(y[2]));
+#else
     printf("%i,%i,%i\n", adc[0], adc[1], adc[2]);
+#endif
     xtimer_usleep(1000);
 #else
         count_drops(10000000);
+        int drops = get_drops();
+        printf("Value: %i\n", drops);
 #endif
     }
     return 0;

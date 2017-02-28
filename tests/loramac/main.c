@@ -228,45 +228,32 @@ struct ComplianceTest_s
  */
 static void PrepareTxFrame( uint8_t port )
 {
+    bool dbg = false;
     switch( port )
     {
+    case 2:
+        dbg = true;
     case 1:
         {
-            if(count_drops(DROP_TIME))
-                AppData[8] = 0xFF;
-            else
-                AppData[8] = 0xAA;
+            count_drops(DROP_TIME);
+            AppData[9] = 0xFF;
 
             uint16_t time = get_time();
             AppData[0] = NodeId[0];
             AppData[1] = NodeId[1];
             AppData[2] = NodeId[2];
             AppData[3] = NodeId[3];
-            AppData[4] = get_drops();
-            AppData[5] = (uint8_t) (time & 0xff);
-            AppData[6] = (uint8_t) ((time >> 8) & 0xff);
-            AppData[7] = board_get_battery_level();
-        }
-
-    case 2:
-        {
-            if(count_drops(DROP_TIME))
-                AppData[8] = 0xFF;
-            else
-                AppData[8] = 0xAA;
-
-            uint16_t time = get_time();
-            AppData[0] = NodeId[0];
-            AppData[1] = NodeId[1];
-            AppData[2] = NodeId[2];
-            AppData[3] = NodeId[3];
-            AppData[4] = get_drops();
-            AppData[5] = (uint8_t) (time & 0xff);
-            AppData[6] = (uint8_t) ((time >> 8) & 0xff);
-            AppData[7] = board_get_battery_level();
-
-            printf("DROPS: %d \n", get_drops());
-            printf("BAT: %d \n", (100*board_get_battery_level())/255);
+            AppData[4] = (get_drops() >> 8) & 0xff;
+            AppData[5] = get_drops() & 0xff;
+            AppData[6] = (uint8_t) (time & 0xff);
+            AppData[7] = (uint8_t) ((time >> 8) & 0xff);
+            AppData[8] = board_get_battery_level();
+            if(dbg)
+            {
+                printf("DROPS: %d \n", get_drops());
+                printf("BAT: %d \n", (100*board_get_battery_level())/255);
+            }
+            AppDataSize = 10;
         }
         break;
     case 224:
